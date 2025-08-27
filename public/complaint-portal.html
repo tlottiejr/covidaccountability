@@ -1,0 +1,83 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Complaint Portal</title>
+  <link rel="stylesheet" href="/assets/styles.css" />
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+</head>
+<body>
+  <link rel="stylesheet" href="/assets/site.css">
+<header class="site-header">
+  <nav class="nav">
+    <a href="/">Home</a>
+    <a href="/complaint-portal.html">Portal</a>
+    <a href="/about.html">About</a>
+    <a href="/who-can-report.html">Who can report</a>
+    <a href="/why-report.html">Why report</a>
+    <a href="/our-story.html">Our story</a>
+  </nav>
+</header>
+  <header class="container">
+    <a href="/" class="link">&larr; Back</a>
+    <h1>Complaint Portal</h1>
+    <p class="lead">Select your state to get the official complaint link. You may also submit details to our database (optional).</p>
+  </header>
+
+  <main class="container">
+    <form id="reportForm" novalidate>
+      <fieldset>
+        <legend>Find your state board</legend>
+
+        <label for="state">State</label>
+        <select id="state" name="state" required>
+          <option value="" disabled selected>Loading states…</option>
+        </select>
+
+        <div id="boardLinkWrap" class="muted" hidden>
+          Official complaint page:
+          <a id="boardLink" href="#" rel="noopener" target="_blank">Open</a>
+        </div>
+      </fieldset>
+
+      <fieldset>
+        <legend>Share your experience (optional)</legend>
+
+        <label for="name">Name (optional)</label>
+        <input id="name" name="name" autocomplete="name" />
+
+        <label for="email">Email (optional)</label>
+        <input id="email" name="email" type="email" autocomplete="email" />
+
+        <label for="details">Details</label>
+        <textarea id="details" name="details" rows="6" placeholder="Describe what happened…" required></textarea>
+
+        <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8" date-theme="auto"></div>
+      </fieldset>
+
+      <div class="mt-3 space-x-4" id="local-options">
+        <label><input type="checkbox" id="optDownload"> Save a local copy (JSON)</label>
+        <label><input type="checkbox" id="optCopy"> Copy text to clipboard</label>
+      </div>
+
+      <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+      <!-- Turnstile widget -->
+      <div class="cf-turnstile"
+        data-sitekey="YOUR_TURNSTILE_SITE_KEY"
+        data-theme="auto"></div>
+
+      <div class="row">
+        <button class="btn" type="submit">Submit report</button>
+        <span id="status" role="status" class="status"></span>
+      </div>
+    </form>
+  </main>
+
+  <footer class="container small">
+    <p>Your state link is public information. Reports you submit here are stored privately in D1 for analysis.</p>
+  </footer>
+
+  <script src="/assets/app.js" type="module"></script>
+</body>
+</html>
