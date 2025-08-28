@@ -21,6 +21,7 @@
   }
 
   async function loadStates() {
+    if (!ui.select) return;
     ui.select.innerHTML = `<option>Loading states...</option>`;
     try {
       const data =
@@ -97,3 +98,4 @@
 
   document.addEventListener("DOMContentLoaded", loadStates);
 })();
+
