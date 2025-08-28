@@ -1,6 +1,6 @@
 // functions/api/states.js
 export async function onRequestGet({ request, env }) {
-  // Prefer live D1 data, but never break the UI if DB is empty/misconfigured.
+  // Prefer live D1; never break UI if DB is empty/misconfigured.
   if (env.DB) {
     try {
       const { results } = await env.DB.prepare(
@@ -24,7 +24,7 @@ export async function onRequestGet({ request, env }) {
     }
   }
 
-  // Static fallback (works in Pages Functions + wrangler pages dev)
+  // Static fallback bundled in the site
   const url = new URL("/assets/states.json", request.url);
   const res = await fetch(url.toString(), { headers: { accept: "application/json" } });
   return new Response(await res.text(), {
