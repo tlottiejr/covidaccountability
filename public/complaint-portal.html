@@ -2,68 +2,113 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Complaint Portal — COVIDAccountabilityNow</title>
-  <link rel="stylesheet" href="/assets/site.css" />
-  <script defer src="/assets/partials.js"></script>
-  <script defer src="/assets/app.js"></script>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <main class="container">
-    <h1>Complaint Portal</h1>
-    <p>Choose your state to open the official complaint page. You can optionally save a local copy and copy your text for your own records. We do not store your report.</p>
+  <!-- Header (auto-injected by /shell.js) -->
+  <div id="__header" data-include="/partials/header.html"></div>
 
-    <form id="reportForm" class="grid" onsubmit="return false;">
+  <main class="container portal">
+    <h1>Complaint Portal</h1>
+    <p class="muted">
+      Choose your state to open the official complaint page. You can optionally save a local copy
+      and copy your text for your own records. We do not store your report.
+    </p>
+
+    <div class="grid portal-grid">
+      <!-- LEFT: State + board info -->
       <section class="card">
         <h2>Find your state board</h2>
-        <label for="stateSelect">State</label>
-        <select id="stateSelect" aria-label="State">
+
+        <label for="state" class="sr-only">State</label>
+        <select id="state" class="input w-full">
           <option value="">Loading states…</option>
         </select>
 
-        <div id="boardInfo" class="card" style="margin-top:12px"></div>
+        <div class="hr" role="separator" aria-hidden="true"></div>
 
-        <div style="display:flex; gap:10px; margin-top:12px;">
-          <button type="button" id="openBoardBtn" class="btn ok" disabled>Open board page</button>
+        <h3 class="muted">Board</h3>
+        <div class="board-info">
+          <div class="row">
+            <div class="k">Name</div>
+            <div class="v" id="boardName">—</div>
+          </div>
+          <div class="row">
+            <div class="k">URL</div>
+            <div class="v" id="boardUrl">Not available yet</div>
+          </div>
+          <div class="row">
+            <div class="k">Host</div>
+            <div class="v" id="boardHost">—</div>
+          </div>
+          <div class="row">
+            <div class="k">Status</div>
+            <div class="v muted" id="boardStatus">—</div>
+          </div>
+          <div class="row">
+            <div class="k">Verified</div>
+            <div class="v muted" id="boardVerified">—</div>
+          </div>
         </div>
+
+        <button id="btnOpenBoard" class="btn mt-3" disabled>Open board page</button>
       </section>
 
+      <!-- MIDDLE: Report form -->
       <section class="card">
         <h2>Share your experience (optional)</h2>
-        <label for="name">Name (optional)</label>
-        <input id="name" placeholder="Your name…" autocomplete="name" />
 
-        <label for="email">Email (optional)</label>
-        <input id="email" type="email" placeholder="you@example.com" autocomplete="email" />
+        <form id="reportForm" novalidate>
+          <label for="name">Name (optional)</label>
+          <input id="name" class="input" type="text" placeholder="Your name…" />
 
-        <label for="details">Details</label>
-        <textarea id="details" placeholder="Describe what happened…"></textarea>
+          <label for="email">Email (optional)</label>
+          <input id="email" class="input" type="email" placeholder="you@example.com" />
 
-        <div style="margin-top:10px">
-          <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8"></div>
-          <small class="muted">Verification prevents spam.</small>
-        </div>
+          <label for="details">Details</label>
+          <textarea id="details" class="input" rows="7" placeholder="Describe what happened…"></textarea>
+
+          <div class="verify">
+            <!-- Turnstile widget; keep your existing sitekey if you already set it -->
+            <div class="cf-turnstile"
+                 data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8"
+                 data-theme="dark"></div>
+            <div id="verifyStatus" class="muted"></div>
+          </div>
+
+          <button type="submit" class="btn">Submit report</button>
+        </form>
       </section>
 
-      <section class="card">
+      <!-- RIGHT: Options -->
+      <aside class="card">
         <h2>Optional actions</h2>
-        <label><input type="checkbox" id="optDownload" /> Save a local copy (JSON)</label>
-        <label><input type="checkbox" id="optCopy" /> Copy text to clipboard</label>
-        <div style="margin-top:12px">
-          <button class="btn primary" type="submit">Submit report</button>
-        </div>
-      </section>
-    </form>
+        <label class="check">
+          <input id="optDownload" type="checkbox" />
+          <span>Save a local copy (JSON)</span>
+        </label>
+        <label class="check">
+          <input id="optCopy" type="checkbox" />
+          <span>Copy text to clipboard</span>
+        </label>
+      </aside>
+    </div>
 
-    <p class="muted" style="margin-top:18px">
-      Your state link is public information. Reports you submit here are stored privately in D1 for analysis (future update).
+    <p class="muted small" style="margin-top:1rem">
+      Your state link is public information. Reports you submit here are stored privately in D1 for analysis
+      (future update).
     </p>
   </main>
 
-  <div class="toast" aria-live="polite"></div>
+  <!-- Footer (auto-injected by /shell.js) -->
+  <div id="__footer" data-include="/partials/footer.html"></div>
+
+  <!-- Turnstile loader -->
+  <script defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
+  <!-- Shell + app logic -->
+  <script defer src="/shell.js"></script>
+  <script defer src="/app.js"></script>
 </body>
 </html>
-
-
-
