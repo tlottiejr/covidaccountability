@@ -64,6 +64,41 @@
     throw (lastErr || new Error('No states JSON found.'));
   }
 
+  // public/app.js (snippet used on complaint-portal.html)
+async function loadStates() {
+  const sel = document.getElementById("state");
+  if (!sel) return;
+
+  sel.innerHTML = `<option value="">Loading states…</option>`;
+
+  try {
+    const res = await fetch("/api/states", { headers: { "accept": "application/json" } });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const states = await res.json();
+
+    // Clear + add placeholder
+    sel.innerHTML = `<option value="">Select your state...</option>`;
+
+    // Add all states; disabled if unavailable
+    for (const s of states) {
+      const opt = document.createElement("option");
+      opt.value = s.code;
+      opt.textContent = s.name || s.code;
+      if (s.unavailable) {
+        opt.disabled = true;
+        opt.textContent += " (temporarily unavailable)";
+      }
+      opt.dataset.link = s.link || "";
+      sel.appendChild(opt);
+    }
+  } catch (e) {
+    sel.innerHTML = `<option value="">Failed to load states</option>`;
+    console.error("loadStates:", e);
+  }
+}
+
+document.addEventListener("DOMContentLoaded", loadStates);
+  
   async function populateStates(){
     const sel = $('#stateSelect'); const err = $('#stateError');
     if (!sel) return;
