@@ -2,9 +2,26 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Complaint Portal — COVIDAccountabilityNow</title>
-  <link rel="stylesheet" href="/styles.css" />
+
+  <!-- Inject the shared header (nav + CSS links) -->
+  <script src="/partials/partials.js" defer></script>
+
+  <!-- Hard fallback CSS in case the partial fails OR the path differs -->
+  <link rel="stylesheet" href="/site.css">
+  <link rel="stylesheet" href="/assets/site.css">
+  <style>
+    /* tiny safety net so the page isn’t bare if CSS fails entirely */
+    body{background:#0f1115;color:#e5e7eb;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif}
+  </style>
+
+  <!-- App scripts used by the portal -->
+  <script src="/assets/app.js" defer></script>
+  <script src="/assets/nav.js" defer></script>
+
+  <!-- Cloudflare Turnstile client (needed for the widget) -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
   <!-- Header (auto-injected by /shell.js) -->
