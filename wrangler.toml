@@ -1,10 +1,9 @@
-# wrangler.toml (replace everything)
 name = "covidaccountability"
 pages_build_output_dir = "public"
 compatibility_date = "2025-01-01"
 
-# Bind your existing D1 database
+# D1 binding used by /functions/api/states.js
 [[d1_databases]]
-binding = "DB"                          # must be exactly DB to match code
-database_name = "medportal_db"
-database_id   = "84a3b4f0-70fe-4d09-8006-c35576e4e109"  # keep yours
+binding = "DB"                     # do not change; code expects env.DB
+database_name = "medportal_db"     # your D1 name in Dashboard
+database_id   = "84a3b4f0-70fe-4d09-8006-c35576e4e109"  # your D1 ID
