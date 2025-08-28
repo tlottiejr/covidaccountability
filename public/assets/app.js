@@ -2,7 +2,6 @@
 (() => {
   const $ = s => document.querySelector(s);
 
-  // Little toast helper
   function toast(msg, ms=2200){
     let t = document.querySelector('.toast');
     if(!t){ t = document.createElement('div'); t.className='toast'; document.body.appendChild(t); }
@@ -10,53 +9,109 @@
     clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), ms);
   }
 
-  // Robust GET /api/states → always return an array
-  async function fetchStates(){
-    const res = await fetch('/api/states', { headers: { 'accept':'application/json' }, cache: 'no-store' });
-    const data = await res.json().catch(()=>[]);
-    let arr = Array.isArray(data) ? data : (data?.states || data?.data || []);
-    if (!Array.isArray(arr)) arr = [];
-    // normalize
-    return arr.map(s => ({
-      code: s.code || s.abbr || s.slug || s.id || s.state || '',
-      label: s.label || s.name || s.state || s.code || 'Unknown',
-      link:  s.link  || s.url  || s.href  || s.board_link || '',
-      unavailable: !!(s.unavailable || s.disabled || s.down)
-    }));
+  // Parse JSON or return null on HTML/text
+  async function safeJson(res){
+    const txt = await res.text();
+    try {
+      const j = JSON.parse(txt);
+      return j;
+    } catch {
+      // If it looks like HTML (Access, 403, 404, etc) return null
+      if (/<html|<!doctype/i.test(txt)) return null;
+      // Try a lenient eval of arrays (rare)
+      if (/^\s*\[/.test(txt)) {
+        try { return Function(`return (${txt})`)(); } catch {}
+      }
+      return null;
+    }
   }
 
-  async function ensureStates(){
-    const sel = $('#stateSelect'); if(!sel) return;
-    if (sel.options.length > 1) return; // already filled
+  // Robust state fetcher with fallbacks and console diagnostics
+  async function getStatesList() {
+    const tries = ['/api/states', '/api/states/', '/assets/states.json'];
+    let lastErr = null;
+
+    for (const url of tries) {
+      try {
+        const res = await fetch(url, { headers: { 'accept': 'application/json' }, cache: 'no-store' });
+        if (!res.ok) {
+          console.warn(`[states] ${url} → ${res.status}`);
+          lastErr = new Error(`HTTP ${res.status}`);
+          continue;
+        }
+        const raw = await safeJson(res);
+        if (!raw) { console.warn(`[states] ${url} → non-JSON/HTML response`); continue; }
+
+        let arr = Array.isArray(raw) ? raw : (raw.states || raw.data || []);
+        if (!Array.isArray(arr)) {
+          console.warn(`[states] ${url} → JSON but not an array`); 
+          continue;
+        }
+        // normalize fields
+        const norm = arr.map(s => ({
+          code: s.code || s.abbr || s.slug || s.id || s.state || '',
+          label: s.label || s.name || s.state || s.code || 'Unknown',
+          link:  s.link  || s.url  || s.href  || s.board_link || '',
+          unavailable: !!(s.unavailable || s.disabled || s.down)
+        }));
+        console.info(`[states] loaded from ${url} (${norm.length} items)`);
+        return norm;
+      } catch (e) {
+        console.warn(`[states] ${url} → error`, e);
+        lastErr = e;
+      }
+    }
+    throw (lastErr || new Error('No states JSON found.'));
+  }
+
+  async function populateStates(){
+    const sel = $('#stateSelect'); const err = $('#stateError');
+    if (!sel) return;
+
+    // Prevent double-population
+    if (sel.options.length > 1) return;
+
+    // “loading…” option for clarity
+    const loadingOpt = document.createElement('option');
+    loadingOpt.value = ''; loadingOpt.disabled = true; loadingOpt.textContent = 'Loading states…';
+    sel.appendChild(loadingOpt);
 
     try{
-      const states = await fetchStates();
-      states.forEach(s=>{
+      const states = await getStatesList();
+      // Clear old options
+      sel.innerHTML = '<option value="">Select your state…</option>';
+
+      if (!states.length){
+        const o = document.createElement('option');
+        o.value = ''; o.textContent = 'No states available (try again later)'; o.disabled = true;
+        sel.appendChild(o);
+        return;
+      }
+
+      for (const s of states){
         const o = document.createElement('option');
         o.value = s.code || s.link || '';
         o.textContent = s.label + (s.unavailable ? ' — temporarily unavailable' : '');
         if (s.link) o.dataset.link = s.link;
         if (s.unavailable) o.disabled = true;
         sel.appendChild(o);
-      });
-      if (states.length === 0){
-        const o = document.createElement('option');
-        o.value = ''; o.textContent = 'No states available (try again later)'; o.disabled = true;
-        sel.appendChild(o);
       }
-    }catch{
+      err.textContent = '';
+    }catch(e){
+      console.error('[states] final failure', e);
+      sel.innerHTML = '';
       const o = document.createElement('option');
       o.value = ''; o.textContent = 'Failed to load states (check /api/states)'; o.disabled = true;
       sel.appendChild(o);
+      $('#stateError').textContent = 'Could not load the state list. Open /api/states in a new tab and check the response.';
     }
   }
 
   function initPortal(){
     const form = $('#reportForm'); if(!form) return;
-
-    const sel = $('#stateSelect'); const err = $('#stateError');
-    const dl  = $('#optDownload'); const cp  = $('#optCopy');
-    const stat= $('#verifyStatus');
+    const sel  = $('#stateSelect'); const err = $('#stateError');
+    const dl   = $('#optDownload'); const cp  = $('#optCopy');
+    const stat = $('#verifyStatus');
 
     function valid(){
       const ok = !!sel.value;
@@ -65,23 +120,16 @@
     }
     sel?.addEventListener('change', valid);
 
-    async function verifyTurnstile({ timeoutMs = 12000 } = {}){
-      // If the widget never rendered, tell the user clearly
+    async function verifyTurnstile({ timeoutMs=12000 } = {}){
       if (!window.turnstile || typeof window.turnstile.getResponse !== 'function'){
-        stat.textContent = 'Verification script not loaded. Check Turnstile site-key and allowed domains.';
+        stat.textContent = 'Verification script not loaded. Check site-key & allowed domains.';
         return { success:false };
       }
       const token = window.turnstile.getResponse();
-      if (!token){
-        stat.textContent = 'Please complete the verification.';
-        return { success:false };
-      }
+      if (!token){ stat.textContent = 'Please complete the verification.'; return { success:false }; }
       stat.textContent = 'Verifying…';
 
-      // timeout wrapper
-      const ctrl = new AbortController();
-      const t = setTimeout(()=>ctrl.abort('timeout'), timeoutMs);
-
+      const ctrl = new AbortController(); const to = setTimeout(()=>ctrl.abort('timeout'), timeoutMs);
       try{
         const r = await fetch('/api/verify-turnstile', {
           method:'POST',
@@ -89,34 +137,29 @@
           body: JSON.stringify({ token }),
           signal: ctrl.signal
         });
-        clearTimeout(t);
+        clearTimeout(to);
         const j = await r.json().catch(()=>({success:false}));
         stat.textContent = j.success ? 'Success!' : 'Verification failed.';
         return j;
       }catch(e){
-        clearTimeout(t);
-        stat.textContent = e === 'timeout' ? 'Taking longer than usual… retrying once.' : 'Network error verifying.';
-        // one retry on timeout
-        if (e === 'timeout'){
-          return verifyTurnstile({ timeoutMs: 12000 });
-        }
+        clearTimeout(to);
+        stat.textContent = e==='timeout' ? 'Taking longer than usual… retrying.' : 'Network error verifying.';
+        if (e==='timeout'){ return verifyTurnstile({ timeoutMs: 12000 }); }
         return { success:false };
       }
     }
 
     form.addEventListener('submit', async (e)=>{
       e.preventDefault();
-      if(!valid()) return;
+      if (!valid()) return;
 
       const v = await verifyTurnstile();
-      if (!v.success) { toast('Could not verify.'); return; }
+      if (!v.success){ toast('Could not verify.'); return; }
 
-      // open official board link
       const opt = sel.selectedOptions[0];
       const url = opt?.dataset?.link || opt?.value;
       if (url) window.open(url,'_blank','noopener');
 
-      // optional local save
       if (dl?.checked){
         const payload = {
           name: $('#name')?.value?.trim()||'',
@@ -131,7 +174,6 @@
         toast('Saved local copy.');
       }
 
-      // optional copy to clipboard
       if (cp?.checked){
         const txt = `State: ${sel.value}
 Name: ${$('#name')?.value||''}
@@ -146,7 +188,7 @@ ${$('#details')?.value||''}`;
   }
 
   document.addEventListener('DOMContentLoaded', ()=>{
-    ensureStates();
+    populateStates();
     initPortal();
   });
 })();
