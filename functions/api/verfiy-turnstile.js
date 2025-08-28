@@ -1,22 +1,30 @@
-// /functions/api/verify-turnstile.js
+/**
+ * POST /api/verify-turnstile
+ * Body: { token }
+ * Uses env.TURNSTILE_SECRET (already created in Dashboard).
+ */
 export async function onRequestPost({ request, env }) {
   try {
     const { token } = await request.json();
-    if (!token) {
-      return new Response(JSON.stringify({ success: false, error: "missing-token" }), { status: 400 });
-    }
+    if (!token) return new Response(JSON.stringify({ success: false }), { status: 400 });
 
-    const form = new FormData();
-    form.append("secret", env.TURNSTILE_SECRET);
-    form.append("response", token);
-
-    const resp = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: form });
-    const data = await resp.json();
-
-    return new Response(JSON.stringify({ success: !!data.success }), {
-      headers: { "content-type": "application/json" }
+    const r = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+      method: "POST",
+      body: new URLSearchParams({
+        secret: env.TURNSTILE_SECRET,
+        response: token,
+      }),
+      headers: { "content-type": "application/x-www-form-urlencoded" },
     });
-  } catch (e) {
-    return new Response(JSON.stringify({ success: false, error: String(e) }), { status: 500 });
+    const j = await r.json().catch(() => ({}));
+    return new Response(JSON.stringify({ success: !!j.success }), {
+      headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+      status: 200,
+    });
+  } catch {
+    return new Response(JSON.stringify({ success: false }), {
+      headers: { "content-type": "application/json; charset=utf-8" },
+      status: 200,
+    });
   }
 }
