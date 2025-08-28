@@ -1,26 +1,23 @@
-<script>
 (async () => {
-  const inject = async (sel, url) => {
-    const host = document.querySelector(sel);
-    if (!host) return;
+  async function inject(where, url) {
     try {
-      const r = await fetch(url, { cache: "no-store" });
-      host.innerHTML = await r.text();
-    } catch (e) {
-      console.warn("Partial failed:", url, e);
-    }
-  };
+      const res = await fetch(url, { cache: "no-store" });
+      const html = await res.text();
+      const el = document.createElement("div");
+      el.innerHTML = html;
+      if (where === "header") document.body.prepend(el.firstElementChild);
+      else document.body.append(el.firstElementChild);
+    } catch {}
+  }
 
-  await Promise.all([
-    inject("#site-header", "/partials/header.html"),
-    inject("#site-footer", "/partials/footer.html"),
-  ]);
+  // If a header/footer isn't present, inject them automatically
+  if (!document.querySelector("header.site")) await inject("header", "/partials/header.html");
+  if (!document.querySelector("footer.site")) await inject("footer", "/partials/footer.html");
 
-  // Active link highlight
+  // Mark current nav item
   const path = location.pathname.replace(/\/+$/, "") || "/";
-  document.querySelectorAll('a[data-nav]').forEach(a => {
-    const href = (a.getAttribute("data-nav") || "").replace(/\/+$/, "") || "/";
-    if (href === path) a.classList.add("active");
+  document.querySelectorAll('nav.main a[href]').forEach(a => {
+    const href = a.getAttribute("href").replace(/\/+$/, "") || "/";
+    if (href === path) a.setAttribute("aria-current", "page");
   });
 })();
-</script>
