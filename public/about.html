@@ -6,7 +6,7 @@
   <title>About — COVIDAccountabilityNow</title>
   <link rel="stylesheet" href="/assets/site.css"/>
 </head>
-<body>
+<body id="top">
   <nav class="top"><div class="inner">
     <a href="/index.html">Home</a>
     <a href="/complaint-portal.html">Portal</a>
@@ -21,7 +21,6 @@
   <main class="container">
     <h1>About</h1>
 
-    <!-- Top content (exact language you provided) -->
     <section class="card">
       <h2>ABOUT US</h2>
       <p>
@@ -73,75 +72,204 @@
       </ol>
     </section>
 
-    <!-- References (expanded by default; scrolls if long) -->
     <section class="card">
       <h2>Relevant reference material (including peer-reviewed literature)</h2>
 
       <div class="refs">
         <!-- Data & analyses -->
         <details open>
-          <summary><strong>Data & analyses</strong></summary>
+          <summary><strong>Data &amp; analyses</strong></summary>
           <ul>
-            <li><a target="_blank" rel="noopener" href="https://openvaers.com/">OpenVAERS</a></li>
-            <li>Polack FP, et&nbsp;al. <em>Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine.</em> N Engl J Med. 2020;383:2603-2615. <a target="_blank" rel="noopener" href="https://doi.org/10.1056/NEJMoa2034577">10.1056/NEJMoa2034577</a></li>
-            <li>Brown RB. <em>Relative risk reduction: Misinformative measure in clinical trials and COVID-19 vaccine efficacy.</em> Dialogues Health. 2022;1:100074. <a target="_blank" rel="noopener" href="https://doi.org/10.1016/j.dialog.2022.100074">10.1016/j.dialog.2022.100074</a></li>
-            <li>Stadel B, et&nbsp;al. <em>Misleading Use of Risk Ratios.</em> Lancet. 2005;365(9467):1306-1307. <a target="_blank" rel="noopener" href="https://doi.org/10.1016/S0140-6736(05)61024-0">https://doi.org/10.1016/S0140-6736(05)61024-0</a></li>
-            <li>Fraiman J, et&nbsp;al. <em>Serious adverse events of special interest following mRNA COVID-19 vaccination in randomized trials in adults.</em> Vaccine. 2022;40(40):5798–5805. <a target="_blank" rel="noopener" href="https://doi.org/10.1016/j.vaccine.2022.08.036">10.1016/j.vaccine.2022.08.036</a></li>
-            <li>Perlis RH, et&nbsp;al. <em>Trust in Physicians and Hospitals During the COVID-19 Pandemic…</em> JAMA Netw Open. 2024;7(7):e2424984. <a target="_blank" rel="noopener" href="https://doi.org/10.1001/jamanetworkopen.2024.24984">10.1001/jamanetworkopen.2024.24984</a></li>
-            <li>Rancourt D, et&nbsp;al. <em>Spatiotemporal variation of excess all-cause mortality…</em> Correlation Research in the Public Interest, 2024. <a target="_blank" rel="noopener" href="https://correlation-canada.org/covid-excess-mortality-125-countries/">link</a></li>
-            <li>Rancourt D, et&nbsp;al. <em>COVID-19 vaccine-associated mortality in the Southern Hemisphere.</em> ResearchGate. 2023. <a target="_blank" rel="noopener" href="https://doi.org/10.13140/RG.2.2.24720.79366">10.13140/RG.2.2.24720.79366</a></li>
-            <li>Beattie K. <em>Worldwide Bayesian Causal Impact Analysis… 145 Countries.</em> ResearchGate. 2021. <a target="_blank" rel="noopener" href="https://doi.org/10.13140/RG.2.2.34214.65605">10.13140/RG.2.2.34214.65605</a></li>
+            <li>
+              <a target="_blank" rel="noopener" href="https://openvaers.com/">OpenVAERS</a>
+              <div class="ref-note">Public mirror that visualizes VAERS reports and summaries.</div>
+            </li>
+            <li>
+              Polack FP, et&nbsp;al. <em>Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine.</em> N Engl J Med. 2020;383:2603-2615.
+              <a target="_blank" rel="noopener" href="https://doi.org/10.1056/NEJMoa2034577">10.1056/NEJMoa2034577</a>
+              <div class="ref-note">Phase 2/3 randomized trial results for BNT162b2 (Pfizer-BioNTech).</div>
+            </li>
+            <li>
+              Brown RB. <em>Relative risk reduction: Misinformative measure…</em> Dialogues Health. 2022;1:100074.
+              <a target="_blank" rel="noopener" href="https://doi.org/10.1016/j.dialog.2022.100074">doi</a>
+              <div class="ref-note">Explains why ARR/NNH often communicate risk better than RRR alone.</div>
+            </li>
+            <li>
+              Stadel B, et&nbsp;al. <em>Misleading Use of Risk Ratios.</em> Lancet. 2005;365(9467):1306-1307.
+              <a target="_blank" rel="noopener" href="https://doi.org/10.1016/S0140-6736(05)61024-0">doi</a>
+              <div class="ref-note">Letter discussing pitfalls of risk ratios in interpretation.</div>
+            </li>
+            <li>
+              Fraiman J, et&nbsp;al. <em>Serious adverse events of special interest…</em> Vaccine. 2022;40(40):5798–5805.
+              <a target="_blank" rel="noopener" href="https://doi.org/10.1016/j.vaccine.2022.08.036">doi</a>
+              <div class="ref-note">Reanalysis of mRNA vaccine RCTs assessing AESIs in adults.</div>
+            </li>
+            <li>
+              Perlis RH, et&nbsp;al. <em>Trust in Physicians and Hospitals During the COVID-19 Pandemic…</em> JAMA Netw Open. 2024;7(7):e2424984.
+              <a target="_blank" rel="noopener" href="https://doi.org/10.1001/jamanetworkopen.2024.24984">doi</a>
+              <div class="ref-note">Nationwide survey analysis of institutional trust across US adults.</div>
+            </li>
+            <li>
+              Rancourt D, et&nbsp;al. <em>Spatiotemporal variation of excess all-cause mortality…</em> Correlation Research in the Public Interest, 2024.
+              <a target="_blank" rel="noopener" href="https://correlation-canada.org/covid-excess-mortality-125-countries/">link</a>
+              <div class="ref-note">Report exploring excess mortality across 125 countries.</div>
+            </li>
+            <li>
+              Rancourt D, et&nbsp;al. <em>COVID-19 vaccine-associated mortality in the Southern Hemisphere.</em> ResearchGate. 2023.
+              <a target="_blank" rel="noopener" href="https://doi.org/10.13140/RG.2.2.24720.79366">doi</a>
+              <div class="ref-note">Observational analysis of mortality patterns and rollouts.</div>
+            </li>
+            <li>
+              Beattie K. <em>Worldwide Bayesian Causal Impact Analysis… 145 Countries.</em> ResearchGate. 2021.
+              <a target="_blank" rel="noopener" href="https://doi.org/10.13140/RG.2.2.34214.65605">doi</a>
+              <div class="ref-note">Big-data Bayesian causal impact approach across multiple countries.</div>
+            </li>
           </ul>
         </details>
 
         <!-- Ethics & medical standards -->
         <details open>
-          <summary><strong>Ethics & medical standards</strong></summary>
+          <summary><strong>Ethics &amp; medical standards</strong></summary>
           <ul>
-            <li>USMLE® Content Outline (Biostatistics, Epidemiology/Population Health &amp; Interpretation of the Medical Literature), 2024:37. <a target="_blank" rel="noopener" href="https://www.usmle.org/sites/default/files/2022-01/USMLE_Content_Outline_0.pdf">PDF</a></li>
-            <li>USMLE® Content Outline (Social Sciences), 2024:39. <a target="_blank" rel="noopener" href="https://www.usmle.org/sites/default/files/2022-01/USMLE_Content_Outline_0.pdf">PDF</a></li>
-            <li><em>First Aid for the USMLE Step 1</em> (Public Health Sciences: Epidemiology &amp; Biostatistics). McGraw-Hill, 2022:260. <a target="_blank" rel="noopener" href="https://archive.org/details/fa-2022/mode/2up">archive.org</a></li>
-            <li><em>First Aid for the USMLE Step 1</em> (Public Health Sciences: Ethics). McGraw-Hill, 2022:268–269. <a target="_blank" rel="noopener" href="https://archive.org/details/fa-2022/mode/2up">archive.org</a></li>
-            <li>ACP MKSAP — Interpreting &amp; Applying the Medical Literature (MK19). <a target="_blank" rel="noopener" href="https://www.acponline.org/featured-products/acp-mksap">link</a></li>
-            <li>AAFP — Shared Decision-Making (NICE guidelines). <a target="_blank" rel="noopener" href="https://www.aafp.org/pubs/afp/issues/2022/0800/practice-guidelines-shared-decision-making.html">link</a></li>
-            <li>FDA — <em>Communicating Risks and Benefits: An Evidence-Based User’s Guide</em> (Quantitative Information). <a target="_blank" rel="noopener" href="https://www.fda.gov/media/81597/download">PDF</a></li>
-            <li>AHRQ — <em>SHARE Approach: Communicating Numbers to Your Patients</em>. <a target="_blank" rel="noopener" href="https://www.ahrq.gov/sites/default/files/wysiwyg/professionals/education/curriculum-tools/shareddecisionmaking/tools/tool-5/share-tool5.pdf">PDF</a></li>
-            <li>ACP — Ethics Manual (7th ed.). <a target="_blank" rel="noopener" href="https://doi.org/10.7326/M18-2160">10.7326/M18-2160</a></li>
-            <li>AMA Code of Medical Ethics — Opinion 2.1.1 Informed Consent. <a target="_blank" rel="noopener" href="https://code-medical-ethics.ama-assn.org/ethics-opinions/informed-consent">link</a></li>
-            <li>AMA Code — Opinion 8.3 Physicians’ Responsibilities in Disaster Response &amp; Preparedness. <a target="_blank" rel="noopener" href="https://code-medical-ethics.ama-assn.org/ethics-opinions/physicians-responsibilities-disaster-response-preparedness">link</a></li>
+            <li>
+              USMLE® Content Outline (Biostatistics, Epidemiology/Population Health &amp; Interpretation of the Medical Literature), 2024:37.
+              <a target="_blank" rel="noopener" href="https://www.usmle.org/sites/default/files/2022-01/USMLE_Content_Outline_0.pdf">PDF</a>
+              <div class="ref-note">Board outline topics on biostatistics and evidence interpretation.</div>
+            </li>
+            <li>
+              USMLE® Content Outline (Social Sciences), 2024:39.
+              <a target="_blank" rel="noopener" href="https://www.usmle.org/sites/default/files/2022-01/USMLE_Content_Outline_0.pdf">PDF</a>
+              <div class="ref-note">Board outline topics on social/behavioral sciences.</div>
+            </li>
+            <li>
+              <em>First Aid for the USMLE Step 1</em> (Public Health Sciences: Epidemiology &amp; Biostatistics). McGraw-Hill, 2022:260.
+              <a target="_blank" rel="noopener" href="https://archive.org/details/fa-2022/mode/2up">archive.org</a>
+              <div class="ref-note">Board prep reference for core public health topics.</div>
+            </li>
+            <li>
+              <em>First Aid for the USMLE Step 1</em> (Public Health Sciences: Ethics). McGraw-Hill, 2022:268–269.
+              <a target="_blank" rel="noopener" href="https://archive.org/details/fa-2022/mode/2up">archive.org</a>
+              <div class="ref-note">Board prep reference for medical ethics.</div>
+            </li>
+            <li>
+              ACP MKSAP — Interpreting &amp; Applying the Medical Literature (MK19).
+              <a target="_blank" rel="noopener" href="https://www.acponline.org/featured-products/acp-mksap">link</a>
+              <div class="ref-note">ACP self-assessment curriculum; evidence appraisal module.</div>
+            </li>
+            <li>
+              AAFP — Shared Decision-Making (NICE guidelines).
+              <a target="_blank" rel="noopener" href="https://www.aafp.org/pubs/afp/issues/2022/0800/practice-guidelines-shared-decision-making.html">link</a>
+              <div class="ref-note">Practice guideline summary on SDM in primary care.</div>
+            </li>
+            <li>
+              FDA — <em>Communicating Risks and Benefits</em> (Quantitative Information).
+              <a target="_blank" rel="noopener" href="https://www.fda.gov/media/81597/download">PDF</a>
+              <div class="ref-note">Government guidance on communicating absolute/relative risks.</div>
+            </li>
+            <li>
+              AHRQ — SHARE Approach: <em>Communicating Numbers to Your Patients</em>.
+              <a target="_blank" rel="noopener" href="https://www.ahrq.gov/sites/default/files/wysiwyg/professionals/education/curriculum-tools/shareddecisionmaking/tools/tool-5/share-tool5.pdf">PDF</a>
+              <div class="ref-note">Provider tool for numeric risk communication in SDM.</div>
+            </li>
+            <li>
+              ACP — Ethics Manual (7th ed.).
+              <a target="_blank" rel="noopener" href="https://doi.org/10.7326/M18-2160">10.7326/M18-2160</a>
+              <div class="ref-note">Comprehensive ethics guidance from ACP.</div>
+            </li>
+            <li>
+              AMA Code of Medical Ethics — Opinion 2.1.1 Informed Consent.
+              <a target="_blank" rel="noopener" href="https://code-medical-ethics.ama-assn.org/ethics-opinions/informed-consent">link</a>
+              <div class="ref-note">Core AMA policy on informed consent and shared decisions.</div>
+            </li>
+            <li>
+              AMA Code — Opinion 8.3 Disaster Response &amp; Preparedness.
+              <a target="_blank" rel="noopener" href="https://code-medical-ethics.ama-assn.org/ethics-opinions/physicians-responsibilities-disaster-response-preparedness">link</a>
+              <div class="ref-note">Professional responsibilities during public health emergencies.</div>
+            </li>
           </ul>
         </details>
 
         <!-- Policy & governance -->
         <details open>
-          <summary><strong>Policy & governance</strong></summary>
+          <summary><strong>Policy &amp; governance</strong></summary>
           <ul>
-            <li>HHS ASPR — PREP Act Questions &amp; Answers. <a target="_blank" rel="noopener" href="https://aspr.hhs.gov/legal/PREPact/Pages/PREP-Act-Question-and-Answers.aspx">link</a></li>
-            <li>Federal Register — Impact of Health Misinformation in the Digital Information Environment (RFI), 2022-03-07. <a target="_blank" rel="noopener" href="https://www.federalregister.gov/documents/2022/03/07/2022-04777/impact-of-health-misinformation-in-the-digital-information-environment-in-the-united-states">link</a></li>
-            <li>FSMB — Professional Expectations Regarding Medical Misinformation &amp; Disinformation (Apr 2022). <a target="_blank" rel="noopener" href="https://www.fsmb.org/siteassets/advocacy/policies/ethics-committee-report-misinformation-april-2022-final.pdf">PDF</a></li>
-            <li>AMA — Adopts policy addressing public health disinformation (Jun 13, 2022). <a target="_blank" rel="noopener" href="https://www.ama-assn.org/press-center/press-releases/ama-adopts-new-policy-aimed-addressing-public-health-disinformation">link</a></li>
-            <li>White House — Fact Sheet (May 9, 2023). <a target="_blank" rel="noopener" href="https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/09/fact-sheet-actions-taken-by-the-biden-harris-administration-to-ensure-continued-covid-19-protections-and-surge-preparedness-after-public-health-emergency-transition/">link</a></li>
-            <li>House Oversight — Final Report on Lessons Learned and the Path Forward (Dec 2, 2024). <a target="_blank" rel="noopener" href="https://oversight.house.gov/release/final-report-covid-select-concludes-2-year-investigation-issues-500-page-final-report-on-lessons-learned-and-the-path-forward/">link</a></li>
+            <li>
+              HHS ASPR — PREP Act Questions &amp; Answers.
+              <a target="_blank" rel="noopener" href="https://aspr.hhs.gov/legal/PREPact/Pages/PREP-Act-Question-and-Answers.aspx">link</a>
+              <div class="ref-note">Liability protections and scope under the PREP Act.</div>
+            </li>
+            <li>
+              Federal Register — Impact of Health Misinformation (RFI), 2022-03-07.
+              <a target="_blank" rel="noopener" href="https://www.federalregister.gov/documents/2022/03/07/2022-04777/impact-of-health-misinformation-in-the-digital-information-environment-in-the-united-states">link</a>
+              <div class="ref-note">Request for public comment on misinformation impact.</div>
+            </li>
+            <li>
+              FSMB — Professional Expectations Regarding Medical Misinformation &amp; Disinformation (Apr 2022).
+              <a target="_blank" rel="noopener" href="https://www.fsmb.org/siteassets/advocacy/policies/ethics-committee-report-misinformation-april-2022-final.pdf">PDF</a>
+              <div class="ref-note">FSMB policy statement on misinformation by licensees.</div>
+            </li>
+            <li>
+              AMA — Policy addressing public health disinformation (Jun 13, 2022).
+              <a target="_blank" rel="noopener" href="https://www.ama-assn.org/press-center/press-releases/ama-adopts-new-policy-aimed-addressing-public-health-disinformation">link</a>
+              <div class="ref-note">Press release on AMA policy adoption.</div>
+            </li>
+            <li>
+              ABMS — Statement supporting role of medical professionals in preventing misinformation (Sep 13, 2021).
+              <a target="_blank" rel="noopener" href="https://www.abms.org/wp-content/uploads/2021/09/ABMS-Statement-Supporting-Role-of-Medical-Professionals-In-Preventing-COVID-19-Misinformation.pdf">PDF</a>
+              <div class="ref-note">ABMS position on misinformation and professionalism.</div>
+            </li>
+            <li>
+              White House — Fact Sheet (May 9, 2023).
+              <a target="_blank" rel="noopener" href="https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/09/fact-sheet-actions-taken-by-the-biden-harris-administration-to-ensure-continued-covid-19-protections-and-surge-preparedness-after-public-health-emergency-transition/">link</a>
+              <div class="ref-note">Summary of federal actions post-PHE transition.</div>
+            </li>
+            <li>
+              House Oversight — Final Report on Lessons Learned and the Path Forward (Dec 2, 2024).
+              <a target="_blank" rel="noopener" href="https://oversight.house.gov/release/final-report-covid-select-concludes-2-year-investigation-issues-500-page-final-report-on-lessons-learned-and-the-path-forward/">link</a>
+              <div class="ref-note">Committee final report with findings and recommendations.</div>
+            </li>
           </ul>
         </details>
 
         <!-- Legal & court filings -->
         <details open>
-          <summary><strong>Legal & court filings</strong></summary>
+          <summary><strong>Legal &amp; court filings</strong></summary>
           <ul>
-            <li>Texas AG — <em>State of Texas v. Pfizer Inc.</em> (2023). <a target="_blank" rel="noopener" href="https://www.texasattorneygeneral.gov/sites/default/files/images/press/Pfizer%20Vaccine%20Petition%20Filed.pdf">PDF</a></li>
-            <li>Kansas AG — <em>State of Kansas v. Pfizer Inc.</em> (2024). <a target="_blank" rel="noopener" href="https://ag.ks.gov/docs/default-source/documents/2024-06-15-pfizer-complaint-(002).pdf?sfvrsn=eb8bbe1a_8">PDF</a></li>
-            <li>U.S. Supreme Court — NFIB v. OSHA (595 U.S. 109, 2022). <a target="_blank" rel="noopener" href="https://www.supremecourt.gov/opinions/21pdf/21a244_hgci.pdf">PDF</a></li>
+            <li>
+              Texas AG — <em>State of Texas v. Pfizer Inc.</em> (2023).
+              <a target="_blank" rel="noopener" href="https://www.texasattorneygeneral.gov/sites/default/files/images/press/Pfizer%20Vaccine%20Petition%20Filed.pdf">PDF</a>
+              <div class="ref-note">Civil action filed in Lubbock County District Court.</div>
+            </li>
+            <li>
+              Kansas AG — <em>State of Kansas v. Pfizer Inc.</em> (2024).
+              <a target="_blank" rel="noopener" href="https://ag.ks.gov/docs/default-source/documents/2024-06-15-pfizer-complaint-(002).pdf?sfvrsn=eb8bbe1a_8">PDF</a>
+              <div class="ref-note">Complaint filed in Thomas County District Court.</div>
+            </li>
+            <li>
+              U.S. Supreme Court — NFIB v. OSHA (595 U.S. 109, 2022).
+              <a target="_blank" rel="noopener" href="https://www.supremecourt.gov/opinions/21pdf/21a244_hgci.pdf">PDF</a>
+              <div class="ref-note">Per curiam opinion on OSHA emergency temporary standard.</div>
+            </li>
           </ul>
         </details>
 
         <!-- Media & commentary -->
         <details open>
-          <summary><strong>Media & commentary</strong></summary>
+          <summary><strong>Media &amp; commentary</strong></summary>
           <ul>
-            <li>Vella D. <em>Failure of Care Standard Involving Pfizer BNT162b2 modRNA.</em> G Med Sci. 2024;5(1):156-163. Podcast page: <a target="_blank" rel="noopener" href="https://www.thegms.co/podcasts/care-standard-failure/">link</a> · DOI: <a target="_blank" rel="noopener" href="https://www.doi.org/10.46766/thegms">10.46766/thegms</a></li>
+            <li>
+              Vella D. <em>Failure of Care Standard Involving Pfizer BNT162b2 modRNA.</em> G Med Sci. 2024;5(1):156-163.
+              Podcast page: <a target="_blank" rel="noopener" href="https://www.thegms.co/podcasts/care-standard-failure/">link</a> · DOI:
+              <a target="_blank" rel="noopener" href="https://www.doi.org/10.46766/thegms">10.46766/thegms</a>
+              <div class="ref-note">Podcast + article discussing care-standard concerns.</div>
+            </li>
           </ul>
         </details>
+      </div>
+
+      <!-- Back to top -->
+      <div class="back-to-top-wrap">
+        <a class="back-to-top" href="#top" aria-label="Back to top">↑ Back to top</a>
       </div>
     </section>
   </main>
@@ -149,4 +277,5 @@
   <footer><a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a></footer>
 </body>
 </html>
+
 
