@@ -11,3 +11,8 @@ html,body{margin:0;padding:0;background:var(--bg);color:var(--fg);font:16px/1.55
 h1,h2,h3{line-height:1.25}
 .small{font-size:.9rem;color:var(--muted)}
 ul{margin-left:1.25rem}
+.site-nav-wrap{margin:1rem 0}
+.site-nav{display:flex;flex-wrap:wrap;gap:.5rem}
+.site-nav a{color:#cbd5e1;text-decoration:none;padding:.35rem .6rem;border-radius:8px;border:1px solid #22283a;background:#151925}
+.site-nav a:hover{background:#1b2130}
+.site-nav a.active{background:#1f2433;color:#fff;border-color:#2a3145}
