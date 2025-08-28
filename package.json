@@ -1,0 +1,10 @@
+{
+  "name": "covidaccountability-tools",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "audit:states": "node scripts/audit-states.mjs",
+    "audit:refs": "node scripts/audit-refs.mjs",
+    "audit:all": "npm run audit:states && npm run audit:refs"
+  }
+}
