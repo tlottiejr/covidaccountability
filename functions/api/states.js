@@ -1,7 +1,13 @@
-﻿export const onRequest = async () => {
-  const list = [
-    { code: 'MI', name: 'Michigan',  url: 'https://www.michigan.gov/lara/bureau-list/bpl/complaints' },
-    { code: 'WI', name: 'Wisconsin', url: 'https://dsps.wi.gov/Pages/SelfService/ComplaintSubmittal.aspx' }
+// functions/api/states.js
+export async function onRequestGet() {
+  const states = [
+    // Minimal sample. Add all states here or wire to your store.
+    { code: "AL", name: "Alabama", link: "https://www.albme.gov/forms/complaint-form", unavailable: false },
+    { code: "AK", name: "Alaska",  link: "https://www.akmdboard.org/complaints",         unavailable: false },
+    // …
   ];
-  return Response.json(list);
-};
+
+  return new Response(JSON.stringify(states), {
+    headers: { "content-type": "application/json; charset=utf-8" },
+  });
+}
