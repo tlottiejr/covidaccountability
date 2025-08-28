@@ -1,29 +1,28 @@
-// /assets/nav.js
-(() => {
-  const items = [
-    { href: "/",                       label: "Home" },
-    { href: "/complaint-portal.html",  label: "Portal" },
-    { href: "/about.html",             label: "About" },
-    { href: "/who-can-report.html",    label: "Who can report" },
-    { href: "/why-report.html",        label: "Why report" },
-    { href: "/our-story.html",         label: "Our story" },
-    { href: "/privacy.html",           label: "Privacy" },
-    { href: "/disclaimer.html",        label: "Disclaimer" },
-  ];
-  const normalize = p => p.replace(/\/index\.html?$/, "/");
-  const here = normalize(location.pathname);
-  const nav = document.createElement("nav");
-  nav.className = "site-nav";
-  nav.setAttribute("aria-label", "Site");
-  nav.innerHTML = items.map(i => {
-    const active = normalize(i.href) === here ? ' class="active" aria-current="page"' : "";
-    return `<a href="${i.href}"${active}>${i.label}</a>`;
-  }).join("");
+// /public/assets/nav.js
+document.addEventListener('DOMContentLoaded', () => {
+  // If already present, bail.
+  if (document.querySelector('.topnav-wrap')) return;
 
-  const bar = document.createElement("div");
-  bar.className = "site-nav-wrap";
-  bar.appendChild(nav);
+  const wrap = document.createElement('div');
+  wrap.className = 'topnav-wrap';
+  wrap.innerHTML = `
+    <nav class="topnav" aria-label="Primary">
+      <a href="/"                 data-path="^/$">Home</a>
+      <a href="/complaint-portal.html" data-path="/complaint-portal\\.html$">Portal</a>
+      <a href="/about.html"       data-path="/about\\.html$">About</a>
+      <a href="/who-can-report.html" data-path="/who-can-report\\.html$">Who can report</a>
+      <a href="/why-report.html"  data-path="/why-report\\.html$">Why report</a>
+      <a href="/our-story.html"   data-path="/our-story\\.html$">Our story</a>
+      <a href="/privacy.html"     data-path="/privacy\\.html$">Privacy</a>
+      <a href="/disclaimer.html"  data-path="/disclaimer\\.html$">Disclaimer</a>
+    </nav>
+  `;
+  document.body.prepend(wrap);
 
-  // Prepend inside your main .container if present, else body
-  (document.querySelector(".container") || document.body).prepend(bar);
-})();
+  // Mark the active link
+  const here = location.pathname.replace(/\/+$/, '') || '/';
+  document.querySelectorAll('.topnav a').forEach(a => {
+    const rx = new RegExp(a.dataset.path);
+    if (rx.test(here)) a.classList.add('active');
+  });
+});
