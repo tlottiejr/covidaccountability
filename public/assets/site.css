@@ -39,3 +39,9 @@ footer{margin:50px 0;text-align:center;color:var(--muted)}
 .refs details { margin: 10px 0 0; }
 .refs summary { cursor: pointer; padding: 6px 0; color: var(--accent); }
 .refs ul { margin: 8px 0 16px 18px; }
+/* reference notes and back-to-top */
+.ref-note { margin: 4px 0 0 0; font-size: 12px; opacity: .8; }
+.back-to-top-wrap { display: flex; justify-content: flex-end; margin-top: 14px; }
+.back-to-top { display: inline-block; padding: 6px 10px; border: 1px solid var(--border);
+  border-radius: 10px; text-decoration: none; font-size: 13px; }
+.back-to-top:hover { background: rgba(255,255,255,0.06); }
