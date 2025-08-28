@@ -1,78 +1,79 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Complaint Portal — COVIDAccountabilityNow</title>
-  <link rel="stylesheet" href="/assets/site.css"/>
-  <!-- Turnstile loader -->
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+  <link rel="stylesheet" href="/styles.css" />
 </head>
 <body>
-  <header id="site-header"></header>
-  <nav id="breadcrumbs" class="breadcrumbs" aria-label="Breadcrumb"></nav>
+  <header class="site-header">
+    <nav class="nav">
+      <a href="/">Home</a>
+      <a class="active" href="/complaint-portal.html">Portal</a>
+      <a href="/about.html">About</a>
+      <a href="/who-can-report.html">Who can report</a>
+      <a href="/why-report.html">Why report</a>
+      <a href="/our-story.html">Our story</a>
+      <a href="/privacy.html">Privacy</a>
+      <a href="/disclaimer.html">Disclaimer</a>
+    </nav>
+  </header>
 
   <main class="container">
-    <header style="margin-bottom:14px">
-      <h1>Complaint Portal</h1>
-      <p class="muted">
-        Choose your state to open the official complaint page. You can optionally save a local copy
-        and copy your text for your own records. We do not store your report.
-      </p>
-    </header>
+    <h1>Complaint Portal</h1>
+    <p class="muted">
+      Choose your state to open the official complaint page. You can optionally save a local copy and copy your text for your own records.
+      We do not store your report.
+    </p>
 
-    <form id="reportForm" class="grid" novalidate>
-      <fieldset class="card col-12">
+    <form id="reportForm" class="card">
+      <fieldset>
         <legend>Find your state board</legend>
-
-        <label for="stateSelect">State</label>
-        <select id="stateSelect" name="state" aria-describedby="stateError">
-          <option value="">Select your state…</option>
-          <!-- /assets/app.js will populate from GET /api/states -->
+        <label for="state">State</label>
+        <select id="state" name="state" class="input">
+          <option value="">Select your state...</option>
         </select>
-        <div id="stateError" class="error" role="alert" aria-live="polite"></div>
+        <div id="stateError" class="help error"></div>
       </fieldset>
 
-      <fieldset class="card col-12">
+      <fieldset>
         <legend>Share your experience (optional)</legend>
-
         <label for="name">Name (optional)</label>
-        <input id="name" type="text" placeholder="Your name…"/>
+        <input id="name" type="text" placeholder="Your name…" class="input" />
 
         <label for="email">Email (optional)</label>
-        <input id="email" type="email" placeholder="you@example.com"/>
+        <input id="email" type="email" placeholder="you@example.com" class="input" />
 
         <label for="details">Details</label>
-        <textarea id="details" placeholder="Describe what happened…"></textarea>
-
-        <!-- Turnstile widget (dark theme) -->
-        <div style="margin-top:10px">
-          <div class="cf-turnstile"
-               data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8"
-               data-theme="dark"></div>
-        </div>
-        <div id="verifyStatus" class="helper" aria-live="polite"></div>
+        <textarea id="details" rows="6" placeholder="Describe what happened…" class="input"></textarea>
       </fieldset>
 
-      <fieldset class="card col-12">
+      <!-- Cloudflare Turnstile -->
+      <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITE_KEY"></div>
+      <div id="verifyStatus" class="muted" style="margin:.5rem 0 1rem">Verification prevents spam.</div>
+
+      <fieldset>
         <legend>Optional actions</legend>
-        <label style="display:flex;gap:8px;align-items:center">
-          <input type="checkbox" id="optDownload"/> Save a local copy (JSON)
-        </label>
-        <label style="display:flex;gap:8px;align-items:center">
-          <input type="checkbox" id="optCopy"/> Copy text to clipboard
-        </label>
+        <label><input type="checkbox" id="optDownload" /> Save a local copy (JSON)</label>
+        <label><input type="checkbox" id="optCopy" /> Copy text to clipboard</label>
       </fieldset>
 
-      <div class="col-12" style="display:flex;gap:10px;align-items:center">
-        <button type="submit" class="btn">Submit report</button>
-        <span class="helper">Verification prevents spam.</span>
-      </div>
+      <button type="submit" class="btn">Submit report</button>
     </form>
+
+    <p class="muted" style="margin-top:1rem">
+      Your state link is public information. Reports you submit here are stored privately in D1 for analysis (future update).
+    </p>
   </main>
 
-  <footer id="site-footer"></footer>
-  <script src="/assets/site.js"></script>
-  <script src="/assets/app.js"></script>
+  <footer class="site-footer">
+    <p><a href="/privacy.html">Privacy</a> • <a href="/disclaimer.html">Disclaimer</a></p>
+  </footer>
+
+  <!-- Turnstile script -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <!-- Single app script -->
+  <script defer src="/app.js?v=4"></script>
 </body>
 </html>
