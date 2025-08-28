@@ -1,11 +1,10 @@
-<footer class="site-footer" role="contentinfo">
+<footer class="site-footer">
   <div class="wrap">
-    <p>
-      © <span id="y"></span> COVIDAccountabilityNow —
-      <a href="/privacy.html">Privacy</a> • <a href="/disclaimer.html">Disclaimer</a>
-    </p>
+    <small>
+      © <span id="y"></span> COVIDAccountabilityNow •
+      <a href="/privacy.html">Privacy</a> •
+      <a href="/disclaimer.html">Disclaimer</a>
+    </small>
   </div>
-  <script>
-    (function(){ const y=document.getElementById('y'); if(y) y.textContent=new Date().getFullYear(); })();
-  </script>
+  <script>document.getElementById('y').textContent = new Date().getFullYear();</script>
 </footer>
