@@ -1,4 +1,3 @@
-// functions/api/states.js
 export async function onRequestGet({ env }) {
   try {
     if (env.DB) {
@@ -17,7 +16,7 @@ export async function onRequestGet({ env }) {
     console.error("D1 query failed:", e);
   }
 
-  // Fallbacks if DB missing or errors (optional to keep)
+  // Fallback only if DB is missing (kept tiny so we notice issues)
   return json([
     { code: "AL", name: "Alabama", link: "", unavailable: false },
     { code: "AK", name: "Alaska",  link: "", unavailable: false }
