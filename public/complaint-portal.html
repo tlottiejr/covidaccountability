@@ -11,6 +11,7 @@
   <nav class="top"><div class="inner">
     <a href="/index.html">Home</a>
     <a class="active" href="/complaint-portal.html">Portal</a>
+    <a href="/about.html">About</a>
     <a href="/who-can-report.html">Who can report</a>
     <a href="/why-report.html">Why report</a>
     <a href="/our-story.html">Our story</a>
@@ -23,56 +24,28 @@
     <p class="small">Choose your state to open the official complaint page. Optionally, write your experience and save a personal copy.</p>
 
     <div class="grid grid-2">
-      <section class="card" aria-labelledby="find-state">
-        <h2 id="find-state">Find your state board</h2>
+      <section class="card">
+        <h2>Find your state board</h2>
 
         <label for="stateSelect">State</label>
         <select id="stateSelect" aria-label="State"></select>
 
-        <div style="margin-top: 16px;">
-          <div class="small">Name</div>
-          <div id="stateName">—</div>
-        </div>
+        <div style="margin-top: 16px;"><div class="small">Name</div><div id="stateName">—</div></div>
+        <div style="margin-top: 12px;"><div class="small">URL</div><div id="stateUrl"><span class="small">Not available yet</span></div></div>
+        <div style="margin-top: 12px;"><div class="small">Host</div><div id="stateHost">—</div></div>
+        <div style="margin-top: 12px;"><div class="small">Status</div><div id="stateStatus"><span class="badge">—</span></div></div>
 
-        <div style="margin-top: 12px;">
-          <div class="small">URL</div>
-          <div id="stateUrl"><span class="small">Not available yet</span></div>
-        </div>
-
-        <div style="margin-top: 12px;">
-          <div class="small">Host</div>
-          <div id="stateHost">—</div>
-        </div>
-
-        <div style="margin-top: 12px;">
-          <div class="small">Status</div>
-          <div id="stateStatus"><span class="badge">—</span></div>
-        </div>
-
-        <div style="margin-top: 16px;">
-          <button id="openBtn" class="btn" disabled>Open board page</button>
-        </div>
+        <div style="margin-top: 16px;"><button id="openBtn" class="btn" disabled>Open board page</button></div>
       </section>
 
       <section class="card">
         <h2>Share your experience (optional)</h2>
         <div class="grid">
-          <div>
-            <label for="nameInput">Name (optional)</label>
-            <input id="nameInput" type="text" placeholder="Your name…"/>
-          </div>
-          <div>
-            <label for="emailInput">Email (optional)</label>
-            <input id="emailInput" type="email" placeholder="you@example.com"/>
-          </div>
-          <div>
-            <label for="detailsInput">Details</label>
-            <textarea id="detailsInput" placeholder="Describe what happened…"></textarea>
-          </div>
+          <div><label for="nameInput">Name (optional)</label><input id="nameInput" type="text" placeholder="Your name…"/></div>
+          <div><label for="emailInput">Email (optional)</label><input id="emailInput" type="email" placeholder="you@example.com"/></div>
+          <div><label for="detailsInput">Details</label><textarea id="detailsInput" placeholder="Describe what happened…"></textarea></div>
         </div>
-
         <div style="margin-top: 16px;">
-          <!-- Replace with your actual Turnstile site key -->
           <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8"></div>
           <div class="small" style="margin-top: 8px;">Verification prevents spam.</div>
         </div>
@@ -91,11 +64,10 @@
       </p>
     </section>
 
-    <footer>
-      <a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a>
-    </footer>
+    <footer><a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a></footer>
   </main>
 
   <script src="/assets/app.js" defer></script>
 </body>
 </html>
+
