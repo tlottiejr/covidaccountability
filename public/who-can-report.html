@@ -1,38 +1,63 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Who can report — COVIDAccountabilityNow</title>
-  <link rel="stylesheet" href="/assets/site.css" />
-  <script defer src="/assets/partials.js"></script>
-  <script defer src="/assets/app.js"></script>
+  <link rel="stylesheet" href="/site.css"/>
 </head>
 <body>
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav" aria-label="Main">
+        <a href="/">Home</a>
+        <a href="/complaint-portal.html">Portal</a>
+        <a href="/about.html">About</a>
+        <a href="/who-can-report.html">Who can report</a>
+        <a href="/why-report.html">Why report</a>
+        <a href="/our-story.html">Our story</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/disclaimer.html">Disclaimer</a>
+      </nav>
+    </div>
+  </header>
+
   <main class="container">
     <h1>Who can report &amp; who can be reported</h1>
 
     <section class="card">
       <p>
-        Anyone who has experienced a significant adverse event or a serious adverse event following a COVID modRNA injection administered under the direction or advice of a U.S. licensed physician and is within the statute of limitations (varying by state) can file a report.<sup>1</sup>
-        You may also file a report for a loved one who unfortunately has been incapacitated or has died following the gene based treatment.
+        Anyone who has experienced a significant adverse event or a serious adverse event following a COVID modRNA injection
+        administered under the direction or advice of a U.S. licensed physician and is within the statute of limitations
+        (varying by state) can file a report.<sup>1</sup> You may also file a report for a loved one who unfortunately has been
+        incapacitated or has died following the gene based treatment.
       </p>
-
       <h2>Physicians who may be reported include:</h2>
       <ol>
         <li>Private practice community physicians</li>
         <li>Employed health system physicians</li>
         <li>Chief medical officers (CMOs) of health systems where the injection was given</li>
-        <li>CMOs of companies (e.g., pharmacies) where the injection was administered</li>
+        <li>CMOs of companies (e.g. pharmacies) where the injection was administered</li>
         <li>Medical directors of public health department where the injection was received</li>
         <li>Public health officials who recommended the injection</li>
       </ol>
-
-      <h3>Reference</h3>
-      <ol>
-        <li><a href="https://www.fda.gov/safety/reporting-serious-problems-fda/what-serious-adverse-event" target="_blank" rel="noopener">FDA — What is a serious adverse event?</a></li>
-      </ol>
+      <p class="small muted">
+        1. <a href="https://www.fda.gov/safety/reporting-serious-problems-fda/what-serious-adverse-event" target="_blank" rel="noopener">
+        FDA — What is a serious adverse event?</a>
+      </p>
     </section>
   </main>
+
+  <footer class="site-footer">
+    <div class="container center">
+      <div class="links">
+        <a href="/privacy.html">Privacy</a>
+        <a href="/disclaimer.html">Disclaimer</a>
+      </div>
+    </div>
+  </footer>
+
+  <div class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <script src="/assets/app.js" defer></script>
 </body>
 </html>
