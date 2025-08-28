@@ -1,0 +1,14 @@
+{
+  "states": {
+    "preferDomains": [".gov"],
+    "fallbackDomains": [".state.", ".us", ".gov.xx", ".org"],
+    "keywords": ["complaint", "file a complaint", "consumer", "investigation", "discipline", "report"],
+    "negativeKeywords": ["contact", "faq", "privacy", "terms", "sitemap"],
+    "maxCandidatesPerState": 3
+  },
+  "references": {
+    "prefer": ["doi", "publisher", "pubmed", "nih", "fda", "ama", "ahrq", "fsmb", "whitehouse", "oversight.house.gov"],
+    "allowArchiveIfBroken": true,
+    "maxCandidatesPerRef": 3
+  }
+}
