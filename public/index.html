@@ -2,48 +2,45 @@
 <html lang="en">
 <head>
   <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>Home — COVIDAccountabilityNow</title>
-  <link rel="stylesheet" href="/site.css"/>
+  <link rel="stylesheet" href="/assets/site.css"/>
 </head>
 <body>
-  <!-- Header -->
-  <header class="site-header">
-    <div class="container">
-      <nav class="nav" aria-label="Main">
-        <a href="/">Home</a>
-        <a href="/complaint-portal.html">Portal</a>
-        <a href="/about.html">About</a>
-        <a href="/who-can-report.html">Who can report</a>
-        <a href="/why-report.html">Why report</a>
-        <a href="/our-story.html">Our story</a>
-        <a href="/privacy.html">Privacy</a>
-        <a href="/disclaimer.html">Disclaimer</a>
-      </nav>
-    </div>
-  </header>
+  <nav class="top"><div class="inner">
+    <a class="active" href="/index.html">Home</a>
+    <a href="/complaint-portal.html">Portal</a>
+    <a href="/who-can-report.html">Who can report</a>
+    <a href="/why-report.html">Why report</a>
+    <a href="/our-story.html">Our story</a>
+    <a href="/privacy.html">Privacy</a>
+    <a href="/disclaimer.html">Disclaimer</a>
+  </div></nav>
 
   <main class="container">
-    <h1>COVIDAccountabilityNow</h1>
-    <p class="muted">File with your state medical board and keep a local record. We don’t collect your report.</p>
+    <section class="hero">
+      <div>
+        <div class="title">Report with confidence.</div>
+        <p class="lead">Find your state board’s official complaint page in seconds. Keep a personal copy of what you submit. We don’t store your report content.</p>
+        <p style="margin-top:14px;"><a class="btn" href="/complaint-portal.html">Open the Complaint Portal</a></p>
+      </div>
+      <div class="card">
+        <h2>How it works</h2>
+        <ol class="small">
+          <li>Select your state — we link you to the official board form.</li>
+          <li>(Optional) Write your experience and save a local copy.</li>
+          <li>Submit directly on your state board’s website.</li>
+        </ol>
+      </div>
+    </section>
 
-    <div class="card">
-      <h2>Get started</h2>
-      <p>Use our <a href="/complaint-portal.html">Complaint Portal</a> to find your state board’s official filing page and (optionally) save a local JSON copy of your details for your own records.</p>
-    </div>
+    <section class="grid grid-3" style="margin-top:22px;">
+      <div class="card"><h3>Fast</h3><p class="small">No hunting for the right link. The portal puts state boards in one place.</p></div>
+      <div class="card"><h3>Private</h3><p class="small">Your text stays on your device. We don’t store report content on this site.</p></div>
+      <div class="card"><h3>Accountable</h3><p class="small">Reports help boards identify patterns and protect the public.</p></div>
+    </section>
   </main>
 
-  <!-- Footer -->
-  <footer class="site-footer">
-    <div class="container center">
-      <div class="links">
-        <a href="/privacy.html">Privacy</a>
-        <a href="/disclaimer.html">Disclaimer</a>
-      </div>
-    </div>
-  </footer>
-
-  <div class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
-  <script src="/assets/app.js" defer></script>
+  <footer><a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a></footer>
 </body>
 </html>
