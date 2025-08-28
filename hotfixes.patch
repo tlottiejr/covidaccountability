@@ -1,0 +1,150 @@
+cat > hotfixes.patch <<'PATCH'
+diff --git a/functions/api/states.js b/functions/api/states.js
+--- a/functions/api/states.js
++++ b/functions/api/states.js
+@@ -1,24 +1,35 @@
+-export async function onRequestGet({ env }) {
+-  // D1 preferred
++export async function onRequestGet({ request, env }) {
++  // Prefer D1; fall back to static JSON bundled in /public/assets/states.json.
+   if (env.DB) {
+     try {
+-      const { results } = await env.DB.prepare(`
+-        SELECT code,
+-               COALESCE(name, '')    AS name,
+-               COALESCE(link, '')    AS link,
+-               COALESCE(unavailable, 0) AS unavailable,
+-               COALESCE(verified_at, NULL) AS verified_at
+-        FROM states
+-        ORDER BY code
+-      `).all();
++      const { results } = await env.DB.prepare(
++        `SELECT code,
++                COALESCE(name, '')       AS name,
++                COALESCE(link, '')       AS link,
++                COALESCE(unavailable, 0) AS unavailable,
++                COALESCE(board_host, '') AS board_host
++         FROM states
++         ORDER BY name`
++      ).all();
+ 
+-      return new Response(JSON.stringify(results), {
+-        headers:{'content-type':'application/json; charset=utf-8'}
+-      });
++      return new Response(JSON.stringify(results), {
++        headers: {
++          'content-type': 'application/json; charset=utf-8',
++          'cache-control': 'no-store'
++        }
++      });
+     } catch (e) {
+-      // fall through to static
++      // falls through to static fallback
+     }
+   }
+   // Static fallback (kept in /public/assets/states.json)
+-  const fallback = await fetch(new URL('../../public/assets/states.json', import.meta.url));
+-  return new Response(await fallback.text(), { headers:{'content-type':'application/json'} });
++  const url = new URL('/assets/states.json', request.url);
++  const fallback = await fetch(url, { headers: { accept: 'application/json' } });
++  return new Response(await fallback.text(), {
++    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }
++  });
+ }
+diff --git a/public/about.html b/public/about.html
+--- a/public/about.html
++++ b/public/about.html
+@@ -5,7 +5,7 @@
+   <meta charset="utf-8"/>
+   <meta name="viewport" content="width=device-width,initial-scale=1"/>
+   <title>About — COVIDAccountabilityNow</title>
+-  <link rel="stylesheet" href="/site.css"/>
++  <link rel="stylesheet" href="/assets/site.css"/>
+ </head>
+ <body>
+   <!-- Header -->
+diff --git a/public/complaint-portal.html b/public/complaint-portal.html
+--- a/public/complaint-portal.html
++++ b/public/complaint-portal.html
+@@ -5,7 +5,7 @@
+   <meta charset="utf-8"/>
+   <meta name="viewport" content="width=device-width,initial-scale=1"/>
+   <title>Complaint Portal — COVIDAccountabilityNow</title>
+-  <link rel="stylesheet" href="/site.css"/>
++  <link rel="stylesheet" href="/assets/site.css"/>
+   <!-- Turnstile widget (keep your site key in the div below) -->
+   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+ </head>
+diff --git a/public/disclaimer.html b/public/disclaimer.html
+--- a/public/disclaimer.html
++++ b/public/disclaimer.html
+@@ -5,7 +5,7 @@
+   <meta charset="utf-8"/>
+   <meta name="viewport" content="width=device-width,initial-scale=1"/>
+   <title>Disclaimer — COVIDAccountabilityNow</title>
+-  <link rel="stylesheet" href="/site.css"/>
++  <link rel="stylesheet" href="/assets/site.css"/>
+ </head>
+ <body>
+   <!-- Header -->
+diff --git a/public/index.html b/public/index.html
+--- a/public/index.html
++++ b/public/index.html
+@@ -5,7 +5,7 @@
+   <meta charset="utf-8"/>
+   <meta name="viewport" content="width=device-width,initial-scale=1"/>
+   <title>Home — COVIDAccountabilityNow</title>
+-  <link rel="stylesheet" href="/site.css"/>
++  <link rel="stylesheet" href="/assets/site.css"/>
+ </head>
+ <body>
+   <!-- Header -->
+diff --git a/public/our-story.html b/public/our-story.html
+--- a/public/our-story.html
++++ b/public/our-story.html
+@@ -5,7 +5,7 @@
+   <meta charset="utf-8"/>
+   <meta name="viewport" content="width=device-width,initial-scale=1"/>
+   <title>Our Story — COVIDAccountabilityNow</title>
+-  <link rel="stylesheet" href="/site.css"/>
++  <link rel="stylesheet" href="/assets/site.css"/>
+ </head>
+ <body>
+   <!-- Header -->
+diff --git a/public/privacy.html b/public/privacy.html
+--- a/public/privacy.html
++++ b/public/privacy.html
+@@ -5,7 +5,7 @@
+   <meta charset="utf-8"/>
+   <meta name="viewport" content="width=device-width,initial-scale=1"/>
+   <title>Privacy — COVIDAccountabilityNow</title>
+-  <link rel="stylesheet" href="/site.css"/>
++  <link rel="stylesheet" href="/assets/site.css"/>
+ </head>
+ <body>
+   <!-- Header -->
+diff --git a/public/who-can-report.html b/public/who-can-report.html
+--- a/public/who-can-report.html
++++ b/public/who-can-report.html
+@@ -5,7 +5,7 @@
+   <meta charset="utf-8"/>
+   <meta name="viewport" content="width=device-width,initial-scale=1"/>
+   <title>Who Can Report — COVIDAccountabilityNow</title>
+-  <link rel="stylesheet" href="/site.css"/>
++  <link rel="stylesheet" href="/assets/site.css"/>
+ </head>
+ <body>
+   <!-- Header -->
+diff --git a/public/why-report.html b/public/why-report.html
+--- a/public/why-report.html
++++ b/public/why-report.html
+@@ -5,7 +5,7 @@
+   <meta charset="utf-8"/>
+   <meta name="viewport" content="width=device-width,initial-scale=1"/>
+   <title>Why Report — COVIDAccountabilityNow</title>
+-  <link rel="stylesheet" href="/site.css"/>
++  <link rel="stylesheet" href="/assets/site.css"/>
+ </head>
+ <body>
+   <!-- Header -->
+PATCH

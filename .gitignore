@@ -5,3 +5,7 @@ node_modules/
 *.log
 dist/
 build/
+# discovery & secrets
+.env
+.env.local
+db/*.cache.json
