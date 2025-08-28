@@ -1,44 +1,37 @@
-// Complaint Portal client logic
-(() => {
-  const $ = (s) => document.querySelector(s);
+// public/app.js
+(function () {
+  const $  = (s, r=document) => r.querySelector(s);
+  const $$ = (s, r=document) => [...r.querySelectorAll(s)];
 
-  function toast(msg, ms = 2200) {
-    let t = $(".toast");
-    if (!t) { t = document.createElement("div"); t.className = "toast"; document.body.appendChild(t); }
-    t.textContent = msg; t.classList.add("show");
-    clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove("show"), ms);
+  function toast(msg, ms=2200){
+    let t = $('.toast');
+    if(!t){ t = document.createElement('div'); t.className='toast'; document.body.appendChild(t); }
+    t.textContent = msg; t.classList.add('show');
+    clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), ms);
   }
 
-  async function verifyTurnstile(timeoutMs = 12000) {
-    const status = $("#verifyStatus");
-    if (!window.turnstile || typeof window.turnstile.getResponse !== "function") {
-      status.textContent = "Verification script not loaded. Check site key & allowed domains.";
-      return { success: false };
-    }
-    const token = window.turnstile.getResponse();
-    if (!token) { status.textContent = "Please complete the verification."; return { success: false }; }
+  async function safeJson(res){
+    const txt = await res.text();
+    try { return JSON.parse(txt); } catch {}
+    return null;
+  }
 
-    status.textContent = "Verifying…";
-    const ctrl = new AbortController();
-    const to = setTimeout(() => ctrl.abort("timeout"), timeoutMs);
-
-    try {
-      const r = await fetch("/api/verify-turnstile", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ token }),
-        signal: ctrl.signal,
-      });
-      clearTimeout(to);
-      const j = await r.json().catch(() => ({ success: false }));
-      status.textContent = j.success ? "Success!" : "Verification failed.";
-      return j;
-    } catch (e) {
-      clearTimeout(to);
-      status.textContent = e === "timeout" ? "Taking longer than usual… retrying." : "Network error verifying.";
-      if (e === "timeout") return verifyTurnstile(12000);
-      return { success: false };
+  async function fetchStates() {
+    // Primary: Functions → D1
+    const tried = [];
+    for (const url of ["/api/states", "/api/states/"]) {
+      try {
+        const res = await fetch(url, { headers: { "accept": "application/json" }, cache: "no-store" });
+        if (!res.ok) { tried.push(`${url} → ${res.status}`); continue; }
+        const data = await safeJson(res);
+        if (!Array.isArray(data)) { tried.push(`${url} → not array`); continue; }
+        return data;
+      } catch (e) {
+        tried.push(`${url} → ${String(e)}`);
+      }
     }
+    console.warn("State fetch failed:", tried);
+    return [];
   }
 
   async function loadStates() {
@@ -47,84 +40,112 @@
     if (!sel) return;
 
     sel.innerHTML = `<option value="">Loading states…</option>`;
-    try {
-      const res = await fetch("/api/states", { headers: { accept: "application/json" }, cache: "no-store" });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const states = await res.json();
 
-      sel.innerHTML = `<option value="">Select your state...</option>`;
-      for (const s of states) {
-        const opt = document.createElement("option");
-        opt.value = s.code;
-        opt.textContent = (s.name || s.code) + (s.unavailable ? " (temporarily unavailable)" : "");
-        if (s.unavailable) opt.disabled = true;
-        if (s.link) opt.dataset.link = s.link;
-        sel.appendChild(opt);
-      }
-      err.textContent = "";
+    const states = await fetchStates();
+
+    if (!states.length) {
+      sel.innerHTML = `<option value="">Failed to load states</option>`;
+      err.textContent = `Could not load /api/states. Check your D1 binding and wrangler.toml.`;
+      return;
+    }
+
+    sel.innerHTML = `<option value="">Select your state…</option>`;
+    for (const s of states) {
+      const opt = document.createElement("option");
+      opt.value = s.code;
+      opt.textContent = `${s.name || s.code}${s.unavailable ? " — temporarily unavailable" : ""}`;
+      opt.disabled = !!s.unavailable;
+      if (s.link) opt.dataset.link = s.link;
+      sel.appendChild(opt);
+    }
+    err.textContent = "";
+  }
+
+  function validState() {
+    const sel = $("#state");
+    const err = $("#stateError");
+    const ok = !!sel.value;
+    err.textContent = ok ? "" : "Please choose your state board.";
+    return ok;
+  }
+
+  async function verifyTurnstile(timeoutMs = 12000) {
+    const status = $("#verifyStatus");
+    const token = window.turnstile?.getResponse?.() || "";
+    if (!token) { status.textContent = "Please complete the verification."; return false; }
+
+    status.textContent = "Verifying…";
+    const ac = new AbortController();
+    const timer = setTimeout(() => ac.abort("timeout"), timeoutMs);
+
+    try {
+      const r = await fetch("/api/verify-turnstile", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({ token }),
+        signal: ac.signal
+      });
+      clearTimeout(timer);
+      const j = await r.json().catch(() => ({}));
+      status.textContent = j.success ? "Success!" : "Verification failed.";
+      return !!j.success;
     } catch (e) {
-      console.error("loadStates:", e);
-      sel.innerHTML = `<option value="">Failed to load states (check /api/states)</option>`;
-      $("#stateError").textContent = "Could not load the state list. Open /api/states in a new tab and check the response.";
+      clearTimeout(timer);
+      status.textContent = e === "timeout" ? "Taking longer than usual… retrying." : "Network error verifying.";
+      return false;
     }
   }
 
-  function initForm() {
-    const form = $("#reportForm");
-    if (!form) return;
+  function saveLocalJSON(payload) {
+    const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
+    const a = document.createElement("a");
+    a.href = URL.createObjectURL(blob);
+    a.download = `report-${payload.state || "state"}-${Date.now()}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  async function onSubmit(e) {
+    e.preventDefault();
+    if (!validState()) return;
+
+    // Verify Turnstile before doing anything else
+    const ok = await verifyTurnstile();
+    if (!ok) { toast("Could not verify."); return; }
 
     const sel = $("#state");
-    const err = $("#stateError");
-    const dl  = $("#optDownload");
-    const cp  = $("#optCopy");
+    const chosen = sel.selectedOptions[0];
+    const link = chosen?.dataset?.link || "";
 
-    sel?.addEventListener("change", () => (err.textContent = ""));
+    // Open the official board link (if we have one)
+    if (link) window.open(link, "_blank", "noopener");
 
-    form.addEventListener("submit", async (e) => {
-      e.preventDefault();
-      if (!sel.value) { err.textContent = "Please choose your state board."; sel.focus(); return; }
+    // Optional actions
+    const payload = {
+      name:   $("#name")?.value?.trim() || "",
+      email:  $("#email")?.value?.trim() || "",
+      details:$("#details")?.value?.trim() || "",
+      state:  sel.value,
+      ts:     new Date().toISOString()
+    };
 
-      const v = await verifyTurnstile();
-      if (!v.success) { toast("Could not verify."); return; }
-
-      const opt = sel.selectedOptions[0];
-      const url = opt?.dataset?.link;
-      if (url) window.open(url, "_blank", "noopener");
-
-      if (dl?.checked) {
-        const payload = {
-          state: sel.value,
-          name: $("#name")?.value?.trim() || "",
-          email: $("#email")?.value?.trim() || "",
-          details: $("#details")?.value?.trim() || "",
-          ts: new Date().toISOString(),
-        };
-        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-        const a = document.createElement("a");
-        a.href = URL.createObjectURL(blob);
-        a.download = `report-${payload.state || "state"}-${Date.now()}.json`;
-        a.click();
-        URL.revokeObjectURL(a.href);
-        toast("Saved local copy.");
-      }
-
-      if (cp?.checked) {
-        const txt = `State: ${sel.value}
-Name: ${$("#name")?.value || ""}
-Email: ${$("#email")?.value || ""}
-Details:
-${$("#details")?.value || ""}`;
-        await navigator.clipboard.writeText(txt).catch(() => {});
-        toast("Copied to clipboard.");
-      }
-
-      toast("Opened official board link.");
-    });
+    if ($("#optDownload")?.checked) {
+      saveLocalJSON(payload);
+      toast("Saved local copy.");
+    }
+    if ($("#optCopy")?.checked) {
+      const txt = `State: ${payload.state}\nName: ${payload.name}\nEmail: ${payload.email}\nDetails:\n${payload.details}\n`;
+      await navigator.clipboard.writeText(txt).catch(() => {});
+      toast("Copied to clipboard.");
+    }
+    toast("Opened official board link.");
   }
 
   document.addEventListener("DOMContentLoaded", () => {
     loadStates();
-    initForm();
+    $("#state")?.addEventListener("change", validState);
+    $("#reportForm")?.addEventListener("submit", onSubmit);
   });
 })();
+
 
