@@ -4,229 +4,91 @@
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Complaint Portal — COVIDAccountabilityNow</title>
-
-  <!-- Inline CSS so styling works even if a separate styles.css isn’t found -->
-  <style>
-    :root{--bg:#0f1115;--panel:#151925;--line:#22283a;--text:#e5e7eb;--muted:#a2a8b5;--brand:#60a5fa}
-    *{box-sizing:border-box}
-    html,body{margin:0;padding:0;background:var(--bg);color:var(--text);
-      font:16px/1.6 system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif}
-    a{color:var(--brand)}
-    .container{max-width:960px;margin:2rem auto;padding:0 1rem}
-    nav{display:flex;gap:.75rem;flex-wrap:wrap;margin-bottom:1.5rem}
-    nav a{color:#cbd5e1;text-decoration:none;padding:.25rem .5rem;border-radius:.5rem}
-    nav a:hover{background:#1a2030}
-    h1{margin:.25rem 0 1rem}
-    .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:1rem;margin:1rem 0}
-    label{display:block;margin:.75rem 0 .25rem;color:#cbd5e1}
-    select,input,textarea,button{width:100%;background:#0f1422;color:var(--text);
-      border:1px solid #2a3145;border-radius:.6rem;padding:.7rem}
-    textarea{min-height:140px;resize:vertical}
-    .inline{display:flex;gap:.6rem;align-items:center}
-    .actions{display:flex;gap:.75rem;align-items:center;flex-wrap:wrap}
-    .btn{background:#1e2740;border:1px solid #2c3552;padding:.7rem 1rem;border-radius:.7rem;cursor:pointer}
-    .btn:hover{filter:brightness(1.1)}
-    .notice{font-size:.95rem;color:var(--muted)}
-    small.muted{color:#93a0b5}
-    .toast{position:fixed;left:50%;bottom:22px;transform:translateX(-50%);
-      background:#101625;border:1px solid #2a3145;padding:.6rem 1rem;border-radius:.6rem;opacity:0;pointer-events:none;transition:.2s}
-    .toast.show{opacity:1}
-  </style>
-
-  <!-- Turnstile -->
+  <link rel="stylesheet" href="/styles.css"/>
+  <script defer src="/app.js"></script>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <style>
+    /* small page-local helpers */
+    .field{margin:.75rem 0}
+    .panel{border:1px solid #22283a;border-radius:12px;padding:1rem;background:#0f1119}
+    .muted{opacity:.8}
+    .btn{display:inline-block;padding:.55rem .9rem;border-radius:.6rem;border:1px solid #2a3145;background:#1a2030;cursor:pointer}
+    .btn[disabled]{opacity:.5;cursor:not-allowed}
+    .info{margin:.5rem 0 .25rem}
+    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;padding:.6rem .9rem;border-radius:.6rem;background:#111725;border:1px solid #2a3145;opacity:0;transition:opacity .2s}
+    .toast.show{opacity:1}
+    .verify{display:flex;align-items:center;gap:.75rem;margin:.5rem 0}
+  </style>
 </head>
 <body>
   <div id="site-header"></div>
-  <div class="container">
-    <nav aria-label="Primary">
-      <a href="/">Home</a>
-      <a href="/complaint-portal.html">Portal</a>
-      <a href="/who-can-report.html">Who can report</a>
-      <a href="/why-report.html">Why report</a>
-      <a href="/our-story.html">Our story</a>
-      <a href="/about.html">About</a>
-      <a href="/privacy.html">Privacy</a>
-      <a href="/disclaimer.html">Disclaimer</a>
-    </nav>
 
+  <main class="container">
     <h1>Complaint Portal</h1>
-    <p class="notice">
-      Choose your state to open the official complaint page. You can optionally save a local copy and copy your text for your own records.
-      We do not store your report.
-    </p>
+    <p class="muted">Choose your state to open the official complaint page. You can optionally save a local copy and copy your text for your own records. We do not store your report.</p>
 
-    <form id="reportForm" class="card" novalidate>
-      <section class="card">
-        <label for="stateSelect">State</label>
-        <select id="stateSelect" aria-describedby="stateError">
+    <section class="panel" aria-labelledby="findBoard">
+      <h2 id="findBoard">Find your state board</h2>
+
+      <div class="field">
+        <label for="stateSelect">State</label><br/>
+        <select id="stateSelect" style="min-width:260px">
           <option value="">Loading states…</option>
         </select>
-        <small id="stateError" class="muted"></small>
-      </section>
-
-      <section class="card">
-        <h3>Share your experience (optional)</h3>
-        <label for="name">Name (optional)</label>
-        <input id="name" type="text" placeholder="Your name…" autocomplete="name"/>
-
-        <label for="email">Email (optional)</label>
-        <input id="email" type="email" placeholder="you@example.com" autocomplete="email"/>
-
-        <label for="details">Details</label>
-        <textarea id="details" placeholder="Describe what happened…"></textarea>
-
-        <div class="inline" style="margin-top:.5rem">
-          <!-- Replace with your actual Turnstile site key -->
-          <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITEKEY"></div>
-          <small id="verifyStatus" class="muted">Verification prevents spam.</small>
-        </div>
-      </section>
-
-      <section class="card">
-        <h3>Optional actions</h3>
-        <label class="inline"><input id="optDownload" type="checkbox"/> Save a local copy (JSON)</label>
-        <label class="inline"><input id="optCopy" type="checkbox"/> Copy text to clipboard</label>
-      </section>
-
-      <div class="actions">
-        <button class="btn" type="submit">Submit report</button>
+        <div id="stateError" class="muted" role="alert" style="margin-top:.25rem"></div>
       </div>
-    </form>
 
-    <div class="notice">
-      <small class="muted">
-        Your state link is public information. Reports you submit here are stored privately in D1 (future update).<br/>
-        <a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a>
-      </small>
+      <div id="stateInfo" class="field" hidden>
+        <div class="info"><strong id="boardName">Official board:</strong></div>
+        <div class="info">
+          <a id="boardLink" href="#" target="_blank" rel="noopener">Open link</a>
+        </div>
+        <button id="openBoardBtn" class="btn" disabled>Open board</button>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:1rem" aria-labelledby="shareExp">
+      <h2 id="shareExp">Share your experience (optional)</h2>
+
+      <div class="field">
+        <label for="name">Name (optional)</label><br/>
+        <input id="name" placeholder="Your name…" style="min-width:260px"/>
+      </div>
+
+      <div class="field">
+        <label for="email">Email (optional)</label><br/>
+        <input id="email" placeholder="you@example.com" inputmode="email" style="min-width:260px"/>
+      </div>
+
+      <div class="field">
+        <label for="details">Details</label><br/>
+        <textarea id="details" placeholder="Describe what happened…" rows="4" style="min-width:420px"></textarea>
+      </div>
+
+      <div class="verify">
+        <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITEKEY" data-theme="light"></div>
+        <span id="verifyStatus" class="muted">Verification prevents spam.</span>
+      </div>
+    </section>
+
+    <section class="panel" style="margin-top:1rem" aria-labelledby="opts">
+      <h2 id="opts">Optional actions</h2>
+      <label><input type="checkbox" id="optDownload"/> Save a local copy (JSON)</label><br/>
+      <label><input type="checkbox" id="optCopy"/> Copy text to clipboard</label>
+    </section>
+
+    <div style="margin-top:1rem">
+      <button id="submitBtn" class="btn" disabled>Submit report</button>
     </div>
-  </div>
 
-  <div class="toast" role="status" aria-live="polite"></div>
+    <p class="muted" style="margin-top:1rem">
+      Your state link is public information. Reports you submit here are stored privately in D1 for analysis (future update).
+    </p>
+  </main>
 
-  <!-- Inline JS so it runs even if app.js path is wrong -->
-  <script>
-    const $ = (s, r=document) => r.querySelector(s);
-
-    function toast(msg, ms=2000){
-      let t = $('.toast'); if(!t){ t = document.createElement('div'); t.className='toast'; document.body.appendChild(t); }
-      t.textContent = msg; t.classList.add('show'); clearTimeout(t._h); t._h = setTimeout(()=>t.classList.remove('show'), ms);
-    }
-
-    async function fetchStates(){
-      const tries = ['/api/states','/api/states/','/assets/states.json'];
-      for (const url of tries){
-        try{
-          const r = await fetch(url, { headers:{accept:'application/json'}, cache:'no-store' });
-          if (!r.ok) continue;
-          const j = await r.json();
-          if (Array.isArray(j) && j.length) return j;
-        }catch(e){}
-      }
-      return [];
-    }
-
-    async function populateStates(){
-      const sel = $('#stateSelect'); const err = $('#stateError');
-      sel.innerHTML = '<option value="">Loading states…</option>';
-
-      const rows = await fetchStates();
-      if (!rows.length){
-        sel.innerHTML = '<option value="">Failed to load states (check /api/states)</option>';
-        err.textContent = 'Could not load the state list. Open /api/states in a new tab and confirm JSON.';
-        return;
-      }
-
-      sel.innerHTML = '<option value="">Select your state…</option>';
-      for (const s of rows){
-        const opt = document.createElement('option');
-        opt.value = (s.code || '').toUpperCase();
-        opt.textContent = (s.name || s.code || 'Unknown') + (s.unavailable ? ' — temporarily unavailable' : '');
-        if (s.unavailable) opt.disabled = true;
-        if (s.link) opt.dataset.link = s.link;
-        sel.appendChild(opt);
-      }
-      err.textContent = '';
-      console.info('[portal] states loaded:', sel.options.length - 1);
-    }
-
-    async function verifyTurnstile(timeoutMs=12000){
-      const status = $('#verifyStatus');
-      if (!window.turnstile || typeof window.turnstile.getResponse !== 'function'){
-        status.textContent = 'Verification script not loaded.'; return false;
-      }
-      const token = window.turnstile.getResponse();
-      if (!token){ status.textContent = 'Please complete verification.'; return false; }
-
-      status.textContent = 'Verifying…';
-      const ctrl = new AbortController(); const to = setTimeout(()=>ctrl.abort(), timeoutMs);
-      try{
-        const res = await fetch('/api/verify-turnstile', {
-          method:'POST',
-          headers:{'content-type':'application/json'},
-          body: JSON.stringify({ token }),
-          signal: ctrl.signal
-        });
-        clearTimeout(to);
-        const j = await res.json().catch(()=>({success:false}));
-        status.textContent = j.success ? 'Success!' : 'Verification failed.';
-        return !!j.success;
-      }catch{
-        clearTimeout(to);
-        status.textContent = 'Network error.';
-        return false;
-      }
-    }
-
-    function initForm(){
-      const form = $('#reportForm');
-      form.addEventListener('submit', async (e)=>{
-        e.preventDefault();
-        const sel = $('#stateSelect');
-        const opt = sel?.selectedOptions?.[0];
-        if (!opt || !opt.value){ toast('Choose your state.'); return; }
-
-        const ok = await verifyTurnstile();
-        if (!ok){ toast('Verification failed.'); return; }
-
-        const url = opt.dataset.link || '';
-        if (url) window.open(url, '_blank', 'noopener');
-
-        const saveLocal = $('#optDownload')?.checked;
-        const copyText  = $('#optCopy')?.checked;
-
-        const payload = {
-          state_code: sel.value,
-          state_free_text: sel.value,
-          name: $('#name')?.value?.trim() || '',
-          email: $('#email')?.value?.trim() || '',
-          details: $('#details')?.value?.trim() || '',
-          created_at: new Date().toISOString()
-        };
-
-        if (saveLocal){
-          const blob = new Blob([JSON.stringify(payload,null,2)], { type:'application/json' });
-          const a = document.createElement('a');
-          a.href = URL.createObjectURL(blob);
-          a.download = `report-${payload.state_code}-${Date.now()}.json`;
-          a.click(); URL.revokeObjectURL(a.href);
-          toast('Saved local copy.');
-        }
-        if (copyText){
-          const txt = `State: ${payload.state_code}\nName: ${payload.name}\nEmail: ${payload.email}\nDetails:\n${payload.details}`;
-          await navigator.clipboard.writeText(txt).catch(()=>{});
-          toast('Copied to clipboard.');
-        }
-        toast('Opened official board link.');
-      });
-    }
-
-    document.addEventListener('DOMContentLoaded', async ()=>{
-      await populateStates();
-      initForm();
-    });
-  </script>
   <div id="site-footer"></div>
   <script src="/partials.js" defer></script>
+  <div class="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
+
