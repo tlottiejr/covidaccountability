@@ -83,3 +83,71 @@ a{color:var(--brand)}
 
 .toast{position:fixed;left:50%;bottom:24px;transform:translateX(-50%);background:#111827;color:#fff;padding:.5rem .75rem;border-radius:.75rem;opacity:0;pointer-events:none;transition:opacity .2s}
 .toast.show{opacity:1}
+/* ===== Utilities ===== */
+.text-ok   { color: #22c55e; }
+.text-warn { color: #f59e0b; }
+
+.small { font-size: .9rem; }
+
+/* Toast (JS will create .toast element if needed) */
+.toast {
+  position: fixed;
+  left: 50%;
+  bottom: 24px;
+  transform: translateX(-50%) translateY(16px);
+  background: #10131a;
+  border: 1px solid #2a3145;
+  padding: .55rem .8rem;
+  border-radius: 10px;
+  font-size: .9rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: .18s ease;
+  z-index: 9999;
+}
+.toast.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+}
+
+/* ===== Complaint portal layout ===== */
+.portal-grid {
+  display: grid;
+  grid-template-columns: 320px 1fr 280px;
+  gap: 1rem;
+  align-items: start;
+}
+@media (max-width: 1100px) {
+  .portal-grid { grid-template-columns: 1fr; }
+}
+
+.board-info { margin-top: .5rem; }
+.board-info .row {
+  display: grid;
+  grid-template-columns: 90px 1fr;
+  gap: .5rem;
+  padding: .25rem 0;
+  border-bottom: 1px dashed #1f2433;
+}
+.board-info .row:last-child { border-bottom: 0; }
+.board-info .k { color: #94a3b8; }
+.board-info .v a { color: #60a5fa; text-decoration: underline; word-break: break-all; }
+
+.verify { margin: .75rem 0 1rem; }
+.check { display: flex; align-items: center; gap: .5rem; margin: .35rem 0; }
+
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: .55rem .9rem; border-radius: 10px; border: 1px solid #2a3145;
+  background: #162035; color: #e5e7eb; cursor: pointer;
+}
+.btn[disabled] { opacity: .5; cursor: not-allowed; }
+.input {
+  width: 100%; background: #111827; border: 1px solid #243043; color: #e5e7eb;
+  border-radius: 10px; padding: .55rem .65rem; margin: .3rem 0 1rem;
+}
+.card {
+  background: #0f1626; border: 1px solid #22283a; border-radius: 14px;
+  padding: 1rem;
+}
+.hr { border-top: 1px solid #1f2433; margin: .9rem 0; }
