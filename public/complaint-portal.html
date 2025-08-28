@@ -1,78 +1,69 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Complaint Portal — COVIDAccountabilityNow</title>
-  <link rel="stylesheet" href="/styles.css"/>
-  <script defer src="/partials/shell.js"></script>
-  <script defer src="/app.js"></script>
+  <link rel="stylesheet" href="/assets/site.css" />
+  <script defer src="/assets/partials.js"></script>
+  <script defer src="/assets/app.js"></script>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
-  <div id="site-header"></div>
-
   <main class="container">
     <h1>Complaint Portal</h1>
     <p>Choose your state to open the official complaint page. You can optionally save a local copy and copy your text for your own records. We do not store your report.</p>
 
-    <div class="grid">
+    <form id="reportForm" class="grid" onsubmit="return false;">
       <section class="card">
         <h2>Find your state board</h2>
-        <label for="state" class="label">State</label>
-        <select id="state" class="input">
+        <label for="stateSelect">State</label>
+        <select id="stateSelect" aria-label="State">
           <option value="">Loading states…</option>
         </select>
-        <p id="stateError" class="help error"></p>
 
-        <div id="boardPanel" class="board-panel hidden">
-          <div class="board-line">
-            <div>
-              <div class="muted">Board</div>
-              <div id="boardName" class="board-name">—</div>
-            </div>
-            <div>
-              <div class="muted">URL</div>
-              <a id="boardUrl" href="#" target="_blank" rel="noopener" class="board-url">—</a>
-            </div>
-            <div>
-              <button id="openBoard" class="btn" disabled>Open board</button>
-            </div>
-          </div>
+        <div id="boardInfo" class="card" style="margin-top:12px"></div>
+
+        <div style="display:flex; gap:10px; margin-top:12px;">
+          <button type="button" id="openBoardBtn" class="btn ok" disabled>Open board page</button>
         </div>
       </section>
 
       <section class="card">
         <h2>Share your experience (optional)</h2>
+        <label for="name">Name (optional)</label>
+        <input id="name" placeholder="Your name…" autocomplete="name" />
 
-        <label class="label" for="name">Name (optional)</label>
-        <input id="name" class="input" placeholder="Your name…"/>
+        <label for="email">Email (optional)</label>
+        <input id="email" type="email" placeholder="you@example.com" autocomplete="email" />
 
-        <label class="label" for="email">Email (optional)</label>
-        <input id="email" class="input" type="email" placeholder="you@example.com"/>
+        <label for="details">Details</label>
+        <textarea id="details" placeholder="Describe what happened…"></textarea>
 
-        <label class="label" for="details">Details</label>
-        <textarea id="details" class="input" rows="5" placeholder="Describe what happened…"></textarea>
-
-        <div style="margin:.75rem 0;">
-          <div class="cf-turnstile" data-sitekey="0x4AAAAAAAxxxxxxxxxxxxxxxxxxxxxx"></div>
-          <div id="verifyStatus" class="help muted">Verification prevents spam.</div>
+        <div style="margin-top:10px">
+          <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITE_KEY_HERE"></div>
+          <small class="muted">Verification prevents spam.</small>
         </div>
-
-        <div class="options">
-          <label class="check"><input type="checkbox" id="optDownload"/> Save a local copy (JSON)</label>
-          <label class="check"><input type="checkbox" id="optCopy"/> Copy text to clipboard</label>
-        </div>
-
-        <button id="submitBtn" class="btn primary">Submit report</button>
       </section>
-    </div>
 
-    <p class="muted small">Your state link is public information. Reports you submit here are stored privately in D1 for analysis (future update).</p>
+      <section class="card">
+        <h2>Optional actions</h2>
+        <label><input type="checkbox" id="optDownload" /> Save a local copy (JSON)</label>
+        <label><input type="checkbox" id="optCopy" /> Copy text to clipboard</label>
+        <div style="margin-top:12px">
+          <button class="btn primary" type="submit">Submit report</button>
+        </div>
+      </section>
+    </form>
+
+    <p class="muted" style="margin-top:18px">
+      Your state link is public information. Reports you submit here are stored privately in D1 for analysis (future update).
+    </p>
   </main>
 
-  <div id="site-footer"></div>
+  <div class="toast" aria-live="polite"></div>
 </body>
 </html>
+
 
 
