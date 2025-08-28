@@ -22,3 +22,18 @@ textarea{min-height:140px;resize:vertical}
 .form-hint{color:#93a0b5;font-size:.95rem;margin-top:.25rem}
 .inline{display:flex;gap:.6rem;align-items:center}
 small.muted{color:#93a0b5}
+/* Top navigation (shared) */
+.topnav {position:sticky; top:0; z-index:20; background:#0f1115; border-bottom:1px solid #1c2232}
+.topnav .wrap {max-width:1000px; margin:0 auto; padding:.8rem 1rem; display:flex; gap:1rem; align-items:center; justify-content:space-between}
+.topnav .brand {font-weight:700; color:#fff; text-decoration:none}
+.topnav nav a {margin-left:.8rem; text-decoration:none; color:#cbd5e1}
+.topnav nav a.active {color:#60a5fa; text-decoration:underline}
+
+/* Layout helpers */
+.container {max-width:1000px; margin:2rem auto; padding:0 1rem}
+.site-footer {margin-top:3rem; border-top:1px solid #1c2232}
+.site-footer .wrap {max-width:1000px; margin:0 auto; padding:1rem; color:#cbd5e1}
+
+/* Inputs */
+input, select, textarea, button {color:inherit; background:#0f1119; border:1px solid #2a3145; border-radius:8px; padding:.5rem .6rem}
+label {display:inline-block; margin:.25rem 0}
