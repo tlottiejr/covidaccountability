@@ -2,15 +2,23 @@
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Complaint Portal — COVIDAccountabilityNow</title>
+
+  <!-- Load whichever stylesheet you use; keeping both is harmless -->
+  <link rel="stylesheet" href="/site.css" />
   <link rel="stylesheet" href="/styles.css" />
+
+  <!-- Turnstile widget -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+  <!-- App logic -->
+  <script src="/app.js" defer></script>
 </head>
 <body>
-  <header class="site-header">
-    <nav class="nav">
-      <a href="/">Home</a>
-      <a class="active" href="/complaint-portal.html">Portal</a>
+  <header class="container">
+    <nav class="navbar">
+      <a href="/index.html">Home</a>
+      <a aria-current="page" href="/complaint-portal.html">Portal</a>
       <a href="/about.html">About</a>
       <a href="/who-can-report.html">Who can report</a>
       <a href="/why-report.html">Why report</a>
@@ -18,48 +26,45 @@
       <a href="/privacy.html">Privacy</a>
       <a href="/disclaimer.html">Disclaimer</a>
     </nav>
+    <h1>Complaint Portal</h1>
+    <p>Choose your state to open the official complaint page. You can optionally save a local copy and copy your text for your own records. We do not store your report.</p>
   </header>
 
   <main class="container">
-    <h1>Complaint Portal</h1>
-    <p class="muted">
-      Choose your state to open the official complaint page. You can optionally save a local copy and copy your text for your own records.
-      We do not store your report.
-    </p>
-
     <form id="reportForm" class="card">
       <fieldset>
         <legend>Find your state board</legend>
         <label for="state">State</label>
-        <select id="state" name="state" class="input">
-          <option value="">Select your state...</option>
+        <select id="state" name="state" required>
+          <option value="">Loading states…</option>
         </select>
-        <div id="stateError" class="help error"></div>
+        <div id="stateError" class="muted" role="alert" aria-live="polite"></div>
       </fieldset>
 
       <fieldset>
         <legend>Share your experience (optional)</legend>
         <label for="name">Name (optional)</label>
-        <input id="name" type="text" placeholder="Your name…" class="input" />
+        <input id="name" name="name" type="text" placeholder="Your name…" />
 
         <label for="email">Email (optional)</label>
-        <input id="email" type="email" placeholder="you@example.com" class="input" />
+        <input id="email" name="email" type="email" placeholder="you@example.com" />
 
         <label for="details">Details</label>
-        <textarea id="details" rows="6" placeholder="Describe what happened…" class="input"></textarea>
+        <textarea id="details" name="details" rows="6" placeholder="Describe what happened…"></textarea>
       </fieldset>
 
-      <!-- Cloudflare Turnstile -->
-      <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITE_KEY"></div>
-      <div id="verifyStatus" class="muted" style="margin:.5rem 0 1rem">Verification prevents spam.</div>
+      <div class="stack-sm">
+        <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITE_KEY" data-theme="auto"></div>
+        <div id="verifyStatus" class="muted" aria-live="polite">Verification prevents spam.</div>
+      </div>
 
       <fieldset>
         <legend>Optional actions</legend>
-        <label><input type="checkbox" id="optDownload" /> Save a local copy (JSON)</label>
-        <label><input type="checkbox" id="optCopy" /> Copy text to clipboard</label>
+        <label><input id="optDownload" type="checkbox" /> Save a local copy (JSON)</label>
+        <label><input id="optCopy" type="checkbox" /> Copy text to clipboard</label>
       </fieldset>
 
-      <button type="submit" class="btn">Submit report</button>
+      <button id="submitBtn" type="submit">Submit report</button>
     </form>
 
     <p class="muted" style="margin-top:1rem">
@@ -67,13 +72,8 @@
     </p>
   </main>
 
-  <footer class="site-footer">
-    <p><a href="/privacy.html">Privacy</a> • <a href="/disclaimer.html">Disclaimer</a></p>
+  <footer class="container muted">
+    <a href="/privacy.html">Privacy</a> • <a href="/disclaimer.html">Disclaimer</a>
   </footer>
-
-  <!-- Turnstile script -->
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-  <!-- Single app script -->
-  <script defer src="/app.js?v=4"></script>
 </body>
 </html>
