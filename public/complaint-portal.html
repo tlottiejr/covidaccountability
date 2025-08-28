@@ -1,11 +1,10 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Complaint Portal — COVIDAccountabilityNow</title>
-  <link rel="stylesheet" href="/assets/site.css" />
-  <!-- Turnstile widget (keep your site key in the widget markup below) -->
+  <link rel="stylesheet" href="/assets/site.css"/>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
 </head>
 <body>
@@ -15,33 +14,33 @@
   <main class="container">
     <header style="margin-bottom:14px">
       <h1>Complaint Portal</h1>
-      <p class="muted">Select your state to get the official complaint link. You may also save a local copy or copy your text.</p>
+      <p class="muted">Choose your state to open the official complaint page. You can optionally save a local copy and copy your text for your own records.</p>
     </header>
 
-    <form id="reportForm" class="grid">
+    <form id="reportForm" class="grid" novalidate>
       <fieldset class="card col-12">
         <legend>Find your state board</legend>
         <label for="stateSelect">State</label>
         <select id="stateSelect" name="state" aria-describedby="stateError">
-          <option value="">Select your state...</option>
-          <!-- options filled by your /api/states fetch (server or existing client code) -->
+          <option value="">Select your state…</option>
+          <!-- /assets/app.js will populate from GET /api/states if empty -->
         </select>
         <div id="stateError" class="error" role="alert" aria-live="polite"></div>
       </fieldset>
 
       <fieldset class="card col-12">
         <legend>Share your experience (optional)</legend>
-
         <label for="name">Name (optional)</label>
-        <input id="name" type="text" placeholder="Your name..." />
+        <input id="name" type="text" placeholder="Your name…"/>
 
         <label for="email">Email (optional)</label>
-        <input id="email" type="email" placeholder="you@example.com" />
+        <input id="email" type="email" placeholder="you@example.com"/>
 
         <label for="details">Details</label>
         <textarea id="details" placeholder="Describe what happened…"></textarea>
 
         <div style="margin-top:10px">
+          <!-- Replace with your real sitekey -->
           <div class="cf-turnstile" data-sitekey="YOUR_TURNSTILE_SITE_KEY_HERE"></div>
         </div>
       </fieldset>
@@ -49,23 +48,21 @@
       <fieldset class="card col-12">
         <legend>Optional actions</legend>
         <label style="display:flex;gap:8px;align-items:center">
-          <input type="checkbox" id="optDownload" /> Save a local copy (JSON)
+          <input type="checkbox" id="optDownload"/> Save a local copy (JSON)
         </label>
         <label style="display:flex;gap:8px;align-items:center">
-          <input type="checkbox" id="optCopy" /> Copy text to clipboard
+          <input type="checkbox" id="optCopy"/> Copy text to clipboard
         </label>
       </fieldset>
 
       <div class="col-12" style="display:flex;gap:10px;align-items:center">
         <button type="submit" class="btn">Submit report</button>
-        <span class="helper">States list: loaded via <code>/api/states</code>. Verification is required to prevent spam.</span>
+        <span class="helper">Verification prevents spam. We do not store your report.</span>
       </div>
     </form>
   </main>
 
   <footer id="site-footer"></footer>
-
-  <!-- global + portal UX -->
   <script src="/assets/site.js"></script>
   <script src="/assets/app.js"></script>
 </body>
