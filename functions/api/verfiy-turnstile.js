@@ -1,31 +1,22 @@
-// POST /api/verify-turnstile  { "token": "<cf-turnstile-response>" }
+// /functions/api/verify-turnstile.js
 export async function onRequestPost({ request, env }) {
   try {
     const { token } = await request.json();
     if (!token) {
-      return new Response(JSON.stringify({ success: false, error: "missing token" }), {
-        status: 400,
-        headers: { "content-type": "application/json" },
-      });
+      return new Response(JSON.stringify({ success: false, error: "missing-token" }), { status: 400 });
     }
 
-    const form = new URLSearchParams();
+    const form = new FormData();
     form.append("secret", env.TURNSTILE_SECRET);
     form.append("response", token);
 
-    const r = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      body: form,
-    });
-    const data = await r.json();
+    const resp = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", { method: "POST", body: form });
+    const data = await resp.json();
 
     return new Response(JSON.stringify({ success: !!data.success }), {
-      headers: { "content-type": "application/json" },
+      headers: { "content-type": "application/json" }
     });
-  } catch {
-    return new Response(JSON.stringify({ success: false }), {
-      status: 500,
-      headers: { "content-type": "application/json" },
-    });
+  } catch (e) {
+    return new Response(JSON.stringify({ success: false, error: String(e) }), { status: 500 });
   }
 }
