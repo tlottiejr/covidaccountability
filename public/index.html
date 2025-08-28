@@ -1,44 +1,56 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Covid Accountability Now — Home</title>
-  <link rel="stylesheet" href="/assets/styles.css" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Home — COVIDAccountabilityNow</title>
+  <link rel="stylesheet" href="/assets/site.css" />
 </head>
-<script defer src="/assets/nav.js"></script>
 <body>
-    <link rel="stylesheet" href="/assets/site.css">
-<header class="site-header">
-  <nav class="nav">
-    <a href="/">Home</a>
-    <a href="/complaint-portal.html">Portal</a>
-    <a href="/about.html">About</a>
-    <a href="/who-can-report.html">Who can report</a>
-    <a href="/why-report.html">Why report</a>
-    <a href="/our-story.html">Our story</a>
-  </nav>
-</header>
-  <header class="container">
-    <h1>Covid Accountability Now</h1>
-    <p class="lead">Find state medical board reporting links and share your experience.</p>
-    <nav aria-label="Primary">
-      <a class="btn" href="/complaint-portal.html">Open the Complaint Portal</a>
-    </nav>
-  </header>
+  <header id="site-header"></header>
+  <nav id="breadcrumbs" class="breadcrumbs" aria-label="Breadcrumb"></nav>
 
   <main class="container">
-    <section>
-      <h2>What this site does</h2>
-      <ul>
-        <li>Centralizes public info for each state medical board.</li>
-        <li>Lets you submit a report we can aggregate (optional).</li>
-      </ul>
-    </section>
+    <div class="grid">
+      <section class="card col-12">
+        <h1>Welcome</h1>
+        <p class="muted">File with your state board and keep a local copy if you wish.</p>
+      </section>
+
+      <a class="card col-6" href="/complaint-portal.html" style="text-decoration:none">
+        <h2>Complaint Portal</h2>
+        <p>Find your official state board link and submit your report.</p>
+      </a>
+
+      <a class="card col-6" href="/about.html" style="text-decoration:none">
+        <h2>About</h2>
+        <p>Who we are and what we do.</p>
+      </a>
+
+      <a class="card col-6" href="/who-can-report.html" style="text-decoration:none">
+        <h2>Who can report</h2>
+        <p>Who may file and who may be reported.</p>
+      </a>
+
+      <a class="card col-6" href="/why-report.html" style="text-decoration:none">
+        <h2>Why report</h2>
+        <p>Why filing matters and why now.</p>
+      </a>
+
+      <a class="card col-6" href="/our-story.html" style="text-decoration:none">
+        <h2>Our story</h2>
+        <p>How we got here and why we’re doing this.</p>
+      </a>
+
+      <div class="card col-6">
+        <h2>Privacy & Disclaimers</h2>
+        <p>We don’t store your report. See our <a href="/privacy.html">Privacy</a> and <a href="/disclaimer.html">Disclaimer</a>.</p>
+      </div>
+    </div>
   </main>
 
-  <footer class="container small">
-    <p>Staging build. Protected by Cloudflare Access.</p>
-  </footer>
+  <footer id="site-footer"></footer>
+  <script src="/assets/site.js"></script>
 </body>
 </html>
+
