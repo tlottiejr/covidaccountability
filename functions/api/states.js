@@ -1,51 +1,79 @@
-// /functions/api/states.js
-// Returns states from D1. Shape expected by the UI:
-// [{ code: "AL", name: "Alabama", link: "https://...", unavailable: false }, ...]
-
-const STATE_NAMES = {
-  AL: "Alabama", AK: "Alaska", AZ: "Arizona", AR: "Arkansas", CA: "California",
-  CO: "Colorado", CT: "Connecticut", DE: "Delaware", DC: "District of Columbia",
-  FL: "Florida", GA: "Georgia", HI: "Hawaii", ID: "Idaho", IL: "Illinois",
-  IN: "Indiana", IA: "Iowa", KS: "Kansas", KY: "Kentucky", LA: "Louisiana",
-  ME: "Maine", MD: "Maryland", MA: "Massachusetts", MI: "Michigan",
-  MN: "Minnesota", MS: "Mississippi", MO: "Missouri", MT: "Montana",
-  NE: "Nebraska", NV: "Nevada", NH: "New Hampshire", NJ: "New Jersey",
-  NM: "New Mexico", NY: "New York", NC: "North Carolina", ND: "North Dakota",
-  OH: "Ohio", OK: "Oklahoma", OR: "Oregon", PA: "Pennsylvania",
-  RI: "Rhode Island", SC: "South Carolina", SD: "South Dakota",
-  TN: "Tennessee", TX: "Texas", UT: "Utah", VT: "Vermont", VA: "Virginia",
-  WA: "Washington", WV: "West Virginia", WI: "Wisconsin", WY: "Wyoming"
-};
-
+/**
+ * GET /api/states
+ * Returns [{ code, name, link, unavailable }] from D1.
+ * Falls back gracefully if any table is missing.
+ */
 export async function onRequestGet({ env }) {
-  try {
-    // Prefer name if present in your table; otherwise fill from map
-    const sql = `
-      SELECT
-        code,
-        COALESCE(name, '') AS name,
-        link,
-        CAST(COALESCE(unavailable, 0) AS INTEGER) AS unavailable
-      FROM states
-      ORDER BY name COLLATE NOCASE, code
-    `;
-    const { results } = await env.DB.prepare(sql).all();
-
-    const rows = (results || []).map(r => ({
-      code: r.code,
-      name: r.name && r.name.trim() ? r.name : (STATE_NAMES[r.code] ?? r.code),
-      link: r.link ?? null,
-      unavailable: !!r.unavailable
-    }));
-
-    return new Response(JSON.stringify(rows), {
-      headers: { "content-type": "application/json" }
+  const json = (body, status = 200) =>
+    new Response(JSON.stringify(body), {
+      status,
+      headers: {
+        "content-type": "application/json; charset=utf-8",
+        "cache-control": "no-store",
+      },
     });
-  } catch (err) {
-    // If DB isn’t bound or query fails, return a loud error so we see it
-    return new Response(JSON.stringify({ error: String(err) }), {
-      status: 500,
-      headers: { "content-type": "application/json" }
-    });
+
+  // Helper: run SQL safely, return [] on any error
+  async function safeAll(sql, params = []) {
+    try {
+      const stmt = env.DB.prepare(sql);
+      const data = await stmt.bind(...params).all();
+      return data?.results ?? data ?? [];
+    } catch (e) {
+      // console.error("D1 query failed:", e);
+      return [];
+    }
   }
+
+  // Preferred: states + boards join
+  const joined = await safeAll(/* sql */ `
+    SELECT
+      s.code                                     AS code,
+      COALESCE(b.board_name, s.name, s.code)     AS name,
+      COALESCE(NULLIF(b.complaint_form_url, ''), s.link, '') AS link,
+      CASE
+        WHEN LOWER(IFNULL(b.status, '')) IN ('error','down','404') THEN 1
+        WHEN CAST(IFNULL(s.unavailable, 0) AS INTEGER) = 1 THEN 1
+        ELSE 0
+      END                                         AS unavailable
+    FROM states s
+    LEFT JOIN boards b ON b.state_code = s.code
+    ORDER BY s.code ASC;
+  `);
+
+  if (joined.length) {
+    return json(
+      joined.map(r => ({
+        code: String(r.code).toUpperCase(),
+        name: r.name || r.code,
+        link: r.link || "",
+        unavailable: !!r.unavailable,
+      }))
+    );
+  }
+
+  // Fallback: states only (no boards table yet)
+  const onlyStates = await safeAll(/* sql */ `
+    SELECT
+      code AS code,
+      COALESCE(name, code) AS name,
+      IFNULL(link, '')     AS link,
+      CAST(IFNULL(unavailable, 0) AS INTEGER) AS unavailable
+    FROM states
+    ORDER BY code ASC;
+  `);
+
+  if (onlyStates.length) {
+    return json(
+      onlyStates.map(r => ({
+        code: String(r.code).toUpperCase(),
+        name: r.name || r.code,
+        link: r.link || "",
+        unavailable: !!r.unavailable,
+      }))
+    );
+  }
+
+  // Final fallback: an empty list rather than HTML
+  return json([], 200);
 }
