@@ -1,32 +1,32 @@
-export async function onRequest(context) {
-  const { request, env } = context;
+// functions/api/states.js
+export async function onRequest({ env }) {
+  const db = env.DB;
 
-  // Try D1 first
-  try {
-    const sql = `
-      SELECT
-        code,
-        name,
-        COALESCE(link, '') AS link,
-        COALESCE(unavailable, 0) AS unavailable
-      FROM states
-      ORDER BY name ASC
-    `;
-    const { results } = await env.DB.prepare(sql).all();
+  const sql = `
+    SELECT
+      s.code,
+      s.name,
+      -- prefer states.link, otherwise boards.complaint_form_url
+      COALESCE(s.link, b.complaint_form_url) AS link,
+      -- "unavailable" if the state itself is flagged OR board status indicates bad
+      CASE
+        WHEN s.unavailable = 1
+             OR COALESCE(b.status, '') IN ('error','404')
+        THEN 1 ELSE 0
+      END AS unavailable,
+      COALESCE(b.board_name, '')         AS board_name,
+      COALESCE(b.last_verified_at, '')   AS last_verified_at,
+      COALESCE(b.status, '')             AS status,
+      COALESCE(b.prefill_mode, 'none')   AS prefill_mode,
+      COALESCE(b.prefill_template, '')   AS prefill_template
+    FROM states s
+    LEFT JOIN boards b ON b.state_code = s.code
+    ORDER BY s.code;
+  `;
 
-    if (Array.isArray(results) && results.length) {
-      return new Response(JSON.stringify(results), {
-        headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
-      });
-    }
+  const { results } = await db.prepare(sql).all();
 
-    // No rows found -> return 204 so client falls back to /assets/states.json
-    return new Response(null, { status: 204 });
-  } catch (err) {
-    // D1 not ready / schema missing -> signal client to fallback
-    return new Response(JSON.stringify({ error: "d1_error", detail: String(err) }), {
-      status: 500,
-      headers: { "content-type": "application/json; charset=utf-8" }
-    });
-  }
+  return new Response(JSON.stringify(results), {
+    headers: { 'content-type': 'application/json; charset=utf-8' },
+  });
 }
