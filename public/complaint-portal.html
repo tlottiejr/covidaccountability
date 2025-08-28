@@ -1,131 +1,108 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Complaint Portal — COVIDAccountabilityNow</title>
-
-  <!-- Inject the shared header (nav + CSS links) -->
-  <script src="/partials/partials.js" defer></script>
-
-  <!-- Hard fallback CSS in case the partial fails OR the path differs -->
-  <link rel="stylesheet" href="/site.css">
-  <link rel="stylesheet" href="/assets/site.css">
-  <style>
-    /* tiny safety net so the page isn’t bare if CSS fails entirely */
-    body{background:#0f1115;color:#e5e7eb;font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Helvetica,Arial,sans-serif}
-  </style>
-
-  <!-- App scripts used by the portal -->
-  <script src="/assets/app.js" defer></script>
-  <script src="/assets/nav.js" defer></script>
-
-  <!-- Cloudflare Turnstile client (needed for the widget) -->
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <link rel="stylesheet" href="/site.css"/>
+  <!-- Turnstile widget (keep your site key in the div below) -->
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
 </head>
 <body>
-  <!-- Header (auto-injected by /shell.js) -->
-  <div id="__header" data-include="/partials/header.html"></div>
+  <!-- Header -->
+  <header class="site-header">
+    <div class="container">
+      <nav class="nav" aria-label="Main">
+        <a href="/">Home</a>
+        <a href="/complaint-portal.html">Portal</a>
+        <a href="/about.html">About</a>
+        <a href="/who-can-report.html">Who can report</a>
+        <a href="/why-report.html">Why report</a>
+        <a href="/our-story.html">Our story</a>
+        <a href="/privacy.html">Privacy</a>
+        <a href="/disclaimer.html">Disclaimer</a>
+      </nav>
+    </div>
+  </header>
 
-  <main class="container portal">
+  <main class="container">
     <h1>Complaint Portal</h1>
-    <p class="muted">
-      Choose your state to open the official complaint page. You can optionally save a local copy
-      and copy your text for your own records. We do not store your report.
-    </p>
+    <p class="muted">Choose your state to open the official complaint page. You can optionally save a local copy and copy your text for your own records. We do not store your report.</p>
 
-    <div class="grid portal-grid">
-      <!-- LEFT: State + board info -->
-      <section class="card">
+    <div class="grid grid-portal">
+      <!-- Left: Board panel -->
+      <aside class="card">
         <h2>Find your state board</h2>
-
-        <label for="state" class="sr-only">State</label>
-        <select id="state" class="input w-full">
+        <label for="state" class="small muted">State</label>
+        <select id="state" aria-label="State">
           <option value="">Loading states…</option>
         </select>
 
-        <div class="hr" role="separator" aria-hidden="true"></div>
-
-        <h3 class="muted">Board</h3>
-        <div class="board-info">
-          <div class="row">
-            <div class="k">Name</div>
-            <div class="v" id="boardName">—</div>
+        <div id="boardPanel" class="card" style="margin-top:12px">
+          <div class="kv">
+            <div class="k">Name</div> <div id="boardName">—</div>
+            <div class="k">URL</div>  <div><a id="boardUrl" href="#" target="_blank" rel="noopener">Not available yet</a></div>
+            <div class="k">Host</div> <div id="boardHost">—</div>
+            <div class="k">Status</div> <div id="boardStatus">—</div>
           </div>
-          <div class="row">
-            <div class="k">URL</div>
-            <div class="v" id="boardUrl">Not available yet</div>
-          </div>
-          <div class="row">
-            <div class="k">Host</div>
-            <div class="v" id="boardHost">—</div>
-          </div>
-          <div class="row">
-            <div class="k">Status</div>
-            <div class="v muted" id="boardStatus">—</div>
-          </div>
-          <div class="row">
-            <div class="k">Verified</div>
-            <div class="v muted" id="boardVerified">—</div>
-          </div>
+          <div class="hr"></div>
+          <button id="openBoardBtn" class="btn btn-primary" disabled>Open board page</button>
         </div>
+      </aside>
 
-        <button id="btnOpenBoard" class="btn mt-3" disabled>Open board page</button>
-      </section>
-
-      <!-- MIDDLE: Report form -->
+      <!-- Middle: form -->
       <section class="card">
-        <h2>Share your experience (optional)</h2>
-
+        <h2>Share your experience <span class="muted">(optional)</span></h2>
         <form id="reportForm" novalidate>
-          <label for="name">Name (optional)</label>
-          <input id="name" class="input" type="text" placeholder="Your name…" />
+          <label class="small muted" for="name">Name (optional)</label>
+          <input id="name" type="text" placeholder="Your name…"/>
 
-          <label for="email">Email (optional)</label>
-          <input id="email" class="input" type="email" placeholder="you@example.com" />
+          <label class="small muted" for="email">Email (optional)</label>
+          <input id="email" type="email" placeholder="you@example.com"/>
 
-          <label for="details">Details</label>
-          <textarea id="details" class="input" rows="7" placeholder="Describe what happened…"></textarea>
+          <label class="small muted" for="details">Details</label>
+          <textarea id="details" placeholder="Describe what happened…"></textarea>
 
-          <div class="verify">
-            <!-- Turnstile widget; keep your existing sitekey if you already set it -->
-            <div class="cf-turnstile"
-                 data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8"
-                 data-theme="dark"></div>
-            <div id="verifyStatus" class="muted"></div>
+          <div style="margin:10px 0">
+            <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8" data-callback="()=>{}"></div>
+            <small id="turnstileStatus" class="muted">Verification prevents spam.</small>
           </div>
-
-          <button type="submit" class="btn">Submit report</button>
         </form>
       </section>
 
-      <!-- RIGHT: Options -->
+      <!-- Right: options -->
       <aside class="card">
         <h2>Optional actions</h2>
-        <label class="check">
-          <input id="optDownload" type="checkbox" />
-          <span>Save a local copy (JSON)</span>
-        </label>
-        <label class="check">
-          <input id="optCopy" type="checkbox" />
-          <span>Copy text to clipboard</span>
-        </label>
+        <div class="row">
+          <input id="optSave" type="checkbox" aria-label="Save a local copy (JSON)"/>
+          <label for="optSave">Save a local copy (JSON)</label>
+        </div>
+        <div class="row">
+          <input id="optCopy" type="checkbox" aria-label="Copy text to clipboard"/>
+          <label for="optCopy">Copy text to clipboard</label>
+        </div>
+        <div class="hr"></div>
+        <button class="btn btn-primary" form="reportForm" type="submit">Submit report</button>
       </aside>
     </div>
 
-    <p class="muted small" style="margin-top:1rem">
-      Your state link is public information. Reports you submit here are stored privately in D1 for analysis
-      (future update).
+    <p class="small muted" style="margin-top:14px">
+      Your state link is public information. Reports you submit here are stored privately in D1 for analysis (future update).
     </p>
   </main>
 
-  <!-- Footer (auto-injected by /shell.js) -->
-  <div id="__footer" data-include="/partials/footer.html"></div>
+  <!-- Footer -->
+  <footer class="site-footer">
+    <div class="container center">
+      <div class="links">
+        <a href="/privacy.html">Privacy</a>
+        <a href="/disclaimer.html">Disclaimer</a>
+      </div>
+    </div>
+  </footer>
 
-  <!-- Turnstile loader -->
-  <script defer src="https://challenges.cloudflare.com/turnstile/v0/api.js"></script>
-  <!-- Shell + app logic -->
-  <script defer src="/shell.js"></script>
-  <script defer src="/app.js"></script>
+  <div class="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+  <script src="/assets/app.js" defer></script>
 </body>
 </html>
+
