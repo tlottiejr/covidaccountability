@@ -1,165 +1,243 @@
-// Small toast
-function toast(msg, ms = 2400) {
-  let t = document.querySelector('.toast');
-  if (!t) { t = document.createElement('div'); t.className = 'toast'; document.body.appendChild(t); }
-  t.textContent = msg; t.classList.add('show');
-  clearTimeout(t._h); t._h = setTimeout(() => t.classList.remove('show'), ms);
-}
+// public/app.js
+(() => {
+  const $  = (s, r = document) => r.querySelector(s);
+  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
 
-// Try /api/states then fallback to /assets/states.json
-async function fetchStates() {
-  const tryApi = async () => {
-    const r = await fetch('/api/states', { headers: { accept: 'application/json' }, cache: 'no-store' });
-    if (r.status === 204) throw new Error('norows');
-    if (!r.ok) throw new Error('bad');
-    return r.json();
-  };
-  try {
-    return await tryApi();
-  } catch {
-    const r = await fetch('/assets/states.json', { headers: { accept: 'application/json' }, cache: 'no-store' });
-    if (!r.ok) throw new Error('fallback-missing');
-    return r.json();
-  }
-}
+  let STATE_LIST = [];
+  let SELECT     = null;
+  let BTN_OPEN   = null;
 
-// Portal initialization
-async function initPortal() {
-  const sel = document.getElementById('stateSelect');
-  const info = document.getElementById('boardInfo');
-  const openBtn = document.getElementById('openBoardBtn');
-  const form = document.getElementById('reportForm');
-  if (!sel || !form) return;
-
-  // 1) Load states
-  sel.innerHTML = `<option value="">Loading states…</option>`;
-  let list = [];
-  try {
-    list = await fetchStates();
-  } catch (e) {
-    sel.innerHTML = `<option value="">Failed to load states</option>`;
-    console.error(e);
-    return;
-  }
-
-  // Normalize & sort
-  const states = list
-    .map(s => ({
-      code: s.code || s.abbr || "",
-      name: s.name || s.label || s.code || "Unknown",
-      link: s.link || "",
-      unavailable: !!(s.unavailable)
-    }))
-    .sort((a,b) => a.name.localeCompare(b.name));
-
-  sel.innerHTML = `<option value="">Select your state…</option>`;
-  for (const s of states) {
-    const opt = document.createElement('option');
-    opt.value = s.code;
-    opt.textContent = s.name + (s.unavailable ? " — temporarily unavailable" : "");
-    if (s.unavailable) opt.disabled = true;
-    opt.dataset.link = s.link || "";
-    opt.dataset.name = s.name;
-    sel.appendChild(opt);
-  }
-
-  // 2) Selection → info panel
-  function renderInfo() {
-    const opt = sel.selectedOptions[0];
-    if (!opt || !opt.value) {
-      info.innerHTML = `<div class="badge">Pick a state to see its board details.</div>`;
-      openBtn.disabled = true;
-      return;
+  function toast(msg, ms = 2200) {
+    let t = $('.toast');
+    if (!t) {
+      t = document.createElement('div');
+      t.className = 'toast';
+      document.body.appendChild(t);
     }
-    const link = opt.dataset.link || "";
-    const name = opt.dataset.name || opt.textContent;
-    const unavailable = opt.disabled;
-
-    info.innerHTML = `
-      <div class="kv">
-        <div>Board</div><div>${name}</div>
-        <div>URL</div><div>${link ? `<a href="${link}" target="_blank" rel="noopener">${link}</a>` : `<span class="badge">Not available yet</span>`}</div>
-        <div>Status</div><div>${unavailable ? `<span class="badge">Temporarily unavailable</span>` : `<span class="badge">Available</span>`}</div>
-      </div>
-    `;
-    openBtn.disabled = !link || unavailable;
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._h);
+    t._h = setTimeout(() => t.classList.remove('show'), ms);
   }
-  sel.addEventListener('change', renderInfo);
-  renderInfo();
 
-  // 3) Open board button
-  openBtn.addEventListener('click', () => {
-    const opt = sel.selectedOptions[0];
-    const link = opt?.dataset?.link;
-    if (!link) return;
-    window.open(link, '_blank', 'noopener');
-  });
+  function hostFromUrl(u) {
+    try { return new URL(u).host; } catch { return ''; }
+  }
 
-  // 4) Submit with Turnstile verification then open board (and optional actions)
-  form.addEventListener('submit', async (e) => {
-    e.preventDefault();
-    const opt = sel.selectedOptions[0];
-    if (!opt || !opt.value) { toast('Please choose your state.'); return; }
+  function fmtDate(iso) {
+    if (!iso) return '';
+    const d = new Date(iso);
+    if (Number.isNaN(d.getTime())) return '';
+    return d.toLocaleString();
+  }
 
-    // Turnstile token
+  async function fetchStates() {
+    const res = await fetch('/api/states', { headers: { accept: 'application/json' }, cache: 'no-store' });
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  }
+
+  function renderInfo(state) {
+    // state = { code, name, link, unavailable, board_name, last_verified_at, status }
+    const nameEl   = $('#boardName');
+    const urlEl    = $('#boardUrl');
+    const hostEl   = $('#boardHost');
+    const statEl   = $('#boardStatus');
+    const verifyEl = $('#boardVerified');
+
+    const boardName = state.board_name || `${state.name} medical board`;
+    const link      = state.link || '';
+
+    nameEl.textContent = boardName;
+    hostEl.textContent = link ? hostFromUrl(link) : '—';
+
+    // URL line
+    if (link) {
+      urlEl.innerHTML = `<a href="${link}" target="_blank" rel="noopener">${link}</a>`;
+    } else {
+      urlEl.textContent = 'Not available yet';
+    }
+
+    // Status line
+    const s = (state.status || '').toLowerCase();
+    const u = !!state.unavailable;
+    if (u) {
+      statEl.textContent = 'Temporarily unavailable';
+      statEl.className = 'muted text-warn';
+    } else if (s === '404') {
+      statEl.textContent = '404 (page not found)';
+      statEl.className = 'muted text-warn';
+    } else if (s === 'error') {
+      statEl.textContent = 'Error (site down or blocked)';
+      statEl.className = 'muted text-warn';
+    } else {
+      statEl.textContent = 'Available';
+      statEl.className = 'muted text-ok';
+    }
+
+    // Verified
+    verifyEl.textContent = fmtDate(state.last_verified_at) || '—';
+
+    // Open button
+    BTN_OPEN.disabled = !(link && !u);
+    BTN_OPEN.dataset.href = link || '';
+  }
+
+  function onStateChange() {
+    const code = SELECT.value;
+    const state = STATE_LIST.find(x => x.code === code);
+    if (state) renderInfo(state);
+  }
+
+  async function initStates() {
+    SELECT   = $('#state');
+    BTN_OPEN = $('#btnOpenBoard');
+    if (!SELECT) return;
+
+    // Loading placeholder
+    SELECT.innerHTML = `<option value="">Loading states…</option>`;
+    BTN_OPEN.disabled = true;
+
+    try {
+      STATE_LIST = await fetchStates();
+      // clear + placeholder
+      SELECT.innerHTML = `<option value="">Select your state…</option>`;
+      for (const s of STATE_LIST) {
+        const o = document.createElement('option');
+        o.value = s.code;
+        o.textContent = s.name + (s.unavailable ? ' — temporarily unavailable' : '');
+        if (s.unavailable) o.disabled = true;
+        SELECT.appendChild(o);
+      }
+
+      // preselect first usable
+      const first = STATE_LIST.find(s => !s.unavailable) || STATE_LIST[0];
+      if (first) {
+        SELECT.value = first.code;
+        renderInfo(first);
+      }
+
+    } catch (e) {
+      console.error('states load failed', e);
+      SELECT.innerHTML = `<option value="">Failed to load states (open /api/states to debug)</option>`;
+    }
+
+    SELECT.addEventListener('change', onStateChange);
+    BTN_OPEN.addEventListener('click', () => {
+      const href = BTN_OPEN.dataset.href;
+      if (href) window.open(href, '_blank', 'noopener');
+    });
+  }
+
+  // Turnstile verification + optional local save / clipboard
+  async function verifyTurnstile({ timeoutMs = 12000 } = {}) {
+    const s = $('#verifyStatus');
     if (!window.turnstile || typeof window.turnstile.getResponse !== 'function') {
-      toast('Verification is still loading. Please wait a moment.'); return;
+      s.textContent = 'Verification script not loaded.';
+      return { success: false };
     }
     const token = window.turnstile.getResponse();
-    if (!token) { toast('Please complete the verification.'); return; }
+    if (!token) {
+      s.textContent = 'Please complete the verification.';
+      return { success: false };
+    }
+    s.textContent = 'Verifying…';
 
-    // Server verify
+    const ctrl = new AbortController();
+    const t = setTimeout(() => ctrl.abort('timeout'), timeoutMs);
     try {
       const r = await fetch('/api/verify-turnstile', {
         method: 'POST',
         headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ token })
+        body: JSON.stringify({ token }),
+        signal: ctrl.signal,
       });
-      const j = await r.json();
-      if (!j.success) { toast('Verification failed. Try again.'); return; }
-    } catch {
-      toast('Network error verifying.'); return;
+      clearTimeout(t);
+      const j = await r.json().catch(() => ({ success: false }));
+      s.textContent = j.success ? 'Success!' : 'Verification failed.';
+      return j;
+    } catch (e) {
+      clearTimeout(t);
+      s.textContent = e === 'timeout' ? 'Taking longer than usual…' : 'Network error verifying.';
+      return { success: false };
     }
+  }
 
-    // Open the board
-    const link = opt.dataset.link;
-    if (link) window.open(link, '_blank', 'noopener');
+  function initForm() {
+    const form = $('#reportForm');
+    if (!form) return;
 
-    // Optional local copy
-    const dl = document.getElementById('optDownload');
-    const cp = document.getElementById('optCopy');
+    const dl = $('#optDownload');
+    const cp = $('#optCopy');
 
-    if (dl?.checked) {
-      const payload = {
-        name: document.getElementById('name')?.value?.trim() || '',
-        email: document.getElementById('email')?.value?.trim() || '',
-        details: document.getElementById('details')?.value?.trim() || '',
-        state: opt.value, state_name: opt.dataset.name || '',
-        ts: new Date().toISOString()
-      };
-      const blob = new Blob([JSON.stringify(payload,null,2)], { type: 'application/json' });
-      const a = document.createElement('a');
-      a.href = URL.createObjectURL(blob);
-      a.download = `report-${opt.value}-${Date.now()}.json`;
-      a.click(); URL.revokeObjectURL(a.href);
-      toast('Saved local copy.');
-    }
+    form.addEventListener('submit', async (ev) => {
+      ev.preventDefault();
 
-    if (cp?.checked) {
-      const txt = `State: ${opt.value} (${opt.dataset.name||''})
-Name: ${document.getElementById('name')?.value||''}
-Email: ${document.getElementById('email')?.value||''}
+      // Must choose a state
+      if (!SELECT.value) {
+        toast('Choose your state.');
+        return;
+      }
+
+      // Verify Turnstile
+      const v = await verifyTurnstile();
+      if (!v.success) {
+        toast('Verification failed.');
+        return;
+      }
+
+      // Open board page
+      const chosen = STATE_LIST.find(x => x.code === SELECT.value);
+      if (chosen?.link && !chosen.unavailable) {
+        window.open(chosen.link, '_blank', 'noopener');
+      }
+
+      // Optional local download
+      if (dl?.checked) {
+        const payload = {
+          state: SELECT.value,
+          name: $('#name')?.value?.trim() || '',
+          email: $('#email')?.value?.trim() || '',
+          details: $('#details')?.value?.trim() || '',
+          ts: new Date().toISOString(),
+        };
+        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
+        const a = document.createElement('a');
+        a.href = URL.createObjectURL(blob);
+        a.download = `report-${payload.state || 'state'}-${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(a.href);
+        toast('Saved local copy.');
+      }
+
+      // Optional clipboard
+      if (cp?.checked) {
+        const txt = `State: ${SELECT.value}
+Name: ${$('#name')?.value || ''}
+Email: ${$('#email')?.value || ''}
 Details:
-${document.getElementById('details')?.value||''}`;
-      try { await navigator.clipboard.writeText(txt); toast('Copied to clipboard.'); } catch {}
-    }
+${$('#details')?.value || ''}`;
+        await navigator.clipboard.writeText(txt).catch(() => {});
+        toast('Copied to clipboard.');
+      }
 
-    toast('Opened official board link.');
+      toast('Board page opened.');
+    });
+  }
+
+  // Header/footer injection (if shell.js exists and placeholders are present, it’ll run; safe no-op otherwise)
+  function ensureShell() {
+    if (!$('#__header') && !$('#__footer') && typeof window.loadShell !== 'function') return;
+    if (typeof window.loadShell === 'function') window.loadShell();
+  }
+
+  document.addEventListener('DOMContentLoaded', () => {
+    ensureShell();
+    initStates();
+    initForm();
   });
-}
+})();
 
-// Auto-run when portal exists
-document.addEventListener('DOMContentLoaded', initPortal);
 
 
 
