@@ -1,244 +1,184 @@
-// public/app.js
-(() => {
-  const $  = (s, r = document) => r.querySelector(s);
-  const $$ = (s, r = document) => [...r.querySelectorAll(s)];
+/* ===== Tiny helpers ===== */
+const $ = (s, r=document) => r.querySelector(s);
+const $$ = (s, r=document) => [...r.querySelectorAll(s)];
+function toast(msg, ms=2000){
+  let t = $('.toast'); if(!t){ t=document.createElement('div'); t.className='toast'; document.body.appendChild(t); }
+  t.textContent = msg; t.classList.add('show'); clearTimeout(t._h);
+  t._h = setTimeout(()=>t.classList.remove('show'), ms);
+}
 
-  let STATE_LIST = [];
-  let SELECT     = null;
-  let BTN_OPEN   = null;
-
-  function toast(msg, ms = 2200) {
-    let t = $('.toast');
-    if (!t) {
-      t = document.createElement('div');
-      t.className = 'toast';
-      document.body.appendChild(t);
+/* ===== Nav active state ===== */
+(function highlightNav(){
+  const path = location.pathname.replace(/\/+$/,'') || '/';
+  $$('.nav a').forEach(a=>{
+    const href = a.getAttribute('href');
+    if ((path === '/' && href === '/') || (href && href !== '/' && path.endsWith(href))) {
+      a.classList.add('active');
     }
-    t.textContent = msg;
-    t.classList.add('show');
-    clearTimeout(t._h);
-    t._h = setTimeout(() => t.classList.remove('show'), ms);
-  }
-
-  function hostFromUrl(u) {
-    try { return new URL(u).host; } catch { return ''; }
-  }
-
-  function fmtDate(iso) {
-    if (!iso) return '';
-    const d = new Date(iso);
-    if (Number.isNaN(d.getTime())) return '';
-    return d.toLocaleString();
-  }
-
-  async function fetchStates() {
-    const res = await fetch('/api/states', { headers: { accept: 'application/json' }, cache: 'no-store' });
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
-  }
-
-  function renderInfo(state) {
-    // state = { code, name, link, unavailable, board_name, last_verified_at, status }
-    const nameEl   = $('#boardName');
-    const urlEl    = $('#boardUrl');
-    const hostEl   = $('#boardHost');
-    const statEl   = $('#boardStatus');
-    const verifyEl = $('#boardVerified');
-
-    const boardName = state.board_name || `${state.name} medical board`;
-    const link      = state.link || '';
-
-    nameEl.textContent = boardName;
-    hostEl.textContent = link ? hostFromUrl(link) : '—';
-
-    // URL line
-    if (link) {
-      urlEl.innerHTML = `<a href="${link}" target="_blank" rel="noopener">${link}</a>`;
-    } else {
-      urlEl.textContent = 'Not available yet';
-    }
-
-    // Status line
-    const s = (state.status || '').toLowerCase();
-    const u = !!state.unavailable;
-    if (u) {
-      statEl.textContent = 'Temporarily unavailable';
-      statEl.className = 'muted text-warn';
-    } else if (s === '404') {
-      statEl.textContent = '404 (page not found)';
-      statEl.className = 'muted text-warn';
-    } else if (s === 'error') {
-      statEl.textContent = 'Error (site down or blocked)';
-      statEl.className = 'muted text-warn';
-    } else {
-      statEl.textContent = 'Available';
-      statEl.className = 'muted text-ok';
-    }
-
-    // Verified
-    verifyEl.textContent = fmtDate(state.last_verified_at) || '—';
-
-    // Open button
-    BTN_OPEN.disabled = !(link && !u);
-    BTN_OPEN.dataset.href = link || '';
-  }
-
-  function onStateChange() {
-    const code = SELECT.value;
-    const state = STATE_LIST.find(x => x.code === code);
-    if (state) renderInfo(state);
-  }
-
-  async function initStates() {
-    SELECT   = $('#state');
-    BTN_OPEN = $('#btnOpenBoard');
-    if (!SELECT) return;
-
-    // Loading placeholder
-    SELECT.innerHTML = `<option value="">Loading states…</option>`;
-    BTN_OPEN.disabled = true;
-
-    try {
-      STATE_LIST = await fetchStates();
-      // clear + placeholder
-      SELECT.innerHTML = `<option value="">Select your state…</option>`;
-      for (const s of STATE_LIST) {
-        const o = document.createElement('option');
-        o.value = s.code;
-        o.textContent = s.name + (s.unavailable ? ' — temporarily unavailable' : '');
-        if (s.unavailable) o.disabled = true;
-        SELECT.appendChild(o);
-      }
-
-      // preselect first usable
-      const first = STATE_LIST.find(s => !s.unavailable) || STATE_LIST[0];
-      if (first) {
-        SELECT.value = first.code;
-        renderInfo(first);
-      }
-
-    } catch (e) {
-      console.error('states load failed', e);
-      SELECT.innerHTML = `<option value="">Failed to load states (open /api/states to debug)</option>`;
-    }
-
-    SELECT.addEventListener('change', onStateChange);
-    BTN_OPEN.addEventListener('click', () => {
-      const href = BTN_OPEN.dataset.href;
-      if (href) window.open(href, '_blank', 'noopener');
-    });
-  }
-
-  // Turnstile verification + optional local save / clipboard
-  async function verifyTurnstile({ timeoutMs = 12000 } = {}) {
-    const s = $('#verifyStatus');
-    if (!window.turnstile || typeof window.turnstile.getResponse !== 'function') {
-      s.textContent = 'Verification script not loaded.';
-      return { success: false };
-    }
-    const token = window.turnstile.getResponse();
-    if (!token) {
-      s.textContent = 'Please complete the verification.';
-      return { success: false };
-    }
-    s.textContent = 'Verifying…';
-
-    const ctrl = new AbortController();
-    const t = setTimeout(() => ctrl.abort('timeout'), timeoutMs);
-    try {
-      const r = await fetch('/api/verify-turnstile', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ token }),
-        signal: ctrl.signal,
-      });
-      clearTimeout(t);
-      const j = await r.json().catch(() => ({ success: false }));
-      s.textContent = j.success ? 'Success!' : 'Verification failed.';
-      return j;
-    } catch (e) {
-      clearTimeout(t);
-      s.textContent = e === 'timeout' ? 'Taking longer than usual…' : 'Network error verifying.';
-      return { success: false };
-    }
-  }
-
-  function initForm() {
-    const form = $('#reportForm');
-    if (!form) return;
-
-    const dl = $('#optDownload');
-    const cp = $('#optCopy');
-
-    form.addEventListener('submit', async (ev) => {
-      ev.preventDefault();
-
-      // Must choose a state
-      if (!SELECT.value) {
-        toast('Choose your state.');
-        return;
-      }
-
-      // Verify Turnstile
-      const v = await verifyTurnstile();
-      if (!v.success) {
-        toast('Verification failed.');
-        return;
-      }
-
-      // Open board page
-      const chosen = STATE_LIST.find(x => x.code === SELECT.value);
-      if (chosen?.link && !chosen.unavailable) {
-        window.open(chosen.link, '_blank', 'noopener');
-      }
-
-      // Optional local download
-      if (dl?.checked) {
-        const payload = {
-          state: SELECT.value,
-          name: $('#name')?.value?.trim() || '',
-          email: $('#email')?.value?.trim() || '',
-          details: $('#details')?.value?.trim() || '',
-          ts: new Date().toISOString(),
-        };
-        const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
-        const a = document.createElement('a');
-        a.href = URL.createObjectURL(blob);
-        a.download = `report-${payload.state || 'state'}-${Date.now()}.json`;
-        a.click();
-        URL.revokeObjectURL(a.href);
-        toast('Saved local copy.');
-      }
-
-      // Optional clipboard
-      if (cp?.checked) {
-        const txt = `State: ${SELECT.value}
-Name: ${$('#name')?.value || ''}
-Email: ${$('#email')?.value || ''}
-Details:
-${$('#details')?.value || ''}`;
-        await navigator.clipboard.writeText(txt).catch(() => {});
-        toast('Copied to clipboard.');
-      }
-
-      toast('Board page opened.');
-    });
-  }
-
-  // Header/footer injection (if shell.js exists and placeholders are present, it’ll run; safe no-op otherwise)
-  function ensureShell() {
-    if (!$('#__header') && !$('#__footer') && typeof window.loadShell !== 'function') return;
-    if (typeof window.loadShell === 'function') window.loadShell();
-  }
-
-  document.addEventListener('DOMContentLoaded', () => {
-    ensureShell();
-    initStates();
-    initForm();
   });
 })();
 
+/* ===== State dropdown (complaint portal) ===== */
+const STATE_NAMES = {
+  AL:'Alabama', AK:'Alaska', AZ:'Arizona', AR:'Arkansas', CA:'California', CO:'Colorado',
+  CT:'Connecticut', DE:'Delaware', DC:'District of Columbia', FL:'Florida', GA:'Georgia',
+  HI:'Hawaii', ID:'Idaho', IL:'Illinois', IN:'Indiana', IA:'Iowa', KS:'Kansas',
+  KY:'Kentucky', LA:'Louisiana', ME:'Maine', MD:'Maryland', MA:'Massachusetts',
+  MI:'Michigan', MN:'Minnesota', MS:'Mississippi', MO:'Missouri', MT:'Montana',
+  NE:'Nebraska', NV:'Nevada', NH:'New Hampshire', NJ:'New Jersey', NM:'New Mexico',
+  NY:'New York', NC:'North Carolina', ND:'North Dakota', OH:'Ohio', OK:'Oklahoma',
+  OR:'Oregon', PA:'Pennsylvania', RI:'Rhode Island', SC:'South Carolina', SD:'South Dakota',
+  TN:'Tennessee', TX:'Texas', UT:'Utah', VT:'Vermont', VA:'Virginia', WA:'Washington',
+  WV:'West Virginia', WI:'Wisconsin', WY:'Wyoming'
+};
 
+async function safeJsonFetch(url){
+  const r = await fetch(url, {headers:{accept:'application/json'}, cache:'no-store'});
+  const txt = await r.text();
+  try{
+    return JSON.parse(txt);
+  }catch{
+    // last resort: attempt array eval (rare)
+    if (/^\s*\[/.test(txt)) try{ return Function(`return (${txt})`)(); }catch(e){}
+    return null;
+  }
+}
 
+async function loadStates(){
+  const sel = $('#state'); if (!sel) return;
 
+  sel.innerHTML = `<option value="">Loading states…</option>`;
 
+  // 1) Try API (D1). 2) Fallback to static JSON.
+  let data = await safeJsonFetch('/api/states').catch(()=>null);
+  if (!Array.isArray(data) || data.length === 0){
+    data = await safeJsonFetch('/assets/states.json').catch(()=>null);
+  }
+  if (!Array.isArray(data) || data.length === 0){
+    sel.innerHTML = `<option value="">Failed to load states</option>`;
+    return;
+  }
+
+  // Normalize shape
+  const states = data.map(s => ({
+    code: (s.code || s.abbr || s.state || '').toUpperCase(),
+    name: s.name || s.label || STATE_NAMES[(s.code||'').toUpperCase()] || (s.code||''),
+    link: s.link || s.url || s.href || '',
+    unavailable: !!(s.unavailable || s.down || s.disabled)
+  })).sort((a,b)=> a.name.localeCompare(b.name));
+
+  // Populate dropdown
+  sel.innerHTML = `<option value="">Select your state…</option>`;
+  for (const s of states){
+    const o = document.createElement('option');
+    o.value = s.code;
+    o.textContent = s.name + (s.unavailable ? ' — temporarily unavailable' : '');
+    if (s.unavailable) o.disabled = true;
+    o.dataset.link = s.link || '';
+    sel.appendChild(o);
+  }
+
+  // Keep ref for board panel
+  sel._states = states;
+  sel.addEventListener('change', updateBoardPanel);
+}
+
+function updateBoardPanel(){
+  const sel = $('#state'); const box = $('#boardPanel'); if (!sel || !box) return;
+  const o = sel.selectedOptions[0]; if (!o) return;
+  const code = o.value;
+  const data = (sel._states || []).find(s=>s.code===code);
+  const url = data?.link || '';
+  let host = '—';
+  try{ if(url) host = new URL(url).host; }catch{}
+  const verified = data?.verified_at ? new Date(data.verified_at).toLocaleString() : '—';
+  const status = data?.unavailable ? 'unavailable' : (url ? 'ok' : 'pending');
+
+  $('#boardName').textContent = STATE_NAMES[code] ? `${STATE_NAMES[code]} Board` : '—';
+  $('#boardUrl').textContent = url || 'Not available yet';
+  $('#boardUrl').href = url || '#';
+  $('#boardHost').textContent = url ? host : '—';
+  $('#boardStatus').textContent = status;
+  $('#openBoardBtn').disabled = !url;
+}
+
+async function verifyTurnstile() {
+  const status = $('#turnstileStatus');
+  if (!window.turnstile || typeof window.turnstile.getResponse !== 'function'){
+    status.textContent = 'Verification script not loaded.';
+    return { success:false };
+  }
+  const token = window.turnstile.getResponse();
+  if (!token){ status.textContent = 'Please complete the verification.'; return { success:false }; }
+  status.textContent = 'Verifying…';
+
+  try{
+    const r = await fetch('/api/verify-turnstile', {
+      method:'POST',
+      headers:{'content-type':'application/json'},
+      body: JSON.stringify({ token })
+    });
+    const j = await r.json();
+    status.textContent = j.success ? 'Success!' : 'Verification failed.';
+    return j;
+  }catch(e){
+    status.textContent = 'Network error verifying.';
+    return { success:false };
+  }
+}
+
+function initPortal(){
+  const form = $('#reportForm'); if (!form) return;
+  loadStates();
+
+  $('#openBoardBtn')?.addEventListener('click', (e)=>{
+    e.preventDefault();
+    const sel = $('#state'); const o = sel?.selectedOptions?.[0];
+    const url = o?.dataset?.link || '';
+    if (!url){ toast('No official link for this state yet.'); return; }
+    window.open(url,'_blank','noopener');
+  });
+
+  form.addEventListener('submit', async (e)=>{
+    e.preventDefault();
+    const sel = $('#state');
+    if (!sel?.value){ toast('Choose your state first.'); return; }
+
+    const v = await verifyTurnstile();
+    if (!v.success){ toast('Verification failed.'); return; }
+
+    // open board page
+    const url = sel.selectedOptions[0]?.dataset?.link || '';
+    if (url) window.open(url,'_blank','noopener');
+
+    // optional local copy
+    if ($('#optSave')?.checked){
+      const payload = {
+        state: sel.value,
+        name: $('#name')?.value?.trim()||'',
+        email: $('#email')?.value?.trim()||'',
+        details: $('#details')?.value?.trim()||'',
+        ts: new Date().toISOString()
+      };
+      const blob = new Blob([JSON.stringify(payload,null,2)], {type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `report-${payload.state}-${Date.now()}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+
+    // optional copy to clipboard
+    if ($('#optCopy')?.checked){
+      const text = `State: ${sel.value}
+Name: ${$('#name')?.value||''}
+Email: ${$('#email')?.value||''}
+Details:
+${$('#details')?.value||''}`;
+      try{ await navigator.clipboard.writeText(text); }catch{}
+    }
+    toast('Opened official board page.');
+  });
+}
+
+document.addEventListener('DOMContentLoaded', initPortal);
