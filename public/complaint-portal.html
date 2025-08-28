@@ -5,90 +5,74 @@
   <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>Complaint Portal — COVIDAccountabilityNow</title>
   <link rel="stylesheet" href="/styles.css"/>
+  <script defer src="/partials/shell.js"></script>
   <script defer src="/app.js"></script>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-  <style>
-    /* small page-local helpers */
-    .field{margin:.75rem 0}
-    .panel{border:1px solid #22283a;border-radius:12px;padding:1rem;background:#0f1119}
-    .muted{opacity:.8}
-    .btn{display:inline-block;padding:.55rem .9rem;border-radius:.6rem;border:1px solid #2a3145;background:#1a2030;cursor:pointer}
-    .btn[disabled]{opacity:.5;cursor:not-allowed}
-    .info{margin:.5rem 0 .25rem}
-    .toast{position:fixed;left:50%;transform:translateX(-50%);bottom:18px;padding:.6rem .9rem;border-radius:.6rem;background:#111725;border:1px solid #2a3145;opacity:0;transition:opacity .2s}
-    .toast.show{opacity:1}
-    .verify{display:flex;align-items:center;gap:.75rem;margin:.5rem 0}
-  </style>
 </head>
 <body>
   <div id="site-header"></div>
 
   <main class="container">
     <h1>Complaint Portal</h1>
-    <p class="muted">Choose your state to open the official complaint page. You can optionally save a local copy and copy your text for your own records. We do not store your report.</p>
+    <p>Choose your state to open the official complaint page. You can optionally save a local copy and copy your text for your own records. We do not store your report.</p>
 
-    <section class="panel" aria-labelledby="findBoard">
-      <h2 id="findBoard">Find your state board</h2>
-
-      <div class="field">
-        <label for="stateSelect">State</label><br/>
-        <select id="stateSelect" style="min-width:260px">
+    <div class="grid">
+      <section class="card">
+        <h2>Find your state board</h2>
+        <label for="state" class="label">State</label>
+        <select id="state" class="input">
           <option value="">Loading states…</option>
         </select>
-        <div id="stateError" class="muted" role="alert" style="margin-top:.25rem"></div>
-      </div>
+        <p id="stateError" class="help error"></p>
 
-      <div id="stateInfo" class="field" hidden>
-        <div class="info"><strong id="boardName">Official board:</strong></div>
-        <div class="info">
-          <a id="boardLink" href="#" target="_blank" rel="noopener">Open link</a>
+        <div id="boardPanel" class="board-panel hidden">
+          <div class="board-line">
+            <div>
+              <div class="muted">Board</div>
+              <div id="boardName" class="board-name">—</div>
+            </div>
+            <div>
+              <div class="muted">URL</div>
+              <a id="boardUrl" href="#" target="_blank" rel="noopener" class="board-url">—</a>
+            </div>
+            <div>
+              <button id="openBoard" class="btn" disabled>Open board</button>
+            </div>
+          </div>
         </div>
-        <button id="openBoardBtn" class="btn" disabled>Open board</button>
-      </div>
-    </section>
+      </section>
 
-    <section class="panel" style="margin-top:1rem" aria-labelledby="shareExp">
-      <h2 id="shareExp">Share your experience (optional)</h2>
+      <section class="card">
+        <h2>Share your experience (optional)</h2>
 
-      <div class="field">
-        <label for="name">Name (optional)</label><br/>
-        <input id="name" placeholder="Your name…" style="min-width:260px"/>
-      </div>
+        <label class="label" for="name">Name (optional)</label>
+        <input id="name" class="input" placeholder="Your name…"/>
 
-      <div class="field">
-        <label for="email">Email (optional)</label><br/>
-        <input id="email" placeholder="you@example.com" inputmode="email" style="min-width:260px"/>
-      </div>
+        <label class="label" for="email">Email (optional)</label>
+        <input id="email" class="input" type="email" placeholder="you@example.com"/>
 
-      <div class="field">
-        <label for="details">Details</label><br/>
-        <textarea id="details" placeholder="Describe what happened…" rows="4" style="min-width:420px"></textarea>
-      </div>
+        <label class="label" for="details">Details</label>
+        <textarea id="details" class="input" rows="5" placeholder="Describe what happened…"></textarea>
 
-      <div class="verify">
-        <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8" data-theme="light"></div>
-        <span id="verifyStatus" class="muted">Verification prevents spam.</span>
-      </div>
-    </section>
+        <div style="margin:.75rem 0;">
+          <div class="cf-turnstile" data-sitekey="0x4AAAAAAAxxxxxxxxxxxxxxxxxxxxxx"></div>
+          <div id="verifyStatus" class="help muted">Verification prevents spam.</div>
+        </div>
 
-    <section class="panel" style="margin-top:1rem" aria-labelledby="opts">
-      <h2 id="opts">Optional actions</h2>
-      <label><input type="checkbox" id="optDownload"/> Save a local copy (JSON)</label><br/>
-      <label><input type="checkbox" id="optCopy"/> Copy text to clipboard</label>
-    </section>
+        <div class="options">
+          <label class="check"><input type="checkbox" id="optDownload"/> Save a local copy (JSON)</label>
+          <label class="check"><input type="checkbox" id="optCopy"/> Copy text to clipboard</label>
+        </div>
 
-    <div style="margin-top:1rem">
-      <button id="submitBtn" class="btn" disabled>Submit report</button>
+        <button id="submitBtn" class="btn primary">Submit report</button>
+      </section>
     </div>
 
-    <p class="muted" style="margin-top:1rem">
-      Your state link is public information. Reports you submit here are stored privately in D1 for analysis (future update).
-    </p>
+    <p class="muted small">Your state link is public information. Reports you submit here are stored privately in D1 for analysis (future update).</p>
   </main>
 
   <div id="site-footer"></div>
-  <script src="/partials.js" defer></script>
-  <div class="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
+
 
