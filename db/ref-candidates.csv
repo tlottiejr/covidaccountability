@@ -1,1 +1,24 @@
-﻿label_or_title,current_link,candidate_url,source,confidence,notes
+label_or_title,current_link,candidate_url,source,confidence,notes,approved
+"10.1056/NEJMoa2034577","https://doi.org/10.1056/NEJMoa2034577","https://doi.org/10.1056/NEJMoa2034577","doi","90","DOI resolver",1
+"doi","https://doi.org/10.1016/j.dialog.2022.100074","https://doi.org/10.1016/j.dialog.2022.100074","doi","90","DOI resolver",1
+"doi","https://doi.org/10.1016/S0140-6736(05)61024-0","https://doi.org/10.1016/S0140-6736(05)61024-0","doi","90","DOI resolver",1
+"doi","https://doi.org/10.1016/j.vaccine.2022.08.036","https://doi.org/10.1016/j.vaccine.2022.08.036","doi","90","DOI resolver",1
+"doi","https://doi.org/10.1016/j.vaccine.2022.08.036","https://www.doi.org/","bing","80","DOI"
+"doi","https://doi.org/10.1016/j.vaccine.2022.08.036","https://www.doi.org/the-identifier/resources/faqs","bing","80","Faqs"
+"doi","https://doi.org/10.1016/j.vaccine.2022.08.036","https://www.ncbi.nlm.nih.gov/books/NBK7281/box/A56888/","bing","60","Box 61, DOI - Citing Medicine"
+"doi","https://doi.org/10.1001/jamanetworkopen.2024.24984","https://doi.org/10.1001/jamanetworkopen.2024.24984","doi","90","DOI resolver",1
+"doi","https://doi.org/10.1001/jamanetworkopen.2024.24984","https://www.doi.org/","bing","80","DOI"
+"doi","https://doi.org/10.1001/jamanetworkopen.2024.24984","https://www.doi.org/the-identifier/resources/faqs","bing","80","Faqs"
+"doi","https://doi.org/10.1001/jamanetworkopen.2024.24984","https://www.ncbi.nlm.nih.gov/books/NBK7281/box/A56888/","bing","60","Box 61, DOI - Citing Medicine"
+"doi","https://doi.org/10.13140/RG.2.2.24720.79366","https://doi.org/10.13140/RG.2.2.24720.79366","doi","90","DOI resolver",1
+"doi","https://doi.org/10.13140/RG.2.2.24720.79366","https://www.doi.org/","bing","80","DOI"
+"doi","https://doi.org/10.13140/RG.2.2.24720.79366","https://www.doi.org/the-identifier/resources/faqs","bing","80","Faqs"
+"doi","https://doi.org/10.13140/RG.2.2.24720.79366","https://www.ncbi.nlm.nih.gov/books/NBK7281/box/A56888/","bing","60","Box 61, DOI - Citing Medicine"
+"doi","https://doi.org/10.13140/RG.2.2.34214.65605","https://doi.org/10.13140/RG.2.2.34214.65605","doi","90","DOI resolver",1
+"doi","https://doi.org/10.13140/RG.2.2.34214.65605","https://www.doi.org/","bing","80","DOI"
+"doi","https://doi.org/10.13140/RG.2.2.34214.65605","https://www.doi.org/the-identifier/resources/faqs","bing","80","Faqs"
+"doi","https://doi.org/10.13140/RG.2.2.34214.65605","https://www.ncbi.nlm.nih.gov/books/NBK7281/box/A56888/","bing","60","Box 61, DOI - Citing Medicine"
+"10.7326/M18-2160","https://doi.org/10.7326/M18-2160","https://doi.org/10.7326/M18-2160","doi","90","DOI resolver",1
+"10.7326/M18-2160","https://doi.org/10.7326/M18-2160","https://pubmed.ncbi.nlm.nih.gov/30641552/","bing","63","American College of Physicians Ethics Manual"
+"10.7326/M18-2160","https://doi.org/10.7326/M18-2160","https://pmc.ncbi.nlm.nih.gov/articles/PMC7197036/","bing","63","Universal Do-Not-Resuscitate Orders, Social Worth, and ..."
+"10.7326/M18-2160","https://doi.org/10.7326/M18-2160","https://pmc.ncbi.nlm.nih.gov/articles/PMC7860190/","bing","63","The prevalence, reasons and attitudes for the practice ..."
