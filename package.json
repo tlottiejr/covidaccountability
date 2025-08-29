@@ -5,6 +5,12 @@
   "scripts": {
     "audit:states": "node scripts/audit-states.mjs",
     "audit:refs": "node scripts/audit-refs.mjs",
-    "audit:all": "npm run audit:states && npm run audit:refs"
+    "audit:all": "npm run audit:states && npm run audit:refs",
+    "discover:states": "node scripts/discover-states.mjs",
+    "discover:refs": "node scripts/discover-refs.mjs",
+    "discover:all": "npm run discover:states && npm run discover:refs",
+    "apply:states": "node scripts/apply-states.mjs",
+    "apply:refs": "node scripts/apply-refs.mjs",
+    "apply:all": "npm run apply:states && npm run apply:refs"
   }
 }
