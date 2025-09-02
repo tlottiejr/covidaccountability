@@ -2,6 +2,7 @@
 import { mkdirSync } from "node:fs";
 import { readText, writeCsv } from "./lib/csv.mjs";
 import { pLimit, checkUrl, getEnvInt } from "./lib/net.mjs";
+import { checkUrl } from './lib/net.mjs';
 
 const CONCURRENCY = getEnvInt("DISCOVERY_CONCURRENCY", 6);
 const TIMEOUT_MS = getEnvInt("DISCOVERY_TIMEOUT_MS", 12000);
