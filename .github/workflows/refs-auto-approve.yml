@@ -1,31 +1,50 @@
 name: Auto-approve references (manual)
 
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 permissions:
-  contents: write    # allow commit back to main
+  contents: write   # allow committing back to the repo
 
 jobs:
-  auto-approve:
+  run:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
       - uses: actions/setup-node@v4
-        with: { node-version: '20' }
-      - run: node --version
-      - name: Run strict auto-approver
-        run: node scripts/auto-approve-refs.mjs
-      - name: Audit (post)
-        run: npm run audit:refs || true
-      - name: Commit changes (if any)
+        with:
+          node-version: '20'
+
+      - name: Install (if lockfile exists)
         run: |
-          git add public/about.html db/ref-audit.csv db/ref-candidates.csv
-          git diff --cached --quiet || git commit -m "chore(refs): auto-approve + audit"
-          git push
-      - name: Upload audit
+          if [ -f package-lock.json ]; then npm ci; fi
+
+      - name: Run auto-approver
+        run: node scripts/auto-approve-refs.mjs
+
+      - name: Update audit report (optional)
+        run: |
+          if npm run | grep -q "audit:refs"; then npm run audit:refs || true; fi
+
+      - name: Commit & push changes (if any)
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add public/about.html db/ref-audit.csv db/ref-candidates.csv || true
+          if ! git diff --cached --quiet; then
+            git commit -m "chore(refs): auto-approve & rewrite About"
+            git push origin HEAD:main
+          else
+            echo "No changes to commit."
+          fi
+
+      - name: Upload audit artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: ref-audit
           path: db/ref-audit.csv
-
+          if-no-files-found: ignore
