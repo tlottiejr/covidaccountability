@@ -1,0 +1,62 @@
+name: Refs pipeline (discover → approve → apply → audit)
+
+on:
+  workflow_dispatch:
+    inputs:
+      label_filter:
+        description: Optional label filter (substring match on label_or_title)
+        required: false
+        default: ""
+      min_conf:
+        description: Min confidence for auto-approve (0-100)
+        required: false
+        default: "88"
+  schedule:
+    - cron: "0 9 * * MON"   # weekly safety run (optional)
+
+concurrency:
+  group: refs-pipeline
+  cancel-in-progress: true
+
+jobs:
+  refs:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install (no lock ok)
+        run: npm ci || npm i --no-audit --no-fund
+
+      - name: Discover refs
+        run: node scripts/discover-refs.mjs "${{ github.event.inputs.label_filter }}"
+
+      - name: Auto-approve (safe)
+        env:
+          MIN_CONF: ${{ github.event.inputs.min_conf }}
+        run: node scripts/auto-approve-refs.mjs
+
+      - name: Apply refs
+        run: node scripts/apply-refs.mjs
+
+      - name: Audit refs
+        run: node scripts/audit-refs.mjs
+
+      - name: Commit & push changes
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add public/about.html db/ref-*.csv
+          git commit -m "ci(refs): discover+auto-approve+apply+audit" || echo "nothing to commit"
+          git push
+
+      - name: Upload audit artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ref-audit
+          path: db/ref-audit.csv
