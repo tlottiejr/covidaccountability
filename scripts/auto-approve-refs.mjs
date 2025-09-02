@@ -1,55 +1,100 @@
-// scripts/auto-approve-refs.mjs
-// --- Hardened approver for About references ---
-import fs from "node:fs/promises";
-import { once } from "node:events";
-import { createReadStream, createWriteStream } from "node:fs";
-import readline from "node:readline";
-import { URL } from "node:url";
+// Auto-approve candidate reference links, then rewrite About.
+// Heuristics: whitelisted domains, DOI labels -> doi.org, title token match, min score.
 
-const TRUSTED_HOSTS = new Set([
-  "doi.org", "www.doi.org",
-  "nejm.org", "www.nejm.org",
-  "jamanetwork.com", "www.jamanetwork.com",
-  "pubmed.ncbi.nlm.nih.gov",
-  "www.ncbi.nlm.nih.gov",
-  "www.aafp.org","www.acponline.org","www.fda.gov","www.supremecourt.gov",
-  "oversight.house.gov", "correlation-canada.org", "www.acpjournals.org",
-  "www.abms.org","www.cdc.gov","www.hhs.gov","www.federalregister.gov",
-  "openvaers.com","archive.org","www.archive.org"
-]);
+import fs from "node:fs";
+import path from "node:path";
 
-const BLOCKLIST = /researchgate|scribd|facebook|x\.com|twitter\.com|medium\.com|blogspot|wordpress/i;
-const MIN_SCORE = 0.80;
+// tiny CSV helper
+const readCSV = (p) =>
+  fs.readFileSync(p, "utf8").trim().split(/\r?\n/).map((l, i) =>
+    i ? Object.fromEntries(l.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map((v, j) => [j, v.replace(/^"|"$/g, "")])) : l.split(",")
+  );
+const parseCSV = (text) => {
+  const [header, ...rows] = text.trim().split(/\r?\n/);
+  const cols = header.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(h => h.trim());
+  return rows.map(r => {
+    const vals = r.split(/,(?=(?:[^"]*"[^"]*")*[^"]*$)/).map(v => v.replace(/^"|"$/g, ""));
+    return Object.fromEntries(cols.map((c, i) => [c, vals[i] ?? ""]));
+  });
+};
+const writeCSV = (p, rows) => {
+  if (!rows.length) return fs.writeFileSync(p, "");
+  const cols = Object.keys(rows[0]);
+  const esc = (s="") => `"${String(s).replace(/"/g,'""')}"`;
+  const text = [cols.join(","), ...rows.map(r => cols.map(c => esc(r[c])).join(","))].join("\n");
+  fs.writeFileSync(p, text);
+};
 
-function isDOI(label) { return /\b10\.\d{4,9}\/\S+/i.test(label) || /^doi$/i.test(label) }
-function looksPdf(url) { return /\.pdf($|\?)/i.test(url) }
+// Config
+const CANDIDATES = "db/ref-candidates.csv";        // produced by discover:refs
+const AUDIT      = "db/ref-audit.csv";             // produced by audit:refs
+const ABOUT_HTML = "public/about.html";            // target to rewrite (apply-refs.mjs handles it)
+const APPLY      = "scripts/apply-refs.mjs";       // existing script in repo
 
-function baseScore(row) {
-  // row: { label_or_title, candidate_url, source, page_title }
-  let s = 0;
+const OK_DOMAINS = [
+  "doi.org","nejm.org","jamanetwork.com","pubmed.ncbi.nlm.nih.gov",
+  "ncbi.nlm.nih.gov","usgs.gov","supremecourt.gov","fda.gov",
+  "hhs.gov","whitehouse.gov","cdc.gov","archive.org","aaas.org","ama-assn.org",
+  "acponline.org","aafp.org","abms.org","texasattorneygeneral.gov","federalregister.gov"
+];
+
+function scoreCandidate(label, url, title) {
+  let score = 0;
+
+  // 1) Domain trust
   try {
-    const u = new URL(row.candidate_url);
-    if (BLOCKLIST.test(u.hostname + u.pathname)) return 0;
-    if (TRUSTED_HOSTS.has(u.hostname)) s += 0.5;
-    if (u.protocol === "https:") s += 0.05;
-    if (isDOI(row.label_or_title) && (u.hostname === "doi.org" || /\/doi\//.test(u.pathname))) s += 0.35;
-    if (looksPdf(u.pathname)) s += 0.10;
-    // crude title similarity
-    const want = row.label_or_title.toLowerCase().replace(/\W+/g," ").trim();
-    const got  = (row.page_title||"").toLowerCase().replace(/\W+/g," ").trim();
-    const overlap = want && got ? want.split(" ").filter(w => got.includes(w)).length : 0;
-    const denom = Math.max(6, want.split(" ").length);
-    s += Math.min(0.4, overlap/denom);
-  } catch {}
-  return Math.min(1, s);
+    const d = new URL(url).hostname.replace(/^www\./, "");
+    if (OK_DOMAINS.some(allow => d.endsWith(allow))) score += 60;
+  } catch { /* ignore */ }
+
+  // 2) DOI rules
+  const isDoiLabel = /^10\./.test(label) || label.toLowerCase().startsWith("doi");
+  if (isDoiLabel) {
+    if (/doi\.org\//.test(url)) score += 50;
+    else score -= 40; // DOI labels should resolve at doi.org
+  }
+
+  // 3) Title token overlap (loose match)
+  const toks = (s) => s.toLowerCase().replace(/[^a-z0-9 ]+/g," ").split(/\s+/).filter(x=>x.length>3);
+  const L = new Set(toks(label));
+  const T = new Set(toks(title || ""));
+  const overlap = [...L].filter(x => T.has(x)).length;
+  score += Math.min(40, overlap * 6); // up to +40
+
+  return score;
 }
 
-async function main() {
-  // read db/ref-candidates.csv → choose the best per label
-  // ensure you only approve if score >= MIN_SCORE
-  // and prefer doi.org for any DOI label
-  // write back db/ref-candidates.csv with approved=1 on chosen row
-  // then call your existing "apply-refs" logic or leave to workflow
+function approve() {
+  if (!fs.existsSync(CANDIDATES)) {
+    console.error(`Missing ${CANDIDATES}. Run discovery first.`);
+    process.exit(1);
+  }
+  const rows = parseCSV(fs.readFileSync(CANDIDATES, "utf8"));
+  const updated = rows.map(r => {
+    const s = scoreCandidate(r.label_or_title || "", r.candidate_url || "", r.page_title || "");
+    r.score = String(s);
+    r.approved = s >= 80 ? "yes" : ""; // threshold
+    return r;
+  });
+
+  writeCSV(CANDIDATES, updated);
+  console.log(`[auto-approve] Marked ${updated.filter(r=>r.approved==="yes").length} candidates as approved.`);
 }
 
-main().catch(e=>{ console.error(e); process.exit(1); });
+function ensureApply() {
+  if (!fs.existsSync(APPLY)) {
+    console.error(`Missing ${APPLY}. Make sure apply-refs.mjs exists.`);
+    process.exit(1);
+  }
+}
+
+function main() {
+  approve();
+  ensureApply();
+  // run the rewrite (apply-refs), which reads approved rows in db/ref-candidates.csv
+  const { spawnSync } = await import("node:child_process");
+  const run = spawnSync("node", [APPLY], { stdio: "inherit" });
+  if (run.status !== 0) process.exit(run.status);
+  console.log(`[auto-approve] Completed. Review ${ABOUT_HTML} and ${AUDIT}.`);
+}
+main().catch(e => { console.error(e); process.exit(1); });
