@@ -1,0 +1,54 @@
+name: States pipeline (discover → approve → apply → audit)
+
+on:
+  workflow_dispatch:
+    inputs:
+      state_filter:
+        description: Optional state code filter (e.g., CA)
+        required: false
+        default: ""
+      min_conf:
+        description: Min confidence for auto-approve (0-100)
+        required: false
+        default: "85"
+
+concurrency:
+  group: states-pipeline
+  cancel-in-progress: true
+
+jobs:
+  states:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm ci || npm i --no-audit --no-fund
+
+      - name: Discover states
+        run: node scripts/discover-states.mjs "${{ github.event.inputs.state_filter }}"
+
+      - name: Auto-approve states
+        env:
+          MIN_CONF: ${{ github.event.inputs.min_conf }}
+        run: node scripts/auto-approve-states.mjs
+
+      - name: Apply states
+        run: node scripts/apply-states.mjs
+
+      - name: Audit states
+        run: node scripts/audit-states.mjs
+
+      - name: Commit & push
+        run: |
+          git config user.name "github-actions"
+          git config user.email "actions@users.noreply.github.com"
+          git add db/states.csv db/state-*.csv public/complaint-portal.html
+          git commit -m "ci(states): discover+auto-approve+apply+audit" || echo "nothing to commit"
+          git push
+
+      - name: Upload audit artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: state-link-audit
+          path: db/state-link-audit.csv
