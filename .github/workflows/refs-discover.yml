@@ -1,0 +1,20 @@
+name: Discover reference candidates (manual)
+
+on:
+  workflow_dispatch: {}
+
+jobs:
+  discover:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: '20' }
+      - run: node --version
+      - name: Discover refs
+        run: node scripts/discover-refs.mjs
+      - name: Upload candidates
+        uses: actions/upload-artifact@v4
+        with:
+          name: ref-candidates
+          path: db/ref-candidates.csv
