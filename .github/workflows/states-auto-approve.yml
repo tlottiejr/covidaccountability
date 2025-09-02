@@ -1,31 +1,34 @@
 name: Auto-approve states (manual)
-
 on:
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 permissions:
   contents: write
 
 jobs:
-  approve-states:
+  approve:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: '20' }
-      - name: Strict state auto-approver
-        run: node scripts/auto-approve-states.mjs
-      - name: Build upsert SQL for D1 Studio
-        run: node scripts/apply-states.mjs --sql-only
-      - name: Commit CSV + SQL
-        run: |
-          git add db/states.csv db/state-link-audit.csv db/upsert-states.sql db/state-link-candidates.csv
-          git diff --cached --quiet || git commit -m "chore(states): auto-approve + upsert SQL"
-          git push
-      - name: Upload audit + upsert SQL
-        uses: actions/upload-artifact@v4
         with:
-          name: states-audit-and-sql
-          path: |
-            db/state-link-audit.csv
-            db/upsert-states.sql
+          node-version: '20.x'
+
+      - name: Auto-approve states
+        run: node scripts/auto-approve-states.mjs
+
+      - name: Audit states
+        run: |
+          if [ -f scripts/audit-states.mjs ]; then
+            node scripts/audit-states.mjs
+          else
+            npm run audit:states || true
+          fi
+
+      - name: Commit & push changes
+        run: |
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add db/states.csv db/state-*.csv || true
+          git commit -m "chore(states): auto-approve + apply + audit" || echo "no changes"
+          git push || true
