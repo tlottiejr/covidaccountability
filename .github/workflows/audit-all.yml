@@ -1,21 +1,11 @@
-name: Link audit (refs + states)
+# .github/workflows/audit-all.yml — DISABLED
+name: DISABLED - Link audit (refs + states)
 
 on:
-  push:
-    branches: [ main ]
-  workflow_dispatch: {}
+  workflow_dispatch:
 
 jobs:
-  audit:
+  disabled:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '20' }
-      - run: npm run audit:all
-      - uses: actions/upload-artifact@v4
-        with:
-          name: audits
-          path: |
-            db/ref-audit.csv
-            db/state-link-audit.csv
+      - run: echo "This legacy workflow is intentionally disabled. Use 'State Links Audit' and refs-only audits instead."
