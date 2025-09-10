@@ -144,7 +144,7 @@
       const u = new URL(selectedLinkUrl);
       els.stateHost.textContent = u.hostname;
     } catch { els.stateHost.textContent = '—'; }
-    setBadge('Ready');
+    setBadge('OK');
     els.openBtn.disabled = false;
   }
 
