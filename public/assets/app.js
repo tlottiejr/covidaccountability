@@ -1,4 +1,4 @@
-/* public/assets/app.js — resilient loader + optional JS fallback + board name in UI */
+/* public/assets/app.js — resilient loader + clear diagnostics + board name */
 (() => {
   const $ = (sel) => document.querySelector(sel);
 
@@ -16,35 +16,40 @@
     detailsInput: $('#detailsInput')
   };
 
-  let STATES = [];             // [{ code, name, links:[{board,url,source,primary}], unavailable? }]
-  let selected = null;         // selected state object
-  let selectedLinkUrl = "";    // chosen complaint URL
-  let selectedLinkBoard = "";  // chosen board name
+  let STATES = [];
+  let selected = null;
+  let selectedLinkUrl = "";
+  let selectedLinkBoard = "";
 
   const STATIC_JSON_CANDIDATES = [
     '/assets/state-links.json',
     '/state-links.json',
     '/public/assets/state-links.json'
   ];
-  const STATIC_JS_FALLBACK = '/assets/state-links.js'; // defines window.__STATE_LINKS__
+  const STATIC_JS_FALLBACK = '/assets/state-links.js'; // optional fallback
 
   function setBadge(text, danger = false) {
     els.stateStatus.innerHTML = `<span class="badge${danger ? ' danger' : ''}">${text}</span>`;
   }
   function showSource(text) { els.dataSource.textContent = text || ''; }
 
-  async function fetchJSON(url, timeoutMs = 10000) {
+  async function fetchText(url, timeoutMs = 10000) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     try {
-      const res = await fetch(url, { signal: ctrl.signal, credentials: 'omit', cache: 'no-store', headers: { accept: 'application/json' } });
+      const res = await fetch(url, { signal: ctrl.signal, credentials: 'omit', cache: 'no-store' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.json();
+      return await res.text();
     } finally { clearTimeout(timer); }
   }
 
+  function parseJsonStrict(text) {
+    // Strip UTF-8 BOM if present
+    const t = text.replace(/^\uFEFF/, '');
+    return JSON.parse(t);
+  }
+
   function normalizeData(raw) {
-    // Multi-link
     if (Array.isArray(raw) && raw.length && raw[0].links) {
       return raw.map(s => ({
         code: s.code, name: s.name,
@@ -57,7 +62,6 @@
         unavailable: !s.links || s.links.length === 0
       }));
     }
-    // /api/states
     if (Array.isArray(raw) && raw.length && ('link' in raw[0] || 'unavailable' in raw[0])) {
       return raw.map(s => ({
         code: s.code, name: s.name,
@@ -65,7 +69,6 @@
         unavailable: !!s.unavailable
       }));
     }
-    // legacy /assets/states.json
     if (Array.isArray(raw) && raw.length && ('code' in raw[0] && 'name' in raw[0])) {
       return raw.map(s => ({
         code: s.code, name: s.name,
@@ -79,14 +82,29 @@
   async function tryStaticJSON() {
     for (const p of STATIC_JSON_CANDIDATES) {
       try {
-        const data = await fetchJSON(p);
-        const norm = normalizeData(data);
-        if (norm.length) {
-          console.info('[portal] loaded static JSON:', p, norm.length, 'states');
-          showSource(`Data source: ${p}`);
-          return norm;
+        const text = await fetchText(p);
+        if (/^\s*</.test(text)) {
+          console.warn('[portal] static JSON returned HTML at', p);
+          showSource(`Data source error: ${p} returned HTML (not JSON)`);
+          continue;
         }
-      } catch (e) { console.warn('[portal] static JSON failed:', p, e?.message || e); }
+        try {
+          const raw = parseJsonStrict(text);
+          const norm = normalizeData(raw);
+          if (norm.length) {
+            console.info('[portal] loaded static JSON:', p, norm.length, 'states');
+            showSource(`Data source: ${p}`);
+            return norm;
+          } else {
+            console.warn('[portal] static JSON parsed but empty shape at', p);
+          }
+        } catch (e) {
+          console.error('[portal] JSON parse error at', p, e?.message || e);
+          showSource(`JSON parse error in ${p}: ${e?.message || e}`);
+        }
+      } catch (e) {
+        console.warn('[portal] static JSON fetch failed:', p, e?.message || e);
+      }
     }
     return [];
   }
@@ -111,33 +129,51 @@
           return norm;
         }
       }
-    } catch (e) { console.warn('[portal] static JS failed:', e?.message || e); }
+    } catch (e) {
+      console.warn('[portal] static JS failed:', e?.message || e);
+    }
     return [];
   }
 
   async function tryApi() {
     try {
-      const data = await fetchJSON('/api/states');
-      const norm = normalizeData(data);
-      if (norm.length) {
-        console.info('[portal] loaded /api/states:', norm.length, 'states');
-        showSource('Data source: /api/states');
-        return norm;
+      const text = await fetchText('/api/states');
+      try {
+        const raw = parseJsonStrict(text);
+        const norm = normalizeData(raw);
+        if (norm.length) {
+          console.info('[portal] loaded /api/states:', norm.length, 'states');
+          showSource('Data source: /api/states');
+          return norm;
+        }
+      } catch (e) {
+        console.error('[portal] /api/states JSON parse error:', e?.message || e);
+        showSource(`JSON parse error from /api/states: ${e?.message || e}`);
       }
-    } catch (e) { console.warn('[portal] /api/states failed:', e?.message || e); }
+    } catch (e) {
+      console.warn('[portal] /api/states failed:', e?.message || e);
+    }
     return [];
   }
 
   async function tryLegacy() {
     try {
-      const data = await fetchJSON('/assets/states.json');
-      const norm = normalizeData(data);
-      if (norm.length) {
-        console.info('[portal] loaded legacy /assets/states.json:', norm.length);
-        showSource('Data source: /assets/states.json');
-        return norm;
+      const text = await fetchText('/assets/states.json');
+      try {
+        const raw = parseJsonStrict(text);
+        const norm = normalizeData(raw);
+        if (norm.length) {
+          console.info('[portal] loaded legacy /assets/states.json:', norm.length);
+          showSource('Data source: /assets/states.json');
+          return norm;
+        }
+      } catch (e) {
+        console.error('[portal] legacy states.json parse error:', e?.message || e);
+        showSource(`JSON parse error in /assets/states.json: ${e?.message || e}`);
       }
-    } catch (e) { console.warn('[portal] legacy states.json failed:', e?.message || e); }
+    } catch (e) {
+      console.warn('[portal] legacy states.json failed:', e?.message || e);
+    }
     return [];
   }
 
@@ -261,7 +297,7 @@
     if (!STATES.length) {
       setBadge('No data', true);
       els.openBtn.disabled = true;
-      showSource('No data sources resolved — ensure /assets/state-links.json exists, or /assets/state-links.js defines window.__STATE_LINKS__, or /api/states works.');
+      showSource('No data sources resolved — open /assets/state-links.json directly in your browser; if it shows HTML or errors, fix that file.');
       return;
     }
     populateSelect(STATES);
@@ -269,6 +305,7 @@
     renderState(STATES[0]);
   })();
 })();
+
 
 
 
