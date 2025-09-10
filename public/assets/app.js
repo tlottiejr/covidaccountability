@@ -1,10 +1,10 @@
-/* public/assets/app.js — multi-link aware portal logic */
+/* public/assets/app.js — multi-link aware portal logic (shows selected board name) */
 (() => {
   const $ = (sel) => document.querySelector(sel);
 
   const els = {
     stateSelect: $('#stateSelect'),
-    stateName: $('#stateName'),
+    stateName: $('#stateName'),   // now displays BOARD name
     stateUrl: $('#stateUrl'),
     stateHost: $('#stateHost'),
     stateStatus: $('#stateStatus'),
@@ -15,9 +15,10 @@
     detailsInput: $('#detailsInput')
   };
 
-  let STATES = [];        // [{ code, name, links:[{board,url,source,primary}], unavailable? }]
-  let selected = null;    // current state object
-  let selectedLinkUrl = ""; // chosen complaint URL for the selected state
+  let STATES = [];             // [{ code, name, links:[{board,url,source,primary}], unavailable? }]
+  let selected = null;         // selected state object
+  let selectedLinkUrl = "";    // chosen complaint URL
+  let selectedLinkBoard = "";  // chosen board name
 
   // ---- fetch helpers ----
   async function fetchJSON(url, timeoutMs = 10000) {
@@ -92,13 +93,27 @@
     els.stateStatus.innerHTML = `<span class="badge${danger ? ' danger' : ''}">${text}</span>`;
   }
 
+  function setSelectedLink(l) {
+    selectedLinkUrl = l?.url || '';
+    selectedLinkBoard = l?.board || '';
+    els.stateName.textContent = selectedLinkBoard || '—';
+    try {
+      const u = new URL(selectedLinkUrl);
+      els.stateHost.textContent = u.hostname;
+    } catch {
+      els.stateHost.textContent = '—';
+    }
+  }
+
   function renderLinks(state) {
     const container = els.stateUrl;
     container.innerHTML = '';
     selectedLinkUrl = '';
+    selectedLinkBoard = '';
 
     if (!state || !state.links || state.links.length === 0) {
       container.innerHTML = `<span class="small">Not available yet</span>`;
+      els.stateName.textContent = '—';
       els.stateHost.textContent = '—';
       els.openBtn.disabled = true;
       setBadge('Unavailable', true);
@@ -107,7 +122,7 @@
 
     // Choose default link (primary or first)
     const defaultIndex = Math.max(0, state.links.findIndex(l => l.primary));
-    selectedLinkUrl = state.links[defaultIndex].url;
+    setSelectedLink(state.links[defaultIndex]);
 
     if (state.links.length === 1) {
       const only = state.links[0];
@@ -120,43 +135,35 @@
         return `
           <div style="margin:6px 0;">
             <label>
-              <input type="radio" name="linkChoice-${state.code}" id="${id}" value="${l.url}" ${checked}/>
+              <input type="radio" name="linkChoice-${state.code}" id="${id}" value="${l.url}" data-board="${l.board || 'Official Complaint Link'}" ${checked}/>
               <strong>${l.board ? l.board : 'Official Complaint Link'}</strong>
               <div class="small" style="margin-left:24px;">${l.url}</div>
             </label>
           </div>`;
       }).join('');
       container.innerHTML = radios;
+
       // Wire up change
       container.querySelectorAll(`input[type="radio"][name="linkChoice-${state.code}"]`).forEach(r => {
         r.addEventListener('change', (e) => {
-          selectedLinkUrl = e.target.value;
-          try {
-            const u = new URL(selectedLinkUrl);
-            els.stateHost.textContent = u.hostname;
-          } catch { els.stateHost.textContent = '—'; }
+          const url = e.target.value;
+          const board = e.target.getAttribute('data-board') || '';
+          setSelectedLink({ url, board });
         });
       });
     }
 
-    // Host + status
-    try {
-      const u = new URL(selectedLinkUrl);
-      els.stateHost.textContent = u.hostname;
-    } catch { els.stateHost.textContent = '—'; }
     setBadge('OK');
     els.openBtn.disabled = false;
   }
 
   function renderState(state) {
     selected = state || null;
-    els.stateName.textContent = selected ? selected.name : '—';
     renderLinks(selected);
   }
 
   function populateSelect(data) {
     els.stateSelect.innerHTML = '';
-    // Sort by name for UX
     data.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(s => {
       const opt = document.createElement('option');
       opt.value = s.code;
@@ -166,7 +173,6 @@
   }
 
   async function verifyTurnstile() {
-    // If a token is present, verify it; otherwise allow (keeps portal functional if widget not present)
     const input = document.querySelector('input[name="cf-turnstile-response"]');
     const token = input && input.value ? input.value : null;
     if (!token) return true;
@@ -204,7 +210,6 @@
   (async function init() {
     STATES = await loadStates();
     populateSelect(STATES);
-    // Select first by default
     const first = STATES[0] || null;
     if (first) {
       els.stateSelect.value = first.code;
@@ -215,4 +220,5 @@
     }
   })();
 })();
+
 
