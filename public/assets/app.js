@@ -1,13 +1,14 @@
-/* public/assets/app.js — multi-link aware portal logic (shows selected board name) */
+/* public/assets/app.js — resilient loader + board name in UI */
 (() => {
   const $ = (sel) => document.querySelector(sel);
 
   const els = {
     stateSelect: $('#stateSelect'),
-    stateName: $('#stateName'),   // now displays BOARD name
+    stateName: $('#stateName'),   // shows BOARD name
     stateUrl: $('#stateUrl'),
     stateHost: $('#stateHost'),
     stateStatus: $('#stateStatus'),
+    dataSource: $('#dataSource'),
     openBtn: $('#openBtn'),
     reportBtn: $('#reportBtn'),
     saveJson: $('#saveJson'),
@@ -20,12 +21,25 @@
   let selectedLinkUrl = "";    // chosen complaint URL
   let selectedLinkBoard = "";  // chosen board name
 
-  // ---- fetch helpers ----
+  const STATIC_CANDIDATES = [
+    '/assets/state-links.json',
+    '/state-links.json',
+    '/public/assets/state-links.json'
+  ];
+
+  // ---- utilities ----
+  function setBadge(text, danger = false) {
+    els.stateStatus.innerHTML = `<span class="badge${danger ? ' danger' : ''}">${text}</span>`;
+  }
+  function showSource(text) {
+    els.dataSource.textContent = text || '';
+  }
+
   async function fetchJSON(url, timeoutMs = 10000) {
     const ctrl = new AbortController();
     const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     try {
-      const res = await fetch(url, { signal: ctrl.signal, credentials: 'omit', cache: 'no-store' });
+      const res = await fetch(url, { signal: ctrl.signal, credentials: 'omit', cache: 'no-store', headers: { accept: 'application/json' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
     } finally {
@@ -33,9 +47,9 @@
     }
   }
 
-  // Normalize any of the three data shapes into our target shape
+  // Normalize to multi-link shape
   function normalizeData(raw) {
-    // Case A: our new format already
+    // Case A: already multi-link
     if (Array.isArray(raw) && raw.length && raw[0].links) {
       return raw.map(s => ({
         code: s.code, name: s.name,
@@ -48,7 +62,7 @@
         unavailable: !s.links || s.links.length === 0
       }));
     }
-    // Case B: legacy API /api/states -> [{code,name,link,unavailable}]
+    // Case B: /api/states — single link shape
     if (Array.isArray(raw) && raw.length && ('link' in raw[0] || 'unavailable' in raw[0])) {
       return raw.map(s => ({
         code: s.code, name: s.name,
@@ -56,7 +70,7 @@
         unavailable: !!s.unavailable
       }));
     }
-    // Case C: legacy /assets/states.json -> list of {code,name,link?}
+    // Case C: legacy /assets/states.json — single link
     if (Array.isArray(raw) && raw.length && ('code' in raw[0] && 'name' in raw[0])) {
       return raw.map(s => ({
         code: s.code, name: s.name,
@@ -67,30 +81,60 @@
     return [];
   }
 
-  async function loadStates() {
-    // Try new multi-link seed first
-    try {
-      const a = await fetchJSON('/assets/state-links.json');
-      const norm = normalizeData(a);
-      if (norm.length) return norm;
-    } catch {}
-    // Fallback: API
-    try {
-      const b = await fetchJSON('/api/states');
-      const norm = normalizeData(b);
-      if (norm.length) return norm;
-    } catch {}
-    // Last resort: legacy static
-    try {
-      const c = await fetchJSON('/assets/states.json');
-      const norm = normalizeData(c);
-      if (norm.length) return norm;
-    } catch {}
+  async function tryStatic() {
+    for (const p of STATIC_CANDIDATES) {
+      try {
+        const data = await fetchJSON(p);
+        const norm = normalizeData(data);
+        if (norm.length) {
+          console.info('[portal] loaded static:', p, norm.length, 'states');
+          showSource(`Data source: ${p}`);
+          return norm;
+        }
+      } catch (e) {
+        console.warn('[portal] static load failed:', p, e?.message || e);
+      }
+    }
     return [];
   }
 
-  function setBadge(text, danger = false) {
-    els.stateStatus.innerHTML = `<span class="badge${danger ? ' danger' : ''}">${text}</span>`;
+  async function tryApi() {
+    try {
+      const data = await fetchJSON('/api/states');
+      const norm = normalizeData(data);
+      if (norm.length) {
+        console.info('[portal] loaded from /api/states:', norm.length, 'states');
+        showSource('Data source: /api/states');
+        return norm;
+      }
+    } catch (e) {
+      console.warn('[portal] /api/states failed:', e?.message || e);
+    }
+    return [];
+  }
+
+  async function tryLegacy() {
+    try {
+      const data = await fetchJSON('/assets/states.json');
+      const norm = normalizeData(data);
+      if (norm.length) {
+        console.info('[portal] loaded legacy /assets/states.json:', norm.length);
+        showSource('Data source: /assets/states.json');
+        return norm;
+      }
+    } catch (e) {
+      console.warn('[portal] legacy states.json failed:', e?.message || e);
+    }
+    return [];
+  }
+
+  async function loadStates() {
+    const fromStatic = await tryStatic();
+    if (fromStatic.length) return fromStatic;
+    const fromApi = await tryApi();
+    if (fromApi.length) return fromApi;
+    const fromLegacy = await tryLegacy();
+    return fromLegacy;
   }
 
   function setSelectedLink(l) {
@@ -100,9 +144,7 @@
     try {
       const u = new URL(selectedLinkUrl);
       els.stateHost.textContent = u.hostname;
-    } catch {
-      els.stateHost.textContent = '—';
-    }
+    } catch { els.stateHost.textContent = '—'; }
   }
 
   function renderLinks(state) {
@@ -120,7 +162,6 @@
       return;
     }
 
-    // Choose default link (primary or first)
     const defaultIndex = Math.max(0, state.links.findIndex(l => l.primary));
     setSelectedLink(state.links[defaultIndex]);
 
@@ -128,7 +169,6 @@
       const only = state.links[0];
       container.innerHTML = `<a href="${only.url}" target="_blank" rel="noopener">${only.url}</a><div class="small">${only.board || ''}</div>`;
     } else {
-      // Multiple: build radio list
       const radios = state.links.map((l, idx) => {
         const id = `linkChoice-${state.code}-${idx}`;
         const checked = idx === defaultIndex ? 'checked' : '';
@@ -142,8 +182,6 @@
           </div>`;
       }).join('');
       container.innerHTML = radios;
-
-      // Wire up change
       container.querySelectorAll(`input[type="radio"][name="linkChoice-${state.code}"]`).forEach(r => {
         r.addEventListener('change', (e) => {
           const url = e.target.value;
@@ -184,12 +222,9 @@
       });
       const json = await res.json();
       return !!json?.success;
-    } catch {
-      return false;
-    }
+    } catch { return false; }
   }
 
-  // ---- wire up events ----
   els.openBtn?.addEventListener('click', async () => {
     if (!selectedLinkUrl) return;
     setBadge('Verifying…');
@@ -206,19 +241,19 @@
     renderState(s);
   });
 
-  // ---- init ----
   (async function init() {
     STATES = await loadStates();
-    populateSelect(STATES);
-    const first = STATES[0] || null;
-    if (first) {
-      els.stateSelect.value = first.code;
-      renderState(first);
-    } else {
+    if (!STATES.length) {
       setBadge('No data', true);
       els.openBtn.disabled = true;
+      showSource('No data sources resolved — ensure /assets/state-links.json exists or /api/states works.');
+      return;
     }
+    populateSelect(STATES);
+    els.stateSelect.value = STATES[0].code;
+    renderState(STATES[0]);
   })();
 })();
+
 
 
