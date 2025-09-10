@@ -1,4 +1,4 @@
-/* public/assets/app.js — resilient loader + board name + local save/copy actions */
+/* public/assets/app.js — resilient loader + board name + local save/copy actions (PDF) */
 (() => {
   const $ = (sel) => document.querySelector(sel);
 
@@ -11,7 +11,7 @@
     dataSource: $('#dataSource'),
     openBtn: $('#openBtn'),
     reportBtn: $('#reportBtn'),
-    saveJson: $('#saveJson'),
+    saveJson: $('#saveJson'),      // checkbox; now saves PDF (ID unchanged)
     copyText: $('#copyText'),
     nameInput: $('#nameInput'),
     emailInput: $('#emailInput'),
@@ -253,7 +253,7 @@
     } catch { return false; }
   }
 
-  // ---------- Local actions (save/copy) ----------
+  // ---------- Build report (for PDF/Text) ----------
   function buildReport() {
     const now = new Date().toISOString();
     return {
@@ -287,13 +287,65 @@
     ].join('\n');
   }
 
-  function downloadJson(filename, data) {
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url; a.download = filename;
-    document.body.appendChild(a); a.click(); a.remove();
-    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  // ---------- PDF generation ----------
+  async function getJsPDF() {
+    if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
+    await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
+    if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
+    throw new Error('jsPDF failed to load');
+  }
+
+  async function downloadPdf(filename, report) {
+    const jsPDF = await getJsPDF();
+    const doc = new jsPDF({ unit: 'pt', format: 'letter' }); // 612x792
+    const margin = 48;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const contentWidth = pageWidth - margin * 2;
+    let y = margin;
+
+    const addLine = (text, opts = {}) => {
+      const size = opts.size || 11;
+      const bold = opts.bold || false;
+      doc.setFont('helvetica', bold ? 'bold' : 'normal');
+      doc.setFontSize(size);
+      const lines = doc.splitTextToSize(text, contentWidth);
+      for (const line of lines) {
+        if (y > pageHeight - margin) { doc.addPage(); y = margin; }
+        doc.text(line, margin, y);
+        y += (opts.leading || 16);
+      }
+    };
+
+    // Title
+    addLine('Complaint Draft', { size: 18, bold: true, leading: 26 });
+    addLine(`Generated: ${report.generatedAt}`, { size: 10, leading: 14 });
+    y += 6;
+
+    // Metadata
+    addLine(`State: ${report.state ? `${report.state.name} (${report.state.code})` : '—'}`, { bold: true });
+    addLine(`Board: ${report.board?.name || '—'}`);
+    addLine(`URL: ${report.board?.url || '—'}`);
+    addLine(`Host: ${report.board?.host || '—'}`);
+    y += 6;
+
+    // Reporter
+    addLine('Reporter', { bold: true });
+    addLine(`Name: ${report.reporter?.name || ''}`);
+    addLine(`Email: ${report.reporter?.email || ''}`);
+    y += 6;
+
+    // Details
+    addLine('Details', { bold: true });
+    addLine(report.details || '', { leading: 16 });
+
+    // Footer note
+    y = Math.max(y, pageHeight - margin - 32);
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(9);
+    doc.text('This PDF is stored locally by you. The site does not store your report.', margin, pageHeight - margin);
+
+    doc.save(filename);
   }
 
   async function copyToClipboard(text) {
@@ -328,17 +380,22 @@
   els.reportBtn?.addEventListener('click', async () => {
     if (!selected) { flash('Choose a state first.'); return; }
     if (!els.saveJson.checked && !els.copyText.checked) {
-      flash('Select at least one option: Save JSON or Copy text.'); return;
+      flash('Select at least one option: Save PDF or Copy text.'); return;
     }
     const r = buildReport();
     const ts = new Date(r.generatedAt).toISOString().replace(/[:.]/g,'-');
     const base = selected ? selected.code : 'report';
-    const filename = `complaint-${base}-${ts}.json`;
 
     let did = [];
     if (els.saveJson.checked) {
-      downloadJson(filename, r);
-      did.push('saved JSON');
+      try {
+        await downloadPdf(`complaint-${base}-${ts}.pdf`, r);
+        did.push('saved PDF');
+      } catch (e) {
+        console.error('PDF generation failed, offering TXT instead:', e);
+        const ok = await copyToClipboard(reportToText(r));
+        did.push(ok ? 'PDF failed; copied TXT' : 'PDF failed');
+      }
     }
     if (els.copyText.checked) {
       const ok = await copyToClipboard(reportToText(r));
