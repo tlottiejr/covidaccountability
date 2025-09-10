@@ -7,17 +7,8 @@
   <link rel="stylesheet" href="/assets/site.css"/>
 </head>
 <body>
-  <nav class="top">
-  <div class="inner">
-    <a href="/index.html">Home</a>
-    <a href="/about.html">About Us</a>
-    <a href="/our-story.html">Our Story</a>
-    <a href="/why-report.html">Why Report</a>
-    <a href="/who-can-report.html">Who Can Report</a>
-    <a href="/references.html">References</a>
-    <a href="/donate.html">Donate</a>
-  </div>
-</nav>
+  <div id="nav-root"></div>
+  <script src="/assets/nav-include.js" defer></script>
 
   <main class="container">
     <h1>Prepare Your Report</h1>
@@ -30,65 +21,18 @@
       <section class="card">
         <h2>Information Template</h2>
         <div class="grid">
-          <div>
-            <label for="rtState">State (for your filing)</label>
-            <input id="rtState" type="text" placeholder="e.g., Delaware (DE)"/>
-          </div>
-
-          <div>
-            <label for="rtPractitioner">Practitioner / Organization</label>
-            <input id="rtPractitioner" type="text" placeholder="Name and role"/>
-          </div>
-
-          <div>
-            <label for="rtDate">Date of incident</label>
-            <input id="rtDate" type="date"/>
-          </div>
-
-          <div>
-            <label for="rtLocation">Location</label>
-            <input id="rtLocation" type="text" placeholder="Facility / city / state"/>
-          </div>
-
-          <div>
-            <label for="rtProduct">Procedure / Product / Order</label>
-            <input id="rtProduct" type="text" placeholder="What was administered or performed?"/>
-          </div>
-
-          <div>
-            <label for="rtOutcome">Harm / Outcome</label>
-            <input id="rtOutcome" type="text" placeholder="Symptoms, diagnosis, costs, time off, etc."/>
-          </div>
-
-          <div class="col-span-2">
-            <label for="rtDetails">Details (what happened)</label>
-            <textarea id="rtDetails" placeholder="Describe what happened, in order. Include who said what, and when."></textarea>
-          </div>
-
-          <div class="col-span-2">
-            <label for="rtEvidence">Evidence / Documentation (optional)</label>
-            <textarea id="rtEvidence" placeholder="List records, messages, lab results, images, bills, etc. Keep originals for your filing."></textarea>
-          </div>
-
-          <div>
-            <label for="rtWitnesses">Witnesses (optional)</label>
-            <input id="rtWitnesses" type="text" placeholder="Names and contact info"/>
-          </div>
-
-          <div>
-            <label for="rtPriorCase">Prior board case # (optional)</label>
-            <input id="rtPriorCase" type="text" placeholder="If you have already filed"/>
-          </div>
-
-          <div>
-            <label for="rtYourName">Your name (optional)</label>
-            <input id="rtYourName" type="text" placeholder="Your name"/>
-          </div>
-
-          <div>
-            <label for="rtYourEmail">Your email (optional)</label>
-            <input id="rtYourEmail" type="email" placeholder="you@example.com"/>
-          </div>
+          <div><label for="rtState">State (for your filing)</label><input id="rtState" type="text" placeholder="e.g., Delaware (DE)"/></div>
+          <div><label for="rtPractitioner">Practitioner / Organization</label><input id="rtPractitioner" type="text" placeholder="Name and role"/></div>
+          <div><label for="rtDate">Date of incident</label><input id="rtDate" type="date"/></div>
+          <div><label for="rtLocation">Location</label><input id="rtLocation" type="text" placeholder="Facility / city / state"/></div>
+          <div><label for="rtProduct">Procedure / Product / Order</label><input id="rtProduct" type="text" placeholder="What was administered or performed?"/></div>
+          <div><label for="rtOutcome">Harm / Outcome</label><input id="rtOutcome" type="text" placeholder="Symptoms, diagnosis, costs, time off, etc."/></div>
+          <div class="col-span-2"><label for="rtDetails">Details (what happened)</label><textarea id="rtDetails" placeholder="Describe what happened, in order. Include who said what, and when."></textarea></div>
+          <div class="col-span-2"><label for="rtEvidence">Evidence / Documentation (optional)</label><textarea id="rtEvidence" placeholder="List records, messages, lab results, images, bills, etc. Keep originals for your filing."></textarea></div>
+          <div><label for="rtWitnesses">Witnesses (optional)</label><input id="rtWitnesses" type="text" placeholder="Names and contact info"/></div>
+          <div><label for="rtPriorCase">Prior board case # (optional)</label><input id="rtPriorCase" type="text" placeholder="If you have already filed"/></div>
+          <div><label for="rtYourName">Your name (optional)</label><input id="rtYourName" type="text" placeholder="Your name"/></div>
+          <div><label for="rtYourEmail">Your email (optional)</label><input id="rtYourEmail" type="email" placeholder="you@example.com"/></div>
         </div>
       </section>
 
