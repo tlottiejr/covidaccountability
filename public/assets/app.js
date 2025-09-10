@@ -1,4 +1,4 @@
-/* public/assets/app.js — resilient loader + board name in UI */
+/* public/assets/app.js — resilient loader + optional JS fallback + board name in UI */
 (() => {
   const $ = (sel) => document.querySelector(sel);
 
@@ -21,19 +21,17 @@
   let selectedLinkUrl = "";    // chosen complaint URL
   let selectedLinkBoard = "";  // chosen board name
 
-  const STATIC_CANDIDATES = [
+  const STATIC_JSON_CANDIDATES = [
     '/assets/state-links.json',
     '/state-links.json',
     '/public/assets/state-links.json'
   ];
+  const STATIC_JS_FALLBACK = '/assets/state-links.js'; // defines window.__STATE_LINKS__
 
-  // ---- utilities ----
   function setBadge(text, danger = false) {
     els.stateStatus.innerHTML = `<span class="badge${danger ? ' danger' : ''}">${text}</span>`;
   }
-  function showSource(text) {
-    els.dataSource.textContent = text || '';
-  }
+  function showSource(text) { els.dataSource.textContent = text || ''; }
 
   async function fetchJSON(url, timeoutMs = 10000) {
     const ctrl = new AbortController();
@@ -42,14 +40,11 @@
       const res = await fetch(url, { signal: ctrl.signal, credentials: 'omit', cache: 'no-store', headers: { accept: 'application/json' } });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.json();
-    } finally {
-      clearTimeout(timer);
-    }
+    } finally { clearTimeout(timer); }
   }
 
-  // Normalize to multi-link shape
   function normalizeData(raw) {
-    // Case A: already multi-link
+    // Multi-link
     if (Array.isArray(raw) && raw.length && raw[0].links) {
       return raw.map(s => ({
         code: s.code, name: s.name,
@@ -62,7 +57,7 @@
         unavailable: !s.links || s.links.length === 0
       }));
     }
-    // Case B: /api/states — single link shape
+    // /api/states
     if (Array.isArray(raw) && raw.length && ('link' in raw[0] || 'unavailable' in raw[0])) {
       return raw.map(s => ({
         code: s.code, name: s.name,
@@ -70,7 +65,7 @@
         unavailable: !!s.unavailable
       }));
     }
-    // Case C: legacy /assets/states.json — single link
+    // legacy /assets/states.json
     if (Array.isArray(raw) && raw.length && ('code' in raw[0] && 'name' in raw[0])) {
       return raw.map(s => ({
         code: s.code, name: s.name,
@@ -81,20 +76,42 @@
     return [];
   }
 
-  async function tryStatic() {
-    for (const p of STATIC_CANDIDATES) {
+  async function tryStaticJSON() {
+    for (const p of STATIC_JSON_CANDIDATES) {
       try {
         const data = await fetchJSON(p);
         const norm = normalizeData(data);
         if (norm.length) {
-          console.info('[portal] loaded static:', p, norm.length, 'states');
+          console.info('[portal] loaded static JSON:', p, norm.length, 'states');
           showSource(`Data source: ${p}`);
           return norm;
         }
-      } catch (e) {
-        console.warn('[portal] static load failed:', p, e?.message || e);
-      }
+      } catch (e) { console.warn('[portal] static JSON failed:', p, e?.message || e); }
     }
+    return [];
+  }
+
+  function loadScript(src) {
+    return new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src; s.async = true; s.onload = resolve; s.onerror = reject;
+      document.head.appendChild(s);
+    });
+  }
+
+  async function tryStaticJS() {
+    try {
+      await loadScript(STATIC_JS_FALLBACK);
+      const raw = window.__STATE_LINKS__;
+      if (Array.isArray(raw) && raw.length) {
+        const norm = normalizeData(raw);
+        if (norm.length) {
+          console.info('[portal] loaded static JS:', STATIC_JS_FALLBACK, norm.length, 'states');
+          showSource(`Data source: ${STATIC_JS_FALLBACK}`);
+          return norm;
+        }
+      }
+    } catch (e) { console.warn('[portal] static JS failed:', e?.message || e); }
     return [];
   }
 
@@ -103,13 +120,11 @@
       const data = await fetchJSON('/api/states');
       const norm = normalizeData(data);
       if (norm.length) {
-        console.info('[portal] loaded from /api/states:', norm.length, 'states');
+        console.info('[portal] loaded /api/states:', norm.length, 'states');
         showSource('Data source: /api/states');
         return norm;
       }
-    } catch (e) {
-      console.warn('[portal] /api/states failed:', e?.message || e);
-    }
+    } catch (e) { console.warn('[portal] /api/states failed:', e?.message || e); }
     return [];
   }
 
@@ -122,19 +137,19 @@
         showSource('Data source: /assets/states.json');
         return norm;
       }
-    } catch (e) {
-      console.warn('[portal] legacy states.json failed:', e?.message || e);
-    }
+    } catch (e) { console.warn('[portal] legacy states.json failed:', e?.message || e); }
     return [];
   }
 
   async function loadStates() {
-    const fromStatic = await tryStatic();
-    if (fromStatic.length) return fromStatic;
-    const fromApi = await tryApi();
-    if (fromApi.length) return fromApi;
-    const fromLegacy = await tryLegacy();
-    return fromLegacy;
+    let out = await tryStaticJSON();
+    if (out.length) return out;
+    out = await tryStaticJS();
+    if (out.length) return out;
+    out = await tryApi();
+    if (out.length) return out;
+    out = await tryLegacy();
+    return out;
   }
 
   function setSelectedLink(l) {
@@ -246,7 +261,7 @@
     if (!STATES.length) {
       setBadge('No data', true);
       els.openBtn.disabled = true;
-      showSource('No data sources resolved — ensure /assets/state-links.json exists or /api/states works.');
+      showSource('No data sources resolved — ensure /assets/state-links.json exists, or /assets/state-links.js defines window.__STATE_LINKS__, or /api/states works.');
       return;
     }
     populateSelect(STATES);
