@@ -1,0 +1,25 @@
+name: State Links Audit
+
+on:
+  push:
+    branches: [ main ]
+    paths:
+      - 'public/assets/state-links.json'
+      - 'scripts/audit-state-links.mjs'
+      - '.github/workflows/state-links-audit.yml'
+  schedule:
+    - cron: '17 3 * * *' # nightly @ 03:17 UTC
+  workflow_dispatch:
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run audit
+        run: node scripts/audit-state-links.mjs
