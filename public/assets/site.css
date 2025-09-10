@@ -38,3 +38,38 @@ select,input[type="text"],input[type="email"],textarea{width:100%;padding:10px 1
 footer{margin:40px 0;text-align:center}
 /* Cards inside complaint portal */
 .badge.danger{background:var(--danger);color:#fff}
+/* --- NAV GRADIENT (consistent across all pages) --- */
+.top .inner a {
+  position: relative;
+  display: inline-block;
+  padding: 10px 12px;
+  font-weight: 600;
+  text-decoration: none;
+  background: linear-gradient(90deg, #2a6cf0 0%, #6aa8ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: 0.9;
+  transition: opacity .15s ease, transform .15s ease;
+}
+
+.top .inner a:hover {
+  opacity: 1;
+  transform: translateY(-1px);
+}
+
+.top .inner a[aria-current="page"] {
+  opacity: 1;
+  text-shadow: 0 0 0 rgba(0,0,0,0); /* keep crisp */
+}
+
+/* Optional subtle underline on hover/active for clarity */
+.top .inner a:hover::after,
+.top .inner a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  left: 8px; right: 8px; bottom: 4px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #2a6cf0 0%, #6aa8ff 100%);
+}
