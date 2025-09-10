@@ -7,9 +7,11 @@ on:
       - 'public/assets/state-links.json'
       - 'scripts/audit-state-links.mjs'
       - '.github/workflows/state-links-audit.yml'
-  schedule:
-    - cron: '17 3 * * *' # nightly @ 03:17 UTC
   workflow_dispatch:
+
+concurrency:
+  group: state-links-audit-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   audit:
