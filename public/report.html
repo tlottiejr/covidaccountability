@@ -7,28 +7,116 @@
   <link rel="stylesheet" href="/assets/site.css"/>
 </head>
 <body>
-  <nav class="top"><div class="inner">
-  <a href="/index.html">Home</a>
-  <a href="/about.html">About Us</a>
-  <a href="/our-story.html">Our Story</a>
-  <a href="/why-report.html">Why Report</a>
-  <a href="/who-can-report.html">Who Can Report</a>
-  <a href="/donate.html">Donate</a>
-</div></nav>
+  <nav class="top">
+    <div class="inner">
+      <a href="/index.html">Home</a>
+      <a href="/about.html">About Us</a>
+      <a href="/our-story.html">Our Story</a>
+      <a href="/why-report.html">Why Report</a>
+      <a href="/who-can-report.html">Who Can Report</a>
+      <a href="/donate.html">Donate</a>
+    </div>
+  </nav>
+
   <main class="container">
-    <h1>Report</h1>
-    <section class="card">
-      <p>REPORT</p>
-      <p>1. In order to file a complaint with a state medical board when personal or familial harm has been caused by medical decision making of a physician, you will need to go to the physician’s state medical board official website and file a complaint electronically. Some states require that you create an account first. The state may not accept an anonymous complaint.</p>
-      <p>2. None of your personal information will be collected on this web site unless you choose to use the optional intake form.</p>
-      <p>3. The information you may need to file your complaint with the board are:</p>
-      <p>Treatment Date<br/>Adverse Reaction Discovery Date<br/>Physician Name<br/>License Number (this can commonly be found at the complaint site)<br/>Facility/Practice Name<br/>Medical Specialty<br/>Injury/Averse Reaction Description (you are encouraged to personalize this template which is provided)<br/>Medical Documentation (of your injury evaluation)</p>
-      <p>4. Pease be aware that false reporting may result in legal consequences.</p>
-      <p><strong>Injury Description Template</strong><br/>I recieved the COVID modRNA gene treatment under the direction of <em>[include name of the physician, title of service, and specialty]</em> on <em>[treatment date]</em> for the purpose of <em>[YOUR reason for receiving the injection/therapy]</em> and subsequently was injured. <em>[Describe the injury and symptoms in detail]</em>. I discovered the injury on <em>[adverse reaction discovery date]</em>. <em>[Describe how you discovered the injury and any medical evaluation that</em> I have received]</p>
-      <p><em>Describe any effects of the injury</em> and how it has impacted my life, work, and daily activities. I was informed this treatment was safe and effective. I now understand the FDA made safety pause identifications in March of 2021 that corresponded to my injury. I have reported the adverse event following the treatment to VAERS which is required.</p>
-      <p><a class="btn" href="/assets/complaint-against-doctor.txt" download>Download Complaint Letter Template</a></p>
+    <h1>Prepare Your Report</h1>
+    <p class="small">
+      Use this information template to draft your experience before you file with the official state board.
+      <strong>Nothing you enter here is stored by this site.</strong> You can save a local PDF or copy the text.
+    </p>
+
+    <div class="grid grid-2">
+      <section class="card">
+        <h2>Information Template</h2>
+        <div class="grid">
+          <div>
+            <label for="rtState">State (for your filing)</label>
+            <input id="rtState" type="text" placeholder="e.g., Delaware (DE)"/>
+          </div>
+
+          <div>
+            <label for="rtPractitioner">Practitioner / Organization</label>
+            <input id="rtPractitioner" type="text" placeholder="Name and role"/>
+          </div>
+
+          <div>
+            <label for="rtDate">Date of incident</label>
+            <input id="rtDate" type="date"/>
+          </div>
+
+          <div>
+            <label for="rtLocation">Location</label>
+            <input id="rtLocation" type="text" placeholder="Facility / city / state"/>
+          </div>
+
+          <div>
+            <label for="rtProduct">Procedure / Product / Order</label>
+            <input id="rtProduct" type="text" placeholder="What was administered or performed?"/>
+          </div>
+
+          <div>
+            <label for="rtOutcome">Harm / Outcome</label>
+            <input id="rtOutcome" type="text" placeholder="Symptoms, diagnosis, costs, time off, etc."/>
+          </div>
+
+          <div class="col-span-2">
+            <label for="rtDetails">Details (what happened)</label>
+            <textarea id="rtDetails" placeholder="Describe what happened, in order. Include who said what, and when."></textarea>
+          </div>
+
+          <div class="col-span-2">
+            <label for="rtEvidence">Evidence / Documentation (optional)</label>
+            <textarea id="rtEvidence" placeholder="List records, messages, lab results, images, bills, etc. Keep originals for your filing."></textarea>
+          </div>
+
+          <div>
+            <label for="rtWitnesses">Witnesses (optional)</label>
+            <input id="rtWitnesses" type="text" placeholder="Names and contact info"/>
+          </div>
+
+          <div>
+            <label for="rtPriorCase">Prior board case # (optional)</label>
+            <input id="rtPriorCase" type="text" placeholder="If you have already filed"/>
+          </div>
+
+          <div>
+            <label for="rtYourName">Your name (optional)</label>
+            <input id="rtYourName" type="text" placeholder="Your name"/>
+          </div>
+
+          <div>
+            <label for="rtYourEmail">Your email (optional)</label>
+            <input id="rtYourEmail" type="email" placeholder="you@example.com"/>
+          </div>
+        </div>
+      </section>
+
+      <section class="card">
+        <h2>Tips</h2>
+        <ul class="small">
+          <li>Be factual and chronological. Avoid speculation; stick to what you observed or have in records.</li>
+          <li>If you don’t know an exact date/time, write your best estimate and say it’s approximate.</li>
+          <li>Keep personal copies of all attachments. Boards usually request uploads on their official portals.</li>
+          <li>After saving your draft, go to the <a href="/complaint-portal.html">Complaint Portal</a> to file with your state board.</li>
+        </ul>
+      </section>
+    </div>
+
+    <section class="card" style="margin-top: 18px;">
+      <h2>Optional actions</h2>
+      <div class="grid">
+        <label><input type="checkbox" id="rtSavePdf"/> Save a local copy (PDF)</label>
+        <label><input type="checkbox" id="rtCopyText"/> Copy text to clipboard</label>
+        <div><button id="rtGenerateBtn" class="btn">Generate</button></div>
+      </div>
+      <p class="small" style="margin-top:12px;">
+        We do not store your report content. Use the options above to save or copy your information locally, then file your report on the official state site.
+      </p>
     </section>
+
+    <footer><a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a></footer>
   </main>
-  <footer><a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a></footer>
+
+  <script src="/assets/report-template.js" defer></script>
 </body>
 </html>
