@@ -18,7 +18,7 @@ async function check(url) {
   const t = setTimeout(() => controller.abort(), 15000);
   try {
     const res = await fetch(url, {
-      method: 'GET',           // some portals block HEAD
+      method: 'GET',
       redirect: 'follow',
       headers: {
         'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)',
@@ -45,13 +45,11 @@ async function main() {
       console.log(`WARN: ${s.code} ${s.name} has no links`);
       continue;
     }
-
     for (const l of links) {
       if (isPlaceholder(l.url)) {
         console.log(`SKIP: ${s.code} ${s.name} "${l.board || 'Official Complaint Link'}" placeholder/empty URL`);
         continue;
       }
-
       const r = await check(l.url);
       if (!r.ok) {
         console.log(`FAIL: ${s.code} ${s.name} "${l.board || 'Official Complaint Link'}" -> ${l.url} [${r.status}] ${r.error || ''}`.trim());
@@ -59,7 +57,7 @@ async function main() {
       } else {
         console.log(`OK  : ${s.code} ${s.name} "${l.board || 'Official Complaint Link'}" -> ${r.finalUrl} [${r.status}]`);
       }
-      await sleep(250); // be polite
+      await sleep(250);
     }
   }
 
