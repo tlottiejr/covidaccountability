@@ -1,66 +1,72 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Complaint Portal — COVIDAccountabilityNow</title>
-  <link rel="stylesheet" href="/assets/site.css"/>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Complaint Portal — COVID Accountability</title>
+  <link rel="stylesheet" href="/assets/site.css" />
 </head>
 <body>
-  <div id="nav-root"></div>
-  <script src="/assets/nav-include.js" defer></script>
+  <div class="container">
+    <header class="header">
+      <a href="/">COVID Accountability</a>
+      <nav>
+        <a href="/complaint-portal.html" aria-current="page">Complaint portal</a>
+        <a href="/boards.html">All boards</a>
+      </nav>
+    </header>
 
-  <main class="container">
-    <h1>Complaint Portal</h1>
-    <p class="small">Choose your state to open the official complaint page. Optionally, write your experience and save a personal copy.</p>
+    <div class="card">
+      <h1>Report a Complaint</h1>
 
-    <div class="grid grid-2">
-      <section class="card">
-        <h2>Find your state board</h2>
-
-        <label for="stateSelect">State</label>
-        <select id="stateSelect" aria-label="State"></select>
-
-        <div style="margin-top: 16px;"><div class="small">Board</div><div id="stateName">—</div></div>
-        <div style="margin-top: 12px;"><div class="small">URL</div><div id="stateUrl"><span class="small">Not available yet</span></div></div>
-        <div style="margin-top: 12px;"><div class="small">Host</div><div id="stateHost">—</div></div>
-        <div style="margin-top: 12px;"><div class="small">Status</div><div id="stateStatus"><span class="badge">—</span></div></div>
-
-        <div style="margin-top: 12px;" class="small" id="dataSource" aria-live="polite"></div>
-        <div style="margin-top: 16px;"><button id="openBtn" class="btn" disabled>Open board page</button></div>
-      </section>
-
-      <section class="card">
-        <h2>Share your experience (optional)</h2>
-        <div class="grid">
-          <div><label for="nameInput">Name (optional)</label><input id="nameInput" type="text" placeholder="Your name…"/></div>
-          <div><label for="emailInput">Email (optional)</label><input id="emailInput" type="email" placeholder="you@example.com"/></div>
-          <div><label for="detailsInput">Details</label><textarea id="detailsInput" placeholder="Describe what happened…"></textarea></div>
+      <div class="row">
+        <div>
+          <label for="state">Select a state</label>
+          <select id="state" aria-label="Select state"></select>
         </div>
-        <div style="margin-top: 16px;">
-          <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8"></div>
-          <div class="small" style="margin-top: 8px;">Verification prevents spam.</div>
+        <div>
+          <label>Board name</label>
+          <div id="boardName">—</div>
         </div>
-      </section>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
+        <div>
+          <label>Board URL</label>
+          <div id="boardUrl">—</div>
+        </div>
+        <div>
+          <label>Board host</label>
+          <div id="boardHost">—</div>
+        </div>
+      </div>
+
+      <div style="margin-top:12px;">
+        <button id="openBoard" type="button" disabled aria-disabled="true">Open board page</button>
+        <div id="boardStatus" class="status" aria-live="polite">—</div>
+      </div>
+
+      <!-- Turnstile widget (uses callbacks defined in app.js) -->
+      <div id="turnstile-block" style="margin-top:12px;">
+        <div
+          class="cf-turnstile"
+          data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8"
+          data-callback="onTurnstileSuccess"
+          data-expired-callback="onTurnstileExpired"
+          data-error-callback="onTurnstileError"
+        ></div>
+      </div>
     </div>
 
-    <section class="card" style="margin-top: 18px;">
-      <h2>Optional actions</h2>
-      <div class="grid">
-        <label><input type="checkbox" id="saveJson"/> Save a local copy (PDF)</label>
-        <label><input type="checkbox" id="copyText"/> Copy text to clipboard</label>
-        <div><button id="reportBtn" class="btn">Submit report</button></div>
-      </div>
-      <p class="small" style="margin-top:12px;">
-        We do not store your report content. Use the options above to save or copy your information locally, then file your report on the official state site.
-      </p>
-    </section>
+    <!-- All link options for the selected state render here -->
+    <div id="boardLinks" class="card" aria-live="polite" style="margin-top:12px;"></div>
 
-    <footer><a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a></footer>
-  </main>
+    <footer class="footer">
+      <p>Need another board? See the <a href="/boards.html">full directory</a>.</p>
+    </footer>
+  </div>
 
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <script src="/assets/app.js" defer></script>
 </body>
 </html>
-
