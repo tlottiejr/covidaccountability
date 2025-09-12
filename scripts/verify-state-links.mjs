@@ -8,7 +8,7 @@ const __dirname = path.dirname(__filename);
 const STATE_FILE = path.join(__dirname, "..", "public", "assets", "state-links.json");
 
 const sleep = (ms) => new Promise(r => setTimeout(r, ms));
-const UA = "CovidAccountability StateLinkVerify/1.0 (+https://stage.covidaccountabilitynow.com)";
+const UA = "CovidAccountability StateLinkVerify/1.1 (+https://stage.covidaccountabilitynow.com)";
 
 function registrable(host) {
   const parts = (host || "").split(".").filter(Boolean);
@@ -18,30 +18,31 @@ function md(s) { return (s || "").replace(/\|/g, "\\|"); }
 
 async function headOrLightGet(url) {
   const common = { redirect: "follow", headers: { "User-Agent": UA } };
-  try {
-    return await fetch(url, { method: "HEAD", ...common });
-  } catch {}
+  try { return await fetch(url, { method: "HEAD", ...common }); }
+  catch {}
   return await fetch(url, { method: "GET", ...common, headers: { ...common.headers, Range: "bytes=0-0" } });
 }
-
 async function check(url) {
   let lastErr = null;
   for (let i = 0; i < 3; i++) {
-    try {
-      const res = await headOrLightGet(url);
-      return res;
-    } catch (e) {
-      lastErr = e; await sleep(1000 * (i + 1));
-    }
+    try { return await headOrLightGet(url); }
+    catch (e) { lastErr = e; await sleep(1000 * (i + 1)); }
   }
   throw lastErr || new Error("Network error");
 }
 
+function matchesAny(reg, list = []) {
+  return list.some(h => registrable(h) === reg);
+}
+
 async function verify(state, link) {
-  const { code, name } = state;
+  const { name: stateName } = state;
   const board = link.board || "—";
   const url = link.url;
-  if (!url) return { state: name, board, verdict: "WARN", status: 0, note: "Missing URL", expectedHost: "-", finalHost: "-" };
+  if (!url) return { state: stateName, board, verdict: "WARN", status: 0, note: "Missing URL", expectedHost: "-", finalHost: "-" };
+
+  const declaredHost = link.host || ""; // optional in your JSON
+  const allow = Array.isArray(link.allowedFinalHosts) ? link.allowedFinalHosts : [];
 
   try {
     const res = await check(url);
@@ -49,26 +50,34 @@ async function verify(state, link) {
     const status = res.status;
     const expectedHost = new URL(url).hostname;
     const finalHost = new URL(finalUrl).hostname;
+
     const expectedReg = registrable(expectedHost);
+    const declaredReg = registrable(declaredHost);
     const finalReg = registrable(finalHost);
 
-    // verdicts
     let verdict = "OK";
     let note = "";
 
     if (status >= 500) { verdict = "FAIL"; note = `HTTP ${status}`; }
-    else if (status === 404 || status === 410 || status === 451) { verdict = "FAIL"; note = `HTTP ${status}`; }
-    else if (status === 401 || status === 403 || status === 429) { verdict = "WARN"; note = `HTTP ${status}`; }
+    else if ([404,410,451].includes(status)) { verdict = "FAIL"; note = `HTTP ${status}`; }
+    else if ([401,403,429].includes(status)) { verdict = "WARN"; note = `HTTP ${status}`; }
 
-    if (verdict !== "FAIL" && expectedReg !== finalReg) {
-      verdict = "FAIL"; note = `Host mismatch (expected ${expectedReg}, got ${finalReg})`;
+    const domainOk =
+      finalReg === expectedReg ||
+      (declaredReg && finalReg === declaredReg) ||
+      matchesAny(finalReg, allow);
+
+    if (verdict !== "FAIL" && !domainOk) {
+      verdict = "FAIL";
+      const allowStr = [declaredReg, ...allow].filter(Boolean).map(registrable).join(", ");
+      note = `Host mismatch (final ${finalReg}; allowed: ${allowStr || "none"})`;
     } else if (verdict === "OK" && expectedHost !== finalHost) {
       note = `Redirected to ${finalHost}`;
     }
 
-    return { state: name, board, verdict, status, note, expectedHost, finalHost };
-  } catch (e) {
-    return { state: name, board, verdict: "FAIL", status: 0, note: `Network error`, expectedHost: new URL(url).hostname, finalHost: "-" };
+    return { state: stateName, board, verdict, status, note, expectedHost, finalHost };
+  } catch {
+    return { state: stateName, board, verdict: "FAIL", status: 0, note: "Network error", expectedHost: declaredHost || new URL(url).hostname, finalHost: "-" };
   }
 }
 
@@ -101,4 +110,3 @@ async function main() {
 }
 
 main().catch(e => { console.error(e); process.exitCode = 1; });
-
