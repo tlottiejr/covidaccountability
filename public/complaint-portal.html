@@ -12,7 +12,6 @@
       <a href="/">COVID Accountability</a>
       <nav>
         <a href="/complaint-portal.html" aria-current="page">Complaint portal</a>
-        <a href="/boards.html">All boards</a>
       </nav>
     </header>
 
@@ -24,17 +23,20 @@
           <label for="state">Select a state</label>
           <select id="state" aria-label="Select state"></select>
         </div>
-        <div>
-          <label>Board name</label>
-          <div id="boardName">—</div>
-        </div>
       </div>
 
       <div class="row" style="margin-top:12px;">
         <div>
+          <label>Board name</label>
+          <div id="boardName">—</div>
+        </div>
+        <div>
           <label>Board URL</label>
           <div id="boardUrl">—</div>
         </div>
+      </div>
+
+      <div class="row" style="margin-top:12px;">
         <div>
           <label>Board host</label>
           <div id="boardHost">—</div>
@@ -46,24 +48,11 @@
         <div id="boardStatus" class="status" aria-live="polite">—</div>
       </div>
 
-      <!-- Turnstile widget (uses callbacks defined in app.js) -->
+      <!-- Turnstile widget (no callbacks needed in this version) -->
       <div id="turnstile-block" style="margin-top:12px;">
-        <div
-          class="cf-turnstile"
-          data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8"
-          data-callback="onTurnstileSuccess"
-          data-expired-callback="onTurnstileExpired"
-          data-error-callback="onTurnstileError"
-        ></div>
+        <div class="cf-turnstile" data-sitekey="REPLACE_WITH_REAL_TURNSTILE_SITE_KEY"></div>
       </div>
     </div>
-
-    <!-- All link options for the selected state render here -->
-    <div id="boardLinks" class="card" aria-live="polite" style="margin-top:12px;"></div>
-
-    <footer class="footer">
-      <p>Need another board? See the <a href="/boards.html">full directory</a>.</p>
-    </footer>
   </div>
 
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
