@@ -1,0 +1,109 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>All Boards — COVID Accountability</title>
+  <link rel="stylesheet" href="/assets/site.css" />
+</head>
+<body>
+  <div class="container">
+    <header class="header">
+      <a href="/">COVID Accountability</a>
+      <nav>
+        <a href="/complaint-portal.html">Complaint portal</a>
+        <a href="/boards.html" aria-current="page">All boards</a>
+      </nav>
+    </header>
+
+    <div class="card">
+      <h1>All State Boards</h1>
+      <div class="row" style="margin-bottom:12px;">
+        <div>
+          <label for="q">Search</label>
+          <input id="q" type="text" placeholder="Filter by state or board…" />
+        </div>
+      </div>
+      <div id="list" aria-live="polite"></div>
+    </div>
+  </div>
+
+  <script>
+  (async () => {
+    const el = (s, r=document) => r.querySelector(s);
+    const list = el('#list');
+    const q = el('#q');
+
+    const fetchJson = async (path) =>
+      (await fetch(path, { headers: { 'cache-control': 'no-store' } })).json();
+
+    let states = [];
+    try {
+      const j = await fetchJson('/api/states'); // try API first
+      if (Array.isArray(j) && j.length) {
+        states = j;
+      } else {
+        const f = await fetchJson('/assets/state-links.json'); // fallback
+        states = Array.isArray(f?.states) ? f.states : f;
+      }
+    } catch {
+      try {
+        const f = await fetchJson('/assets/state-links.json');
+        states = Array.isArray(f?.states) ? f.states : f;
+      } catch {}
+    }
+
+    const render = () => {
+      const term = (q.value || '').toLowerCase().trim();
+      list.innerHTML = '';
+      const container = document.createElement('div');
+      states
+        .slice()
+        .sort((a,b)=>a.name.localeCompare(b.name))
+        .forEach(st => {
+          const matches = !term || st.name.toLowerCase().includes(term) ||
+                          (st.links||[]).some(l => (l.board||'').toLowerCase().includes(term));
+          if (!matches) return;
+
+          const card = document.createElement('div');
+          card.className = 'card';
+          card.style.margin = '10px 0';
+          card.innerHTML = `<h2>${st.name} <span style="opacity:.7;font-size:14px;">(${st.code})</span></h2>`;
+
+          (st.links||[]).forEach((lnk) => {
+            const row = document.createElement('div');
+            row.style.display = 'flex';
+            row.style.justifyContent = 'space-between';
+            row.style.alignItems = 'center';
+            row.style.gap = '10px';
+            row.style.margin = '6px 0';
+
+            const left = document.createElement('div');
+            left.innerHTML = `
+              <div style="font-weight:600;">${lnk.board || 'Board'}</div>
+              <div style="font-size:14px; opacity:.8;">${lnk.url}${lnk.primary ? ' · <strong>Primary</strong>' : ''}</div>
+            `;
+
+            const a = document.createElement('a');
+            a.href = lnk.url;
+            a.target = '_blank';
+            a.rel = 'noopener';
+            a.textContent = 'Open';
+
+            row.appendChild(left);
+            row.appendChild(a);
+            card.appendChild(row);
+          });
+
+          container.appendChild(card);
+        });
+
+      list.appendChild(container);
+    };
+
+    q?.addEventListener('input', render);
+    render();
+  })();
+  </script>
+</body>
+</html>
