@@ -7,6 +7,7 @@ on:
   push:
     paths:
       - "public/assets/state-links.json"
+      - "public/assets/states.json"
       - "public/assets/references.json"
       - ".github/workflows/link-health.yml"
       - ".lychee.toml"
