@@ -20,12 +20,13 @@ export async function onRequestGet({ request }) {
       });
     }
 
-    // Follow redirects; prefer GET (many boards 405 on HEAD)
+    // Many boards 405 on HEAD; use GET and follow redirects.
     const res = await fetch(target, {
-      redirect: "follow",
       method: "GET",
+      redirect: "follow",
       headers: {
-        "User-Agent": "CAN-LinkCheck/1.0 (+https://stage.covidaccountabilitynow.com)",
+        "User-Agent":
+          "CAN-LinkCheck/1.0 (+https://stage.covidaccountabilitynow.com)",
       },
     });
 
@@ -33,15 +34,14 @@ export async function onRequestGet({ request }) {
     const finalUrl = res.url || target;
     const ok =
       (status >= 200 && status <= 206) ||
-      status === 300 || status === 301 || status === 302 ||
-      status === 303 || status === 307 || status === 308;
+      [300, 301, 302, 303, 307, 308].includes(status);
 
     return new Response(
       JSON.stringify({ ok, status, finalUrl }),
       { headers: { "content-type": "application/json", ...cors } }
     );
   } catch (e) {
-    // Network/CORS/SSL errors on our side = warn, not hard fail
+    // Treat edge/network/CORS as a soft issue; UI will show "Unverified".
     return new Response(
       JSON.stringify({ ok: false, status: 0, error: String(e) }),
       { headers: { "content-type": "application/json", ...cors } }
