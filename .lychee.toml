@@ -1,0 +1,31 @@
+# Lychee configuration for robust external link checks
+
+verbose = true
+max_redirects = 8
+timeout = 20
+retry_wait_time = 3
+retry_count = 3
+user_agent = "CovidAccountability LinkAudit/1.0 (+https://stage.covidaccountabilitynow.com)"
+# Accept 2xx and 3xx as OK
+accept = ["200..=399"]
+
+# Ignore schemes we don't care about
+exclude_mail = true
+exclude = [
+  # player/embeds that often rate-limit/deny HEAD but are OK in browser
+  "https://www.youtube.com/*",
+  "https://youtu.be/*",
+  "https://player.vimeo.com/*",
+
+  # heavy/gated or rate-limited sources that frequently 403/429 to bots
+  "https://archive.org/*",
+  "https://www.researchgate.net/*",
+  "https://www.acponline.org/*",           # sometimes blocks bots
+  "https://www.supremecourt.gov/*",        # aggressively rate-limited
+  "https://www.usmle.org/*",               # PDF gating sometimes blocks HEAD
+  "https://www.whitehouse.gov/*",          # tends to throttle
+  "https://correlation-canada.org/*"       # rate limiting common
+]
+
+# Cache can reduce flakiness between steps in one run (optional)
+# cache = true
