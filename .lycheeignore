@@ -1,3 +1,0 @@
-# Add specific URLs here if they trip false alarms even with retries
-# Example:
-# https://example.com/some-pdf-that-403s-under-HEAD
