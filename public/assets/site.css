@@ -73,3 +73,6 @@ footer{margin:40px 0;text-align:center}
   border-radius: 2px;
   background: linear-gradient(90deg, #2a6cf0 0%, #6aa8ff 100%);
 }
+.badge-ok   { background: #e7f7ed; color: #0f7b3a; }
+.badge-warn { background: #fff6e6; color: #8a5b00; }
+.badge-fail { background: #fdeaea; color: #a12622; }
