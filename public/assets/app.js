@@ -1,536 +1,160 @@
-/* public/assets/app.js — resilient loader + board name + local save/copy actions (PDF) */
+/* eslint-disable no-console */
 (() => {
-  const $ = (sel) => document.querySelector(sel);
+  const el = (sel, root = document) => root.querySelector(sel);
+  const els = (sel, root = document) => Array.from(root.querySelectorAll(sel));
 
-  const els = {
-    stateSelect: $('#stateSelect'),
-    stateName: $('#stateName'),   // shows BOARD name
-    stateUrl: $('#stateUrl'),
-    stateHost: $('#stateHost'),
-    stateStatus: $('#stateStatus'),
-    dataSource: $('#dataSource'),
-    openBtn: $('#openBtn'),
-    reportBtn: $('#reportBtn'),
-    saveJson: $('#saveJson'),      // checkbox; now saves PDF (ID unchanged)
-    copyText: $('#copyText'),
-    nameInput: $('#nameInput'),
-    emailInput: $('#emailInput'),
-    detailsInput: $('#detailsInput')
+  // Elements
+  const stateSelect = el('#state');
+  const details = {
+    name: el('#boardName'),
+    url: el('#boardUrl'),
+    host: el('#boardHost'),
+    status: el('#boardStatus'),
+  };
+  const openBtn = el('#openBoard');
+  const turnstileContainer = el('#turnstile-block');
+  const form = el('#portalForm');
+
+  // Helpers
+  const setText = (node, text) => { if (node) node.textContent = text ?? ''; };
+  const setStatus = (ok, msg = '') => {
+    if (!details.status) return;
+    details.status.className = ok ? 'status ok' : 'status error';
+    setText(details.status, msg);
+  };
+  const getHost = (url) => {
+    try { return new URL(url).hostname.split('.').filter(Boolean).slice(-2).join('.'); } catch { return ''; }
   };
 
-  let STATES = [];
-  let selected = null;
-  let selectedLinkUrl = "";
-  let selectedLinkBoard = "";
+  const stash = {
+    state: null,
+    states: [],
+    selected: null,
+  };
 
-  const STATIC_JSON_CANDIDATES = [
-    '/assets/state-links.json',
-    '/state-links.json',
-    '/public/assets/state-links.json'
-  ];
-  const STATIC_JS_FALLBACK = '/assets/state-links.js'; // optional fallback
+  const enableOpen = (enabled) => {
+    if (!openBtn) return;
+    openBtn.disabled = !enabled;
+    openBtn.setAttribute('aria-disabled', String(!enabled));
+  };
 
-  // ---------- UI helpers ----------
-  function setBadge(text, danger = false) {
-    els.stateStatus.innerHTML = `<span class="badge${danger ? ' danger' : ''}">${text}</span>`;
-  }
-  function showSource(text) { els.dataSource.textContent = text || ''; }
-  function flash(text, ms = 3000) {
-    const old = els.dataSource.textContent;
-    els.dataSource.textContent = text;
-    setTimeout(() => (els.dataSource.textContent = old), ms);
-  }
+  const fetchJson = async (path, opts) => {
+    const res = await fetch(path, opts);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    return res.json();
+  };
 
-  // ---------- fetch & normalize ----------
-  async function fetchText(url, timeoutMs = 10000) {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
+  const loadStatesFromApi = async () => {
+    // Primary: API endpoint (D1-backed)
     try {
-      const res = await fetch(url, { signal: ctrl.signal, credentials: 'omit', cache: 'no-store' });
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      return await res.text();
-    } finally { clearTimeout(timer); }
-  }
-  function parseJsonStrict(text) {
-    const t = text.replace(/^\uFEFF/, ''); // strip BOM
-    return JSON.parse(t);
-  }
-  function normalizeData(raw) {
-    // new multi-link
-    if (Array.isArray(raw) && raw.length && raw[0].links) {
-      return raw.map(s => ({
-        code: s.code, name: s.name,
-        links: (s.links || []).map(l => ({
-          board: l.board || 'Official Complaint Link',
-          url: l.url || '',
-          source: l.source || '',
-          primary: !!l.primary
-        })),
-        unavailable: !s.links || s.links.length === 0
-      }));
-    }
-    // /api/states style
-    if (Array.isArray(raw) && raw.length && ('link' in raw[0] || 'unavailable' in raw[0])) {
-      return raw.map(s => ({
-        code: s.code, name: s.name,
-        links: s.link ? [{ board: 'Official Complaint Link', url: s.link, source: '', primary: true }] : [],
-        unavailable: !!s.unavailable
-      }));
-    }
-    // legacy /assets/states.json
-    if (Array.isArray(raw) && raw.length && ('code' in raw[0] && 'name' in raw[0])) {
-      return raw.map(s => ({
-        code: s.code, name: s.name,
-        links: s.link ? [{ board: 'Official Complaint Link', url: s.link, source: '', primary: true }] : [],
-        unavailable: !s.link
-      }));
-    }
-    return [];
-  }
-
-  async function tryStaticJSON() {
-    for (const p of STATIC_JSON_CANDIDATES) {
-      try {
-        const text = await fetchText(p);
-        if (/^\s*</.test(text)) { // HTML
-          console.warn('[portal] static JSON returned HTML at', p);
-          continue;
-        }
-        const raw = parseJsonStrict(text);
-        const norm = normalizeData(raw);
-        if (norm.length) {
-          console.info('[portal] loaded static JSON:', p, norm.length, 'states');
-          showSource(`Data source: ${p}`);
-          return norm;
-        }
-      } catch (e) {
-        console.warn('[portal] static JSON failed:', p, e?.message || e);
-      }
-    }
-    return [];
-  }
-  function loadScript(src) {
-    return new Promise((resolve, reject) => {
-      const s = document.createElement('script');
-      s.src = src; s.async = true; s.onload = resolve; s.onerror = reject;
-      document.head.appendChild(s);
-    });
-  }
-  async function tryStaticJS() {
-    try {
-      await loadScript(STATIC_JS_FALLBACK);
-      const raw = window.__STATE_LINKS__;
-      if (Array.isArray(raw) && raw.length) {
-        const norm = normalizeData(raw);
-        if (norm.length) {
-          console.info('[portal] loaded static JS:', STATIC_JS_FALLBACK, norm.length, 'states');
-          showSource(`Data source: ${STATIC_JS_FALLBACK}`);
-          return norm;
-        }
-      }
-    } catch (e) { console.warn('[portal] static JS failed:', e?.message || e); }
-    return [];
-  }
-  async function tryApi() {
-    try {
-      const text = await fetchText('/api/states');
-      const raw = parseJsonStrict(text);
-      const norm = normalizeData(raw);
-      if (norm.length) {
-        console.info('[portal] loaded /api/states:', norm.length, 'states');
-        showSource('Data source: /api/states');
-        return norm;
-      }
-    } catch (e) { console.warn('[portal] /api/states failed:', e?.message || e); }
-    return [];
-  }
-  async function tryLegacy() {
-    try {
-      const text = await fetchText('/assets/states.json');
-      const raw = parseJsonStrict(text);
-      const norm = normalizeData(raw);
-      if (norm.length) {
-        console.info('[portal] loaded legacy /assets/states.json:', norm.length);
-        showSource('Data source: /assets/states.json');
-        return norm;
-      }
-    } catch (e) { console.warn('[portal] legacy states.json failed:', e?.message || e); }
-    return [];
-  }
-  async function loadStates() {
-    let out = await tryStaticJSON(); if (out.length) return out;
-    out = await tryStaticJS();       if (out.length) return out;
-    out = await tryApi();            if (out.length) return out;
-    out = await tryLegacy();         return out;
-  }
-
-  // ---------- state rendering ----------
-  function setSelectedLink(l) {
-    selectedLinkUrl = l?.url || '';
-    selectedLinkBoard = l?.board || '';
-    els.stateName.textContent = selectedLinkBoard || '—';
-    try {
-      const u = new URL(selectedLinkUrl);
-      els.stateHost.textContent = u.hostname;
-    } catch { els.stateHost.textContent = '—'; }
-  }
-
-  function renderLinks(state) {
-    const container = els.stateUrl;
-    container.innerHTML = '';
-    selectedLinkUrl = ''; selectedLinkBoard = '';
-
-    if (!state || !state.links || state.links.length === 0) {
-      container.innerHTML = `<span class="small">Not available yet</span>`;
-      els.stateName.textContent = '—';
-      els.stateHost.textContent = '—';
-      els.openBtn.disabled = true;
-      setBadge('Unavailable', true);
-      return;
+      const data = await fetchJson('/api/states', { headers: { 'cache-control': 'no-store' } });
+      if (Array.isArray(data) && data.length) return data;
+    } catch (e) {
+      console.warn('API /api/states failed, falling back to static JSON', e);
     }
 
-    const defaultIndex = Math.max(0, state.links.findIndex(l => l.primary));
-    setSelectedLink(state.links[defaultIndex]);
+    // Fallback: shipped JSON
+    try {
+      const data = await fetchJson('/assets/state-links.json', { headers: { 'cache-control': 'no-store' } });
+      if (Array.isArray(data) && data.length) return data;
+    } catch (e) {
+      console.error('Failed to load fallback state-links.json', e);
+    }
+    return [];
+  };
 
-    if (state.links.length === 1) {
-      const only = state.links[0];
-      container.innerHTML = `<a href="${only.url}" target="_blank" rel="noopener">${only.url}</a><div class="small">${only.board || ''}</div>`;
-    } else {
-      const radios = state.links.map((l, idx) => {
-        const id = `linkChoice-${state.code}-${idx}`;
-        const checked = idx === defaultIndex ? 'checked' : '';
-        return `
-          <div style="margin:6px 0;">
-            <label>
-              <input type="radio" name="linkChoice-${state.code}" id="${id}" value="${l.url}" data-board="${l.board || 'Official Complaint Link'}" ${checked}/>
-              <strong>${l.board ? l.board : 'Official Complaint Link'}</strong>
-              <div class="small" style="margin-left:24px;">${l.url}</div>
-            </label>
-          </div>`;
-      }).join('');
-      container.innerHTML = radios;
-      container.querySelectorAll(`input[type="radio"][name="linkChoice-${state.code}"]`).forEach(r => {
-        r.addEventListener('change', (e) => {
-          const url = e.target.value;
-          const board = e.target.getAttribute('data-board') || '';
-          setSelectedLink({ url, board });
-        });
+  const renderStates = (states) => {
+    if (!stateSelect) return;
+    stateSelect.innerHTML = '';
+    const placeholder = document.createElement('option');
+    placeholder.value = '';
+    placeholder.textContent = 'Select a state';
+    stateSelect.appendChild(placeholder);
+
+    states
+      .slice()
+      .sort((a, b) => a.name.localeCompare(b.name))
+      .forEach((s) => {
+        const opt = document.createElement('option');
+        opt.value = s.code;
+        opt.textContent = s.name;
+        stateSelect.appendChild(opt);
       });
-    }
+  };
 
-    setBadge('OK');
-    els.openBtn.disabled = false;
-  }
+  const pickPrimaryLink = (links) => {
+    if (!Array.isArray(links)) return null;
+    return links.find((l) => l.primary) || links[0] || null;
+  };
 
-  function renderState(state) {
-    selected = state || null;
-    renderLinks(selected);
-  }
+  const updateDetails = (state) => {
+    stash.selected = state;
+    const primary = state ? pickPrimaryLink(state.links) : null;
 
-  function populateSelect(data) {
-    els.stateSelect.innerHTML = '';
-    data.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(s => {
-      const opt = document.createElement('option');
-      opt.value = s.code;
-      opt.textContent = `${s.name} (${s.code})`;
-      els.stateSelect.appendChild(opt);
-    });
-  }
+    setText(details.name, state?.name || '—');
+    setText(details.url, primary?.url || '—');
+    setText(details.host, primary?.url ? getHost(primary.url) : '—');
 
-  // ---------- Turnstile ----------
-  async function verifyTurnstile() {
-    const input = document.querySelector('input[name="cf-turnstile-response"]');
-    const token = input && input.value ? input.value : null;
-    if (!token) return true; // treat as pass if present widget but no token yet
+    enableOpen(Boolean(primary?.url));
+    setStatus(true, state ? 'Ready' : '—');
+  };
+
+  const onStateChange = () => {
+    const code = stateSelect.value || '';
+    const state = stash.states.find((s) => s.code === code) || null;
+    updateDetails(state);
+  };
+
+  const initTurnstile = () => {
+    if (!turnstileContainer) return;
+    // Turnstile auto-renders via script tag in HTML; nothing to do here
+  };
+
+  const verifyTurnstile = async () => {
     try {
+      const token = window.turnstile?.getResponse?.();
+      if (!token) return false;
       const res = await fetch('/api/verify-turnstile', {
         method: 'POST',
-        headers: { 'content-type': 'application/json' },
-        body: JSON.stringify({ token })
+        headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
+        body: JSON.stringify({ token }),
       });
-      const json = await res.json();
-      return !!json?.success;
-    } catch { return false; }
-  }
-
-  // ---------- Build report (for PDF/Text) ----------
-  function buildReport() {
-    const now = new Date().toISOString();
-    return {
-      generatedAt: now,
-      state: selected ? { code: selected.code, name: selected.name } : null,
-      board: { name: selectedLinkBoard || null, url: selectedLinkUrl || null, host: els.stateHost.textContent || null },
-      reporter: {
-        name: (els.nameInput?.value || '').trim() || null,
-        email: (els.emailInput?.value || '').trim() || null
-      },
-      details: (els.detailsInput?.value || '').trim() || null,
-      notice: "This file is stored locally by you. The site does not store your report."
-    };
-  }
-
-  function reportToText(r) {
-    return [
-      'Complaint draft',
-      `Generated: ${r.generatedAt}`,
-      '',
-      `State: ${r.state ? `${r.state.name} (${r.state.code})` : '—'}`,
-      `Board: ${r.board?.name || '—'}`,
-      `URL:   ${r.board?.url || '—'}`,
-      `Host:  ${r.board?.host || '—'}`,
-      '',
-      `Your name:  ${r.reporter?.name || ''}`,
-      `Your email: ${r.reporter?.email || ''}`,
-      '',
-      'Details:',
-      r.details || ''
-    ].join('\n');
-  }
-
-  // ---------- PDF generation ----------
-  async function getJsPDF() {
-    if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
-    await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
-    if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
-    throw new Error('jsPDF failed to load');
-  }
-
-  async function downloadPdf(filename, report) {
-    const jsPDF = await getJsPDF();
-    const doc = new jsPDF({ unit: 'pt', format: 'letter' }); // 612x792
-    const margin = 48;
-    const pageWidth = doc.internal.pageSize.getWidth();
-    const pageHeight = doc.internal.pageSize.getHeight();
-    const contentWidth = pageWidth - margin * 2;
-    let y = margin;
-
-    const addLine = (text, opts = {}) => {
-      const size = opts.size || 11;
-      const bold = opts.bold || false;
-      doc.setFont('helvetica', bold ? 'bold' : 'normal');
-      doc.setFontSize(size);
-      const lines = doc.splitTextToSize(text, contentWidth);
-      for (const line of lines) {
-        if (y > pageHeight - margin) { doc.addPage(); y = margin; }
-        doc.text(line, margin, y);
-        y += (opts.leading || 16);
-      }
-    };
-
-    // Title
-    addLine('Complaint Draft', { size: 18, bold: true, leading: 26 });
-    addLine(`Generated: ${report.generatedAt}`, { size: 10, leading: 14 });
-    y += 6;
-
-    // Metadata
-    addLine(`State: ${report.state ? `${report.state.name} (${report.state.code})` : '—'}`, { bold: true });
-    addLine(`Board: ${report.board?.name || '—'}`);
-    addLine(`URL: ${report.board?.url || '—'}`);
-    addLine(`Host: ${report.board?.host || '—'}`);
-    y += 6;
-
-    // Reporter
-    addLine('Reporter', { bold: true });
-    addLine(`Name: ${report.reporter?.name || ''}`);
-    addLine(`Email: ${report.reporter?.email || ''}`);
-    y += 6;
-
-    // Details
-    addLine('Details', { bold: true });
-    addLine(report.details || '', { leading: 16 });
-
-    // Footer note
-    y = Math.max(y, pageHeight - margin - 32);
-    doc.setFont('helvetica', 'italic');
-    doc.setFontSize(9);
-    doc.text('This PDF is stored locally by you. The site does not store your report.', margin, pageHeight - margin);
-
-    doc.save(filename);
-  }
-
-  async function copyToClipboard(text) {
-    try {
-      await navigator.clipboard.writeText(text);
-      return true;
-    } catch {
-      try {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.style.position = 'fixed'; ta.style.left = '-9999px';
-        document.body.appendChild(ta);
-        ta.focus(); ta.select();
-        const ok = document.execCommand('copy');
-        ta.remove();
-        return ok;
-      } catch { return false; }
+      const data = await res.json();
+      return Boolean(data?.success);
+    } catch (e) {
+      console.error('turnstile verify failed', e);
+      return false;
     }
-  }
+  };
 
-  // ---------- Events ----------
-  els.openBtn?.addEventListener('click', async () => {
-    if (!selectedLinkUrl) return;
-    setBadge('Verifying…');
+  const onOpen = async (ev) => {
+    ev.preventDefault();
+    if (!stash.selected) return;
+    const primary = pickPrimaryLink(stash.selected.links);
+    if (!primary?.url) return;
+
+    setStatus(true, 'Verifying…');
     const ok = await verifyTurnstile();
-    if (!ok) { setBadge('Verification failed', true); return; }
-    setBadge('Opening…');
-    window.open(selectedLinkUrl, '_blank', 'noopener');
-    setBadge('Opened');
-  });
-
-  els.reportBtn?.addEventListener('click', async () => {
-    if (!selected) { flash('Choose a state first.'); return; }
-    if (!els.saveJson.checked && !els.copyText.checked) {
-      flash('Select at least one option: Save PDF or Copy text.'); return;
-    }
-    const r = buildReport();
-    const ts = new Date(r.generatedAt).toISOString().replace(/[:.]/g,'-');
-    const base = selected ? selected.code : 'report';
-
-    let did = [];
-    if (els.saveJson.checked) {
-      try {
-        await downloadPdf(`complaint-${base}-${ts}.pdf`, r);
-        did.push('saved PDF');
-      } catch (e) {
-        console.error('PDF generation failed, offering TXT instead:', e);
-        const ok = await copyToClipboard(reportToText(r));
-        did.push(ok ? 'PDF failed; copied TXT' : 'PDF failed');
-      }
-    }
-    if (els.copyText.checked) {
-      const ok = await copyToClipboard(reportToText(r));
-      did.push(ok ? 'copied text' : 'copy failed');
-    }
-    flash(`Done: ${did.join(' & ')}. We do not store your report.`);
-  });
-
-  els.stateSelect?.addEventListener('change', () => {
-    const code = els.stateSelect.value;
-    const s = STATES.find(x => x.code === code);
-    renderState(s);
-  });
-
-  (async function init() {
-    STATES = await loadStates();
-    if (!STATES.length) {
-      setBadge('No data', true);
-      els.openBtn.disabled = true;
-      showSource('No data sources resolved — ensure /assets/state-links.json exists.');
+    if (!ok) {
+      setStatus(false, 'Verification failed. Try again.');
       return;
     }
-    populateSelect(STATES);
-    els.stateSelect.value = STATES[0].code;
-    renderState(STATES[0]);
-  })();
+
+    setStatus(true, 'Opening…');
+    window.open(primary.url, '_blank', 'noopener');
+  };
+
+  const main = async () => {
+    enableOpen(false);
+    initTurnstile();
+
+    stash.states = await loadStatesFromApi();
+    renderStates(stash.states);
+
+    stateSelect?.addEventListener('change', onStateChange);
+    openBtn?.addEventListener('click', onOpen);
+  };
+
+  document.addEventListener('DOMContentLoaded', main);
 })();
 
-/* =========================================================================
-   Complaint Portal client logic
-   - Reads preloaded state/board data from /assets/state-links.json (already
-     wired elsewhere in the page).
-   - Updates board list & link field when the state or board selection changes.
-   - Verifies the selected board URL using the server function /api/check-link
-     to avoid browser CORS/HEAD problems.
-   ========================================================================= */
-
-(function () {
-  // ---------- Utilities ----------
-  const $  = (sel, root = document) => root.querySelector(sel);
-  const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
-
-  // Resolve registrable domain (example.org from a.b.example.org)
-  const registrable = (host) => (host || "").split(".").filter(Boolean).slice(-2).join(".");
-
-  // Status badge helpers
-  const statusEl = $("#status-badge") || $("[data-status-badge]") || $(".badge.status") || $(".badge");
-  function setBadge(text, kind) {
-    if (!statusEl) return;
-    statusEl.textContent = text;
-    statusEl.classList.remove("badge-ok", "badge-warn", "badge-fail");
-    statusEl.classList.add(kind === "ok" ? "badge-ok" : kind === "warn" ? "badge-warn" : "badge-fail");
-  }
-
-  // Extract current selection from DOM
-  function getSelectedUrl() {
-    const r = $("input[type='radio'][name='board']:checked");
-    if (!r) return null;
-    return r.value || r.dataset?.url || null;
-  }
-  function getExpectedHost(url) {
-    // If you render a visible "Host" field, we try to read it; else derive from URL
-    const hostRow = $("[data-role='host'], .host, #host");
-    if (hostRow) {
-      const txt = hostRow.dataset?.host || hostRow.textContent?.trim();
-      if (txt) return txt;
-    }
-    try { return new URL(url).hostname; } catch (_) { return null; }
-  }
-
-  // ---------- Server-side verification ----------
-  async function verifyLinkStatus(url, expectedHost) {
-    if (!url) { setBadge("No data", "warn"); return; }
-
-    try {
-      const r = await fetch(`/api/check-link?url=${encodeURIComponent(url)}`, { method: "GET" });
-      const data = await r.json();
-
-      if (data.status === 0) {                 // network/CORS/SSL at the edge
-        setBadge("Unverified (network/CORS)", "warn");
-        return;
-      }
-
-      const status    = Number(data.status);
-      const finalUrl  = data.finalUrl || url;
-      const finalHost = new URL(finalUrl).hostname;
-
-      const expectedReg = registrable(expectedHost || new URL(url).hostname);
-      const finalReg    = registrable(finalHost);
-
-      const okStatus =
-        (status >= 200 && status <= 206) ||
-        [300, 301, 302, 303, 307, 308].includes(status);
-
-      if (!okStatus) {
-        if ([401, 403, 429].includes(status)) {
-          setBadge(`Limited (${status})`, "warn");
-        } else if ([404, 410, 451].includes(status) || status >= 500) {
-          setBadge(`Verification failed (${status})`, "fail");
-        } else {
-          setBadge(`Unverified (${status})`, "warn");
-        }
-        return;
-      }
-
-      if (finalReg !== expectedReg) {
-        setBadge(`Redirected to ${finalHost}`, "warn");
-        return;
-      }
-
-      setBadge("OK", "ok");
-    } catch {
-      setBadge("Unverified (edge error)", "warn");
-    }
-  }
-
-  // ---------- UI wiring ----------
-  function refreshStatus() {
-    const url = getSelectedUrl();
-    const expected = getExpectedHost(url || "");
-    verifyLinkStatus(url, expected);
-  }
-
-  // When the state or board selection changes, re-check
-  document.addEventListener("change", (e) => {
-    const t = e.target;
-    if (!t) return;
-    const isState = t.matches("select[name='state'], #state, [data-role='state-select']");
-    const isBoard = t.matches("input[type='radio'][name='board'], [data-role='board-radio']");
-    if (isState || isBoard) refreshStatus();
-  });
-
-  // First paint
-  window.addEventListener("DOMContentLoaded", () => {
-    // if a default board is preselected, verify it
-    refreshStatus();
-  });
-})();
