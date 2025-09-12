@@ -1,5 +1,5 @@
 export const onRequestGet = async ({ env, request }) => {
-  // Try D1 first (if bound and table populated)
+  // Try D1 first (if present & populated)
   try {
     if (env.DB) {
       const { results } = await env.DB
@@ -7,7 +7,6 @@ export const onRequestGet = async ({ env, request }) => {
         .all();
 
       if (Array.isArray(results) && results.length) {
-        // Group rows into { code, name, links: [{board,url,primary}] }
         const by = {};
         for (const r of results) {
           if (!by[r.code]) by[r.code] = { code: r.code, name: r.name, links: [] };
@@ -24,7 +23,7 @@ export const onRequestGet = async ({ env, request }) => {
       }
     }
   } catch {
-    // Fall through to static JSON
+    // ignore and fall back
   }
 
   // Fallback to shipped JSON
@@ -32,7 +31,7 @@ export const onRequestGet = async ({ env, request }) => {
     const origin = new URL(request.url).origin;
     const url = new URL('/assets/state-links.json', origin).toString();
     const res = await fetch(url, { headers: { 'cache-control': 'no-store' } });
-    if (!res.ok) throw new Error(`fallback status ${res.status}`);
+    if (!res.ok) throw new Error(String(res.status));
     const j = await res.json();
     const arr = Array.isArray(j?.states) ? j.states : j;
     return new Response(JSON.stringify(arr), {
