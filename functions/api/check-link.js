@@ -41,7 +41,7 @@ export async function onRequestGet({ request }) {
       { headers: { "content-type": "application/json", ...cors } }
     );
   } catch (e) {
-    // Treat edge/network/CORS as a soft issue; UI will show "Unverified".
+    // Network/CORS/SSL errors at the edge => soft issue; UI shows "Unverified".
     return new Response(
       JSON.stringify({ ok: false, status: 0, error: String(e) }),
       { headers: { "content-type": "application/json", ...cors } }
