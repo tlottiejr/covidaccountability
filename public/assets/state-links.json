@@ -55,7 +55,18 @@
   },
   { "code": "MN", "name": "Minnesota", "links": [ { "board": "Minnesota Board of Medical Practice", "url": "https://mn.gov/boards/medical-practice/consumers/complaints/", "source": "https://www.fsmb.org/contact-a-state-medical-board/", "primary": true } ] },
   { "code": "MS", "name": "Mississippi", "links": [ { "board": "Mississippi State Board of Medical Licensure", "url": "https://www.msbml.ms.gov/Complaints", "source": "https://www.fsmb.org/contact-a-state-medical-board/", "primary": true } ] },
-  { "code": "MO", "name": "Missouri", "links": [ { "board": "Missouri Board of Registration for the Healing Arts", "url": "https://mopro.mo.gov/license/s/complaint-form", "source": "https://www.fsmb.org/contact-a-state-medical-board/", "primary": true } ] },
+  {
+  "code": "MO",
+  "name": "Missouri",
+  "links": [
+    {
+      "board": "Missouri Board of Registration for the Healing Arts",
+      "url": "https://pr.mo.gov/healingarts-complaint-form.asp",
+      "source": "https://www.fsmb.org/contact-a-state-medical-board/",
+      "primary": true
+      }
+    ]
+  }
   { "code": "MT", "name": "Montana", "links": [ { "board": "Montana Board of Medical Examiners", "url": "https://bsd.dli.mt.gov/filing-complaint?pk_vid=91c8f2d5e42f8e3a1650989125a91371", "source": "https://www.fsmb.org/contact-a-state-medical-board/", "primary": true } ] },
   { "code": "NE", "name": "Nebraska", "links": [ { "board": "Nebraska Board of Medicine and Surgery", "url": "https://phcmplnt-dhhs.ne.gov/Home/DownloadForm?formName=PHA-27-A.pdf", "source": "https://www.fsmb.org/contact-a-state-medical-board/", "primary": true } ] },
   { "code": "NV", "name": "Nevada", "links": [ { "board": "Nevada State Board of Medical Examiners", "url": "https://medboard.nv.gov/Patients/File_a_Complaint/", "source": "https://www.fsmb.org/contact-a-state-medical-board/", "primary": true }, { "board": "Nevada State Board of Osteopathic Medicine", "url": "https://osboe.portalus.thentiacloud.net/webs/portal/register/#/complaint", "source": "https://www.fsmb.org/contact-a-state-medical-board/", "primary": true } ] },
@@ -65,7 +76,18 @@
   { "code": "NY", "name": "New York", "links": [ { "board": "New York State Office of Professional Medical Conduct (Discipline)", "url": "https://www.health.ny.gov/professionals/doctors/conduct/file_a_complaint.htm", "source": "https://www.fsmb.org/contact-a-state-medical-board/", "primary": true } ] },
   { "code": "NC", "name": "North Carolina", "links": [ { "board": "North Carolina Medical Board", "url": "https://www.ncmedboard.org/resources-information/consumer-resources/complaint-process/file-a-complaint", "source": "https://www.fsmb.org/contact-a-state-medical-board/", "primary": true } ] },
   { "code": "ND", "name": "North Dakota", "links": [ { "board": "North Dakota Board of Medicine", "url": "https://www.ndbom.org/public/complaint/index.asp", "source": "https://www.fsmb.org/contact-a-state-medical-board/", "primary": true } ] },
-  { "code": "OH", "name": "Ohio", "links": [ { "board": "State Medical Board of Ohio", "url": "https://med.ohio.gov/Regulation/File-a-Complaint", "source": "https://www.fsmb.org/contact-a-state-medical-board/", "primary": true } ] },
+  {
+  "code": "OH",
+  "name": "Ohio",
+  "links": [
+    {
+      "board": "State Medical Board of Ohio",
+      "url": "https://elicense.ohio.gov/oh_filecomplaint",
+      "source": "https://www.fsmb.org/contact-a-state-medical-board/",
+      "primary": true
+      }
+    ]
+  }
   { "code": "OK", "name": "Oklahoma", "links": [ { "board": "Oklahoma Board of Medical Licensure and Supervision", "url": "https://secure.okmedicalboard.org/complaint/", "source": "https://www.fsmb.org/contact-a-state-medical-board/", "primary": true }, { "board": "Oklahoma State Board of Osteopathic Examiners", "url": "https://osboe.portalus.thentiacloud.net/webs/portal/register/#/complaint", "source": "https://www.fsmb.org/contact-a-state-medical-board/", "primary": true } ] },
   { "code": "OR", "name": "Oregon", "links": [ { "board": "Oregon Medical Board", "url": "https://www.oregon.gov/omb/investigations/pages/how-to-file-a-complaint.aspx", "source": "https://www.fsmb.org/contact-a-state-medical-board/", "primary": true } ] },
   { "code": "PA", "name": "Pennsylvania", "links": [ { "board": "Pennsylvania State Board of Medicine", "url": "https://www.pa.gov/agencies/dos/file-a-complaint", "source": "https://www.fsmb.org/contact-a-state-medical-board/", "primary": true }, { "board": "Pennsylvania State Board of Osteopathic Medicine", "url": "https://www.pa.gov/agencies/dos/file-a-complaint", "source": "https://www.fsmb.org/contact-a-state-medical-board/", "primary": true } ] },
