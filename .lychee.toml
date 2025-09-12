@@ -1,5 +1,3 @@
-# Lychee configuration for robust external link checks
-
 verbose = true
 max_redirects = 8
 timeout = 20
@@ -7,12 +5,8 @@ retry_wait_time = 3
 retry_count = 3
 user_agent = "CovidAccountability LinkAudit/1.0 (+https://stage.covidaccountabilitynow.com)"
 
-# Accept typical OK codes and common redirects (no ranges in TOML)
 accept = [200,201,202,203,204,205,206,300,301,302,303,307,308]
-
 exclude_mail = true
-
-# Domains that often rate-limit/deny bots but are fine in-browser
 exclude = [
   "https://www.youtube.com/*",
   "https://youtu.be/*",
