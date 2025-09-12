@@ -23,7 +23,7 @@ export const onRequestPost = async ({ request, env }) => {
     });
 
     const out = await verifyRes.json();
-    const ok = Boolean(out?.success);
+    const ok = !!out?.success;
 
     return new Response(JSON.stringify({ success: ok }), {
       status: ok ? 200 : 400,
