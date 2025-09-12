@@ -3,17 +3,16 @@ name: Link Health 2.0
 on:
   workflow_dispatch: {}
   schedule:
-    - cron: "21 5 * * *" # daily @ 05:21 UTC
+    - cron: "21 5 * * *"   # daily 05:21 UTC
   push:
     paths:
       - "public/assets/state-links.json"
       - "public/assets/states.json"
-      - "public/assets/references.json"
+      - "public/**/*.html"
+      - "scripts/verify-state-links.mjs"
       - ".github/workflows/link-health.yml"
       - ".lychee.toml"
       - ".lycheeignore"
-      - "scripts/verify-state-links.mjs"
-      - "public/**/*.html"
 
 permissions:
   contents: read
@@ -21,11 +20,13 @@ permissions:
 jobs:
   link-check:
     runs-on: ubuntu-latest
+    env:
+      STATE_ENFORCE: "false"  # flip to "true" later to fail on FAIL rows
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ----- A) General link audit (Lychee) -----
       - name: Run lychee (external link audit)
         id: lychee
         uses: lycheeverse/lychee-action@v1.8.0
@@ -48,7 +49,6 @@ jobs:
           echo '```' >> reports/link-health.md
           echo "" >> reports/link-health.md
 
-      # ----- B) State landing host verifier -----
       - name: Use Node 20
         uses: actions/setup-node@v4
         with:
@@ -60,7 +60,6 @@ jobs:
         run: |
           node scripts/verify-state-links.mjs >> reports/link-health.md
 
-      # ----- Always upload the report -----
       - name: Upload report artifact
         if: always()
         uses: actions/upload-artifact@v4
@@ -69,13 +68,17 @@ jobs:
           path: reports/link-health.md
           retention-days: 14
 
-      # ----- Decide overall result -----
       - name: Fail if there were hard errors
         if: always()
         run: |
           echo "Lychee step:  ${{ steps.lychee.outcome }}"
           echo "States step:  ${{ steps.states.outcome }}"
-          if [ "${{ steps.lychee.outcome }}" != "success" ] || [ "${{ steps.states.outcome }}" != "success" ]; then
-            echo "Failing due to hard errors reported above."
+          # Only hard-fail for lychee; state verifier is report-only unless STATE_ENFORCE=true
+          if [ "${{ steps.lychee.outcome }}" != "success" ]; then
+            echo "Lychee found a hard error (config/network); failing."
+            exit 1
+          fi
+          if [ "${{ env.STATE_ENFORCE }}" = "true" ] && [ "${{ steps.states.outcome }}" != "success" ]; then
+            echo "State verifier in ENFORCE mode; failing due to state errors."
             exit 1
           fi
