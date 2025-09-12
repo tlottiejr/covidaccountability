@@ -33,22 +33,18 @@ jobs:
           args: >
             --config .lychee.toml
             --verbose
-            --format markdown
-            --output reports/lychee.md
             public
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Build combined report (header + lychee)
+      - name: Build combined report (header + lychee stdout)
         run: |
           mkdir -p reports
           echo "### Lychee Summary" > reports/link-health.md
           echo "" >> reports/link-health.md
-          if [ -f reports/lychee.md ]; then
-            cat reports/lychee.md >> reports/link-health.md
-          else
-            echo "_Lychee did not produce an output file._" >> reports/link-health.md
-          fi
+          echo '```' >> reports/link-health.md
+          echo "${{ steps.lychee.outputs.output }}" >> reports/link-health.md
+          echo '```' >> reports/link-health.md
           echo "" >> reports/link-health.md
 
       # ----- B) State landing host verifier -----
