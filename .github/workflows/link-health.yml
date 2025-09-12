@@ -24,30 +24,34 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # ---------- A) General link audit (Lychee) ----------
+      # ----- A) General link audit (Lychee) -----
       - name: Run lychee (external link audit)
         id: lychee
         uses: lycheeverse/lychee-action@v1.8.0
+        continue-on-error: true
         with:
-          # Scan the whole 'public' dir (HTML + JSON). Lychee reads our TOML/ignore automatically.
           args: >
             --config .lychee.toml
             --verbose
+            --format markdown
+            --output reports/lychee.md
             public
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
-      # Save lychee results (stdout) into a file for the combined report
-      - name: Save lychee output
+      - name: Build combined report (header + lychee)
         run: |
           mkdir -p reports
           echo "### Lychee Summary" > reports/link-health.md
           echo "" >> reports/link-health.md
-          echo '```' >> reports/link-health.md
-          echo "${{ steps.lychee.outputs.output }}" >> reports/link-health.md
-          echo '```' >> reports/link-health.md
+          if [ -f reports/lychee.md ]; then
+            cat reports/lychee.md >> reports/link-health.md
+          else
+            echo "_Lychee did not produce an output file._" >> reports/link-health.md
+          fi
+          echo "" >> reports/link-health.md
 
-      # ---------- B) State landing host verifier ----------
+      # ----- B) State landing host verifier -----
       - name: Use Node 20
         uses: actions/setup-node@v4
         with:
@@ -55,20 +59,26 @@ jobs:
 
       - name: Verify state links (follow redirects, validate final host)
         id: states
+        continue-on-error: true
         run: |
           node scripts/verify-state-links.mjs >> reports/link-health.md
 
-      # ---------- Upload combined report ----------
+      # ----- Always upload the report -----
       - name: Upload report artifact
+        if: always()
         uses: actions/upload-artifact@v4
         with:
           name: link-health-report
           path: reports/link-health.md
           retention-days: 14
 
-      # ---------- Decide overall job result ----------
+      # ----- Decide overall result -----
       - name: Fail if there were hard errors
+        if: always()
         run: |
-          echo "Lychee exit code: ${{ steps.lychee.outcome }}"
-          echo "States verifier exit code: ${{ steps.states.outcome }}"
-        if: failure()
+          echo "Lychee step:  ${{ steps.lychee.outcome }}"
+          echo "States step:  ${{ steps.states.outcome }}"
+          if [ "${{ steps.lychee.outcome }}" != "success" ] || [ "${{ steps.states.outcome }}" != "success" ]; then
+            echo "Failing due to hard errors reported above."
+            exit 1
+          fi
