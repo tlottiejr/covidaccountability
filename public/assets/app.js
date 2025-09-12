@@ -424,6 +424,141 @@
   })();
 })();
 
+/* ===== Link Health 2.0 — portal-side status checker (server API) =====
+   This patch replaces any existing browser-side HEAD/GET check and uses
+   /api/check-link (Cloudflare Pages Function) to avoid CORS/HEAD issues.
+   Drop at the end of public/assets/app.js. It will monkey-patch the
+   old verifier if one exists (verifyLinkStatus / verifyLink / checkLink).
+============================================================================ */
 
+(function () {
+  // ---- Helpers ------------------------------------------------------------
+  const $ = (sel, root = document) => root.querySelector(sel);
 
+  // Try to find the badge element used in the left card.
+  function locateStatusBadge() {
+    // preferred explicit id or data-attr
+    return (
+      $("#status-badge") ||
+      $("[data-status-badge]") ||
+      // common fallbacks near a "Status" label
+      $(".status .badge") ||
+      $(".badge.status") ||
+      // last resort: the first badge inside the left panel
+      $(".left .badge") ||
+      $(".badge")
+    );
+  }
 
+  function setBadge(el, text, kind) {
+    if (!el) return;
+    el.textContent = text;
+    el.classList.remove("badge-ok", "badge-warn", "badge-fail");
+    el.classList.add(kind === "ok" ? "badge-ok" : kind === "warn" ? "badge-warn" : "badge-fail");
+  }
+
+  // Normalize host comparison to registrable domain.
+  const registrable = (host) => (host || "").split(".").filter(Boolean).slice(-2).join(".");
+
+  // ---- New verifier -------------------------------------------------------
+  async function verifyLinkStatus_v2(url, expectedHost) {
+    const statusEl = locateStatusBadge();
+    if (!url) { setBadge(statusEl, "No data", "warn"); return; }
+
+    try {
+      const r = await fetch(`/api/check-link?url=${encodeURIComponent(url)}`, { method: "GET" });
+      const data = await r.json();
+
+      // Network/CORS/SSL issues between our edge and the board => WARN
+      if (data.status === 0) {
+        setBadge(statusEl, "Unverified (network/CORS)", "warn");
+        return;
+      }
+
+      const status   = Number(data.status);
+      const finalUrl = data.finalUrl || url;
+      const finalHost = new URL(finalUrl).hostname;
+
+      const expectedReg = registrable(expectedHost || new URL(url).hostname);
+      const finalReg    = registrable(finalHost);
+
+      const isOkStatus =
+        (status >= 200 && status <= 206) ||
+        [300, 301, 302, 303, 307, 308].includes(status);
+
+      if (!isOkStatus) {
+        if ([401, 403, 429].includes(status)) {
+          setBadge(statusEl, `Limited (${status})`, "warn");
+        } else if ([404, 410, 451].includes(status) || status >= 500) {
+          setBadge(statusEl, `Verification failed (${status})`, "fail");
+        } else {
+          setBadge(statusEl, `Unverified (${status})`, "warn");
+        }
+        return;
+      }
+
+      if (finalReg !== expectedReg) {
+        setBadge(statusEl, `Redirected to ${finalHost}`, "warn");
+        return;
+      }
+
+      setBadge(statusEl, "OK", "ok");
+    } catch {
+      setBadge(statusEl, "Unverified (edge error)", "warn");
+    }
+  }
+
+  // ---- Monkey-patch any existing checker ---------------------------------
+  const patchTargets = ["verifyLinkStatus", "verifyLink", "checkLink", "updateLinkStatus"];
+  for (const name of patchTargets) {
+    if (typeof window[name] === "function") {
+      const old = window[name];
+      window[name] = function (url, expectedHost) {
+        // Call new verifier; ignore old network/CORS-affected logic.
+        return verifyLinkStatus_v2(url, expectedHost);
+      };
+      // Only patch one to avoid multiple calls.
+      break;
+    }
+  }
+
+  // ---- Safety net: attach to common UI events if verifier isn’t called ----
+  // This is harmless if your existing code already calls the checker.
+  document.addEventListener("change", (e) => {
+    const t = e.target;
+    if (!t) return;
+
+    // State select or board radio changes
+    const isStateSelect = t.matches("select[name='state'], #state, [data-role='state-select']");
+    const isBoardRadio  = t.matches("input[type='radio'][name='board'], [data-role='board-radio']");
+
+    if (isStateSelect || isBoardRadio) {
+      // Derive selected URL and expected host from visible UI
+      const selectedRadio = document.querySelector("input[type='radio'][name='board']:checked");
+      const url = selectedRadio?.value || selectedRadio?.dataset?.url || $("#board-url")?.value;
+
+      // Try to read the rendered "Host" value if present
+      let expectedHost = null;
+      const hostRow = document.querySelector("[data-role='host'], .host, #host");
+      if (hostRow) {
+        // Prefer data attribute; otherwise, text content
+        expectedHost = hostRow.dataset?.host || hostRow.textContent?.trim() || null;
+      }
+
+      if (url) verifyLinkStatus_v2(url, expectedHost);
+    }
+  });
+
+  // Run once on load (in case a default state/board is preselected)
+  window.addEventListener("DOMContentLoaded", () => {
+    const selectedRadio = document.querySelector("input[type='radio'][name='board']:checked");
+    if (selectedRadio) {
+      const url = selectedRadio.value || selectedRadio.dataset?.url;
+      let expectedHost = null;
+      const hostRow = document.querySelector("[data-role='host'], .host, #host");
+      if (hostRow) expectedHost = hostRow.dataset?.host || hostRow.textContent?.trim() || null;
+      if (url) verifyLinkStatus_v2(url, expectedHost);
+    }
+  });
+
+})();
