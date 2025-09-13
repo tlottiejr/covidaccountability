@@ -1,0 +1,50 @@
+name: References
+
+on:
+  schedule:
+    - cron: '30 9 * * 0'  # Sundays @ 09:30 UTC
+  workflow_dispatch:
+    inputs:
+      autopr:
+        description: 'Open PR with generated files? (true/false)'
+        required: false
+        default: 'false'
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write   # needed only if autopr=true
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Build references
+        run: node scripts/build-references.mjs
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: references-artifacts
+          path: |
+            public/assets/board-index.json
+            public/assets/board-index.html
+            public/assets/references.json
+
+      - name: Create Pull Request (optional)
+        if: ${{ github.event.inputs.autopr == 'true' }}
+        uses: peter-evans/create-pull-request@v6
+        with:
+          title: 'chore: refresh references'
+          commit-message: 'chore: refresh references artifacts'
+          branch: chore/refresh-references
+          add-paths: |
+            public/assets/board-index.json
+            public/assets/board-index.html
+            public/assets/references.json
