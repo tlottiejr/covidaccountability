@@ -1,37 +1,20 @@
 // Top nav: centered menu + persistent active underline + perf preconnect
 (function () {
-  // --- tiny perf lift: preconnect to Turnstile so TLS is warm when it loads ---
-  (function preconnectTurnstile() {
-    try {
-      const head = document.head || document.getElementsByTagName('head')[0];
-      if (!head) return;
-      if (!head.querySelector('link[rel="preconnect"][href="https://challenges.cloudflare.com"]')) {
-        const l = document.createElement('link');
-        l.rel = 'preconnect';
-        l.href = 'https://challenges.cloudflare.com';
-        l.crossOrigin = '';
-        head.appendChild(l);
-      }
-    } catch {}
-  })();
+  // Warm TLS for Turnstile (when used)
+  try {
+    const head = document.head || document.getElementsByTagName('head')[0];
+    if (head && !head.querySelector('link[rel="preconnect"][href="https://challenges.cloudflare.com"]')) {
+      const l = document.createElement('link');
+      l.rel = 'preconnect';
+      l.href = 'https://challenges.cloudflare.com';
+      l.crossOrigin = '';
+      head.appendChild(l);
+    }
+  } catch {}
 
   const root = document.getElementById('nav-root');
 
-  // Normalize paths so "/about", "/about/", and "/about.html" all match
-  const norm = (p) => {
-    try {
-      const u = new URL(p, location.origin);
-      let path = u.pathname.toLowerCase();
-      path = path.replace(/\/index\.html?$/i, '/'); // index → /
-      path = path.replace(/\/$/i, '');              // trim trailing slash
-      path = path.replace(/\.html$/i, '');          // trim .html
-      return path || '/';
-    } catch {
-      return p;
-    }
-  };
-
-  // Build our canonical nav (no Complaint Portal)
+  // Render our canonical nav (NO Complaint Portal)
   if (root) {
     root.innerHTML = `
       <div class="top">
@@ -52,32 +35,61 @@
     `;
   }
 
-  // Remove any stray "Complaint Portal" links from ANY nav in the document
-  (function sanitizeNavs() {
+  // Helpers
+  const norm = (p) => {
     try {
-      const candidates = document.querySelectorAll('nav a');
-      candidates.forEach((a) => {
-        const href = (a.getAttribute('href') || '').toLowerCase();
-        const text = (a.textContent || '').toLowerCase().trim();
-        if (
-          href.includes('complaint-portal') ||
-          text === 'complaint portal'
-        ) {
-          a.parentNode && a.parentNode.removeChild(a);
-        }
-      });
-    } catch {}
-  })();
+      const u = new URL(p, location.origin);
+      let path = u.pathname.toLowerCase();
+      path = path.replace(/\/index\.html?$/i, '/'); // index → /
+      path = path.replace(/\/$/i, '');              // trim trailing slash
+      path = path.replace(/\.html$/i, '');          // trim .html
+      return path || '/';
+    } catch {
+      return p;
+    }
+  };
 
-  // Mark current page active (underline) on our nav if present
-  (function setActive() {
+  function setActiveUnderline() {
     try {
       const current = norm(location.pathname);
       const links = (root ? root : document).querySelectorAll('.top nav a');
       links.forEach((a) => {
         const hrefNorm = norm(a.getAttribute('href') || '');
         if (hrefNorm === current) a.setAttribute('aria-current', 'page');
+        else a.removeAttribute('aria-current');
       });
     } catch {}
-  })();
+  }
+
+  // Remove any "Complaint Portal" link from ANY nav (handles legacy partials, late inserts)
+  function sanitizeNavs() {
+    try {
+      const anchors = document.querySelectorAll('nav a');
+      anchors.forEach((a) => {
+        const href = (a.getAttribute('href') || '').toLowerCase();
+        const text = (a.textContent || '').toLowerCase().replace(/\s+/g, ' ').trim();
+        const textMatch = /complaint\s*-?\s*portal/i.test(text);
+        const hrefMatch = /(\/|^)complaint[-]?portal(\.html|\/)?$/i.test(href);
+        if (textMatch || hrefMatch) {
+          a.remove();
+        }
+      });
+    } catch {}
+  }
+
+  // Initial pass
+  sanitizeNavs();
+  setActiveUnderline();
+
+  // Guard against late DOM mutations adding it back (legacy includes/scripts)
+  try {
+    const obs = new MutationObserver(() => {
+      sanitizeNavs();
+      setActiveUnderline();
+    });
+    obs.observe(document.documentElement || document.body, {
+      childList: true,
+      subtree: true
+    });
+  } catch {}
 })();
