@@ -1,102 +1,90 @@
-/* LASTWORKING portal logic
-   - loads state-links.json
-   - single selected link (primary/first); extras shown as “Direct links”
-   - button uses Turnstile verify
-*/
+// LASTWORKING behavior + bulletproof data loading.
+// Main link = primary(true) or first; extra links shown under "More links".
+// Button uses Turnstile; if verify/API fails, we still open to avoid dead ends.
 (() => {
-  const $ = (sel) => document.querySelector(sel);
+  const $ = (s) => document.querySelector(s);
 
   const els = {
     stateSelect: $('#stateSelect'),
-    stateName:   $('#stateName'),
-    stateUrl:    $('#stateUrl'),
-    stateHost:   $('#stateHost'),
-    stateStatus: $('#stateStatus'),
+    boardName:   $('#boardName'),
+    boardUrl:    $('#boardUrl'),
+    boardHost:   $('#boardHost'),
+    status:      $('#status'),
     openBtn:     $('#openBtn'),
-    directWrap:  $('#directLinksWrap'),
-    directList:  $('#directLinks'),
-
-    saveJson:    $('#saveJson'),
-    copyText:    $('#copyText'),
+    moreLinksWrap: $('#moreLinksWrap'),
+    moreLinks:     $('#moreLinks'),
     nameInput:   $('#nameInput'),
     emailInput:  $('#emailInput'),
-    detailsInput:$('#detailsInput')
+    detailsInput:$('#detailsInput'),
+    saveCopy:    $('#saveCopy'),
+    copyText:    $('#copyText'),
   };
 
   let STATES = [];
-  let selected = null;
+  let current = null;
   let mainLink = null;
 
   // ---------- helpers ----------
-  const setBadge = (text, cls = '') => {
-    const span = els.stateStatus.querySelector('.badge') || document.createElement('span');
-    span.className = `badge ${cls}`.trim();
-    span.textContent = text;
-    if (!els.stateStatus.contains(span)) els.stateStatus.appendChild(span);
-  };
-  const getHost = (url) => { try { return new URL(url).hostname; } catch { return ''; } };
-  const enableOpen = (enabled) => {
-    els.openBtn.disabled = !enabled;
-    els.openBtn.setAttribute('aria-disabled', String(!enabled));
+  const setBadge = (text, kind = '') => {
+    let b = els.status.querySelector('.badge');
+    if (!b) { b = document.createElement('span'); b.className = 'badge'; els.status.appendChild(b); }
+    b.className = `badge ${kind}`.trim();
+    b.textContent = text;
   };
 
-  const fetchText = async (url) => {
+  const hostOf = (url) => { try { return new URL(url).hostname; } catch { return ''; } };
+  const primaryOrFirst = (links = []) => {
+    const i = links.findIndex(l => l && l.primary === true);
+    return links[(i >= 0 ? i : 0)] || null;
+  };
+
+  const fetchJson = async (url) => {
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.text();
-  };
-  const parseMaybeWrapped = (txt) => {
-    const json = JSON.parse(txt.replace(/^\uFEFF/, ''));
-    return Array.isArray(json) ? json : (Array.isArray(json.states) ? json.states : []);
+    return res.json();
   };
 
-  const pickPrimary = (links=[]) => {
-    const i = links.findIndex(l => l && l.primary === true);
-    return i >= 0 ? links[i] : (links[0] || null);
-  };
-
-  // ---------- data load ----------
-  async function loadStates() {
-    // Try API first (optional)
+  const readInlineJson = () => {
+    const node = document.getElementById('stateLinksJson');
+    if (!node) return null;
+    const txt = node.textContent.trim();
+    if (!txt) return null;
     try {
-      const txt = await fetchText('/api/states');
-      const j = JSON.parse(txt);
-      if (Array.isArray(j) && j.length) {
-        if (!j[0].links) {
-          const by = {};
-          j.forEach(r => {
-            by[r.code] ||= { code: r.code, name: r.name, links: [] };
-            if (r.link) by[r.code].links.push({
-              board: r.board || r.name || 'Board',
-              url:   r.link,
-              primary: by[r.code].links.length === 0
-            });
-          });
-          return Object.values(by);
-        }
-        return j;
-      }
-    } catch (_) {}
+      const j = JSON.parse(txt.replace(/^\uFEFF/, ''));
+      if (Array.isArray(j)) return j;
+      if (j && Array.isArray(j.states)) return j.states;
+    } catch {}
+    return null;
+  };
 
-    // Static JSON with fallbacks
+  // ---------- data load (robust) ----------
+  async function loadStates() {
+    // (1) Preferred path + cache buster
+    const stamp = Date.now();
     const candidates = [
-      '/assets/state-links.json',
-      'assets/state-links.json',
-      '/public/assets/state-links.json',
-      './assets/state-links.json'
+      `/assets/state-links.json?v=${stamp}`,
+      `assets/state-links.json?v=${stamp}`,
+      `/public/assets/state-links.json?v=${stamp}`,
+      `./assets/state-links.json?v=${stamp}`
     ];
-    for (const path of candidates) {
+
+    for (const url of candidates) {
       try {
-        const txt = await fetchText(path);
-        const states = parseMaybeWrapped(txt);
-        if (Array.isArray(states) && states.length) return states;
+        const j = await fetchJson(url);
+        if (Array.isArray(j) && j.length) return j;
+        if (j && Array.isArray(j.states) && j.states.length) return j.states;
       } catch (_) {}
     }
+
+    // (2) Inline fallback (guaranteed if you pasted it in HTML)
+    const inline = readInlineJson();
+    if (inline && inline.length) return inline;
+
     return [];
   }
 
   // ---------- UI ----------
-  function renderOptions(states) {
+  function fillDropdown(states) {
     els.stateSelect.innerHTML = '';
     const ph = document.createElement('option');
     ph.value = '';
@@ -112,44 +100,45 @@
   }
 
   function renderState(state) {
-    selected = state || null;
+    current = state || null;
     const links = state?.links || [];
-    mainLink = pickPrimary(links);
+    mainLink = primaryOrFirst(links);
 
-    // header fields
-    els.stateName.textContent = mainLink?.board || state?.name || '—';
-    els.stateUrl.innerHTML = mainLink?.url
+    els.boardName.textContent = mainLink?.board || state?.name || '—';
+    els.boardUrl.innerHTML = mainLink?.url
       ? `<a href="${mainLink.url}" target="_blank" rel="noopener">${mainLink.url}</a>`
-      : '<span class="small">Not available yet</span>';
-    els.stateHost.textContent = mainLink?.url ? getHost(mainLink.url) : '—';
+      : 'Not available yet';
+    els.boardHost.textContent = mainLink?.url ? hostOf(mainLink.url) : '—';
 
-    // direct links list for extras
+    // Extras
+    els.moreLinks.innerHTML = '';
     const extras = links.filter(l => l && l !== mainLink);
-    els.directList.innerHTML = '';
     if (extras.length) {
-      els.directWrap.style.display = '';
+      els.moreLinksWrap.style.display = '';
       extras.forEach(l => {
         const li = document.createElement('li');
         const a = document.createElement('a');
-        a.href = l.url; a.target = '_blank'; a.rel='noopener';
+        a.href = l.url; a.target = '_blank'; a.rel = 'noopener';
         a.textContent = l.board || l.url;
         li.appendChild(a);
         const hint = document.createElement('span');
-        hint.className = 'small'; hint.style.marginLeft = '6px';
-        hint.textContent = `(${getHost(l.url) || '—'})`;
+        hint.className = 'small';
+        hint.style.marginLeft = '6px';
+        hint.textContent = `(${hostOf(l.url) || '—'})`;
         li.appendChild(hint);
-        els.directList.appendChild(li);
+        els.moreLinks.appendChild(li);
       });
     } else {
-      els.directWrap.style.display = 'none';
+      els.moreLinksWrap.style.display = 'none';
     }
 
     const ok = Boolean(mainLink?.url);
-    enableOpen(ok);
+    els.openBtn.disabled = !ok;
+    els.openBtn.setAttribute('aria-disabled', String(!ok));
     setBadge(ok ? 'OK' : '—', ok ? 'ok' : '');
   }
 
-  // ---------- verify + open ----------
+  // ---------- button (Turnstile + graceful fallback) ----------
   async function verifyTurnstile() {
     const token = document.querySelector('input[name="cf-turnstile-response"]')?.value || '';
     if (!token) return false;
@@ -164,68 +153,59 @@
     } catch { return false; }
   }
 
-  async function onOpen(ev) {
-    ev.preventDefault();
+  async function onOpenClick(e) {
+    e.preventDefault();
     if (!mainLink?.url) return;
     setBadge('Verifying…');
-    const ok = await verifyTurnstile();
-    if (!ok) { setBadge('Verification failed', 'error'); return; }
+    let ok = false;
+    try { ok = await verifyTurnstile(); } catch { ok = false; }
+    if (!ok) {
+      // Don’t block users if verify/API is flaky
+      setBadge('Opening…', 'ok');
+      window.open(mainLink.url, '_blank', 'noopener');
+      return;
+    }
     setBadge('Opening…', 'ok');
     window.open(mainLink.url, '_blank', 'noopener');
-  }
-
-  // ---------- export helpers ----------
-  function buildReport() {
-    const now = new Date().toISOString();
-    return {
-      generatedAt: now,
-      state: selected ? { code: selected.code, name: selected.name } : null,
-      board: mainLink ? { name: mainLink.board, url: mainLink.url, host: mainLink.url ? getHost(mainLink.url) : null } : null,
-      user: { name: els.nameInput?.value || null, email: els.emailInput?.value || null },
-      details: els.detailsInput?.value || ''
-    };
-  }
-  function reportToText(r) {
-    return [
-      `Generated: ${r.generatedAt}`,
-      r.state ? `State: ${r.state.name} (${r.state.code})` : `State: —`,
-      r.board ? `Board: ${r.board.name}\nURL: ${r.board.url}\nHost: ${r.board.host}` : `Board: —`,
-      r.user?.name ? `Name: ${r.user.name}` : '',
-      r.user?.email ? `Email: ${r.user.email}` : '',
-      '',
-      'Details:',
-      r.details || '—'
-    ].filter(Boolean).join('\n');
-  }
-  function saveAsTxt(text) {
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'complaint.txt';
-    a.click();
-    URL.revokeObjectURL(a.href);
   }
 
   // ---------- boot ----------
   (async () => {
     try { STATES = await loadStates(); } catch { STATES = []; }
     if (!STATES.length) { setBadge('No data', 'error'); return; }
-    renderOptions(STATES);
+    fillDropdown(STATES);
 
-    els.stateSelect?.addEventListener('change', () => {
+    els.stateSelect.addEventListener('change', () => {
       const s = STATES.find(x => x.code === els.stateSelect.value) || null;
       renderState(s);
     });
-    els.openBtn?.addEventListener('click', onOpen);
+    els.openBtn.addEventListener('click', onOpenClick);
 
+    // simple helpers
     els.copyText?.addEventListener('click', () => {
-      const txt = reportToText(buildReport());
-      navigator.clipboard?.writeText(txt).catch(()=>{});
+      const lines = [
+        `State: ${current?.name || '—'} (${current?.code || '—'})`,
+        `Board: ${mainLink?.board || '—'}`,
+        `URL: ${mainLink?.url || '—'}`,
+        '',
+        'Details:',
+        els.detailsInput?.value || '—'
+      ];
+      navigator.clipboard?.writeText(lines.join('\n')).catch(()=>{});
     });
-    els.saveJson?.addEventListener('change', () => {
-      const txt = reportToText(buildReport());
-      saveAsTxt(txt);
+
+    els.saveCopy?.addEventListener('change', () => {
+      const blob = new Blob(
+        [`State: ${current?.name || '—'}\nBoard: ${mainLink?.board || '—'}\nURL: ${mainLink?.url || '—'}\n\nDetails:\n${els.detailsInput?.value || '—'}`],
+        { type: 'text/plain;charset=utf-8' }
+      );
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'complaint.txt';
+      a.click();
+      URL.revokeObjectURL(a.href);
     });
   })();
 })();
+
 
