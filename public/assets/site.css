@@ -51,16 +51,19 @@ a:hover, a:focus{ color: var(--link-hover); text-decoration-thickness: 2px; }
   backdrop-filter:saturate(120%) blur(8px);
   box-shadow:0 4px 16px rgba(2,6,23,.06);
 }
+
+/* Center the nav across the bar (brand left, nav centered, spacer right) */
 .top .inner{
-  display:flex; gap:12px; align-items:center; justify-content:space-between;
+  display:grid;
+  grid-template-columns: 1fr auto 1fr;
+  align-items:center;
   max-width:1100px; margin:0 auto; padding:10px 16px;
 }
-.top .brand{display:flex; gap:10px; align-items:center}
-.top .brand .dot{width:10px; height:10px; border-radius:999px; background:linear-gradient(180deg,#60a5fa,#2563eb)}
+.top .brand{justify-self:start; display:flex; align-items:center; gap:10px}
 .top .brand .title{font-weight:700; letter-spacing:.2px}
 
 /* nav links – spacing + subtle glow underline on hover/active */
-.top .inner nav{display:flex; gap:12px; align-items:center}
+.top .inner nav{grid-column:2; justify-self:center; display:flex; gap:28px; align-items:center}
 .top .inner a{
   position:relative;
   display:inline-flex; align-items:center; gap:8px;
@@ -178,7 +181,6 @@ footer a:link, footer a:visited{
 }
 
 /* ---------- Home hero CTA buttons (scoped) ---------- */
-/* Two CTAs in the first .card of the page */
 main.container > .card:first-of-type .btn,
 main.container > .card:first-of-type .btn:link,
 main.container > .card:first-of-type .btn:visited{
@@ -215,3 +217,4 @@ main.container > .card:first-of-type .btn + .btn{ margin-left:10px; }
 @media (max-width:560px){
   main.container > .card:first-of-type .btn + .btn{ margin-left:0; margin-top:10px; }
 }
+
