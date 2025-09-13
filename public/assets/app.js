@@ -1,5 +1,5 @@
-// Rollback: simple, robust loader; primary/first link is used for the button.
-// Extra links are shown as plain hyperlinks below. Button falls back if verify/API fails.
+// Rollback: simple + robust. Uses primary/first link as the main one,
+// shows other links under "More links". If Turnstile/API fails, we still open the link.
 (() => {
   const $ = (s) => document.querySelector(s);
 
@@ -12,7 +12,6 @@
     openBtn:     $('#openBtn'),
     moreLinksWrap: $('#moreLinksWrap'),
     moreLinks:     $('#moreLinks'),
-
     nameInput:   $('#nameInput'),
     emailInput:  $('#emailInput'),
     detailsInput:$('#detailsInput'),
@@ -21,8 +20,8 @@
   };
 
   let STATES = [];
-  let current = null;       // current state object
-  let mainLink = null;      // chosen primary/first link
+  let current = null;
+  let mainLink = null;
 
   // ---------- helpers ----------
   const setBadge = (text, kind = '') => {
@@ -39,25 +38,17 @@
     return links[(i >= 0 ? i : 0)] || null;
   };
 
-  const fetchText = async (url) => {
+  const fetchJson = async (url) => {
     const res = await fetch(url, { cache: 'no-store' });
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.text();
+    return res.json();
   };
 
-  const parseStates = (txt) => {
-    const j = JSON.parse(txt.replace(/^\uFEFF/, ''));
-    if (Array.isArray(j)) return j;
-    if (j && Array.isArray(j.states)) return j.states;
-    return [];
-  };
-
-  // ---------- data load (robust) ----------
+  // ---------- data load (robust, cache-busting) ----------
   async function loadStates() {
     // (1) API if present
     try {
-      const txt = await fetchText('/api/states');
-      const j = JSON.parse(txt);
+      const j = await fetchJson('/api/states?v=' + Date.now());
       if (Array.isArray(j) && j.length) {
         if (!j[0].links) {
           const by = {};
@@ -75,18 +66,14 @@
       }
     } catch (_) {}
 
-    // (2) Static JSON (multiple fallback paths)
-    const candidates = [
-      '/assets/state-links.json',
-      'assets/state-links.json',
-      '/public/assets/state-links.json',
-      './assets/state-links.json'
-    ];
-    for (const p of candidates) {
+    // (2) Static JSON (multiple fallback paths + cache buster)
+    const base = ['','/','./','/public/'];
+    for (const prefix of base) {
+      const path = `${prefix}assets/state-links.json?v=${Date.now()}`;
       try {
-        const txt = await fetchText(p);
-        const states = parseStates(txt);
-        if (Array.isArray(states) && states.length) return states;
+        const j = await fetchJson(path);
+        if (Array.isArray(j) && j.length) return j;
+        if (j && Array.isArray(j.states) && j.states.length) return j.states;
       } catch (_) {}
     }
     return [];
@@ -119,7 +106,7 @@
       : 'Not available yet';
     els.boardHost.textContent = mainLink?.url ? hostOf(mainLink.url) : '—';
 
-    // extra links
+    // Extra links
     els.moreLinks.innerHTML = '';
     const extras = links.filter(l => l && l !== mainLink);
     if (extras.length) {
@@ -132,13 +119,11 @@
         a.rel = 'noopener';
         a.textContent = l.board || l.url;
         li.appendChild(a);
-
         const span = document.createElement('span');
         span.className = 'small';
         span.style.marginLeft = '6px';
         span.textContent = `(${hostOf(l.url)})`;
         li.appendChild(span);
-
         els.moreLinks.appendChild(li);
       });
     } else {
@@ -151,7 +136,7 @@
     setBadge(enabled ? 'OK' : '—', enabled ? 'ok' : '');
   }
 
-  // ---------- button flow (Turnstile with graceful fallback) ----------
+  // ---------- button (Turnstile + graceful fallback) ----------
   async function verifyTurnstile() {
     const token = document.querySelector('input[name="cf-turnstile-response"]')?.value || '';
     if (!token) return false;
@@ -172,10 +157,9 @@
     setBadge('Verifying…');
     let ok = false;
     try { ok = await verifyTurnstile(); } catch { ok = false; }
-
     if (!ok) {
-      // graceful fallback so users aren’t blocked
-      setBadge('Opening (no verify)…', 'ok');
+      // Don’t block users if verification/API is flaky
+      setBadge('Opening…', 'ok');
       window.open(mainLink.url, '_blank', 'noopener');
       return;
     }
@@ -194,10 +178,9 @@
       const s = STATES.find(x => x.code === els.stateSelect.value) || null;
       renderState(s);
     });
-
     els.openBtn.addEventListener('click', onOpenClick);
 
-    // optional helpers
+    // simple helpers
     els.copyText?.addEventListener('click', () => {
       const lines = [
         `State: ${current?.name || '—'} (${current?.code || '—'})`,
