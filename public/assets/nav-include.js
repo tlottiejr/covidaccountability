@@ -3,12 +3,11 @@
   const root = document.getElementById('nav-root');
   if (!root) return;
 
-  // Render nav
+  // Render nav (removed the left dot; restored centered spacing)
   root.innerHTML = `
     <div class="top">
       <div class="inner">
         <div class="brand">
-          <span class="dot" aria-hidden="true"></span>
           <a href="/" class="title" style="text-decoration:none">COVID Accountability Now</a>
         </div>
         <nav aria-label="Primary">
@@ -20,21 +19,32 @@
           <a href="/references.html">References</a>
           <a href="/donate.html">Donate</a>
         </nav>
+        <div></div> <!-- spacer for centered nav -->
       </div>
     </div>
   `;
 
-  // Set aria-current="page" on the active link (normalizes / and /index.html)
-  const path = (location.pathname || '/').replace(/\/index\.html?$/i, '/');
+  // Normalize paths so both "/about" and "/about.html" (and trailing "/") match
+  const norm = (p) => {
+    try {
+      const u = new URL(p, location.origin);
+      let path = u.pathname.toLowerCase();
+      path = path.replace(/\/index\.html?$/i, "/"); // index → /
+      path = path.replace(/\/$/i, "");              // remove trailing slash
+      path = path.replace(/\.html$/i, "");          // remove .html
+      return path || "/";
+    } catch {
+      return p;
+    }
+  };
+
+  const current = norm(location.pathname);
   const links = root.querySelectorAll('nav a');
 
   for (const a of links) {
-    try {
-      const href = new URL(a.getAttribute('href'), location.origin).pathname
-        .replace(/\/index\.html?$/i, '/');
-      if (href === path) {
-        a.setAttribute('aria-current', 'page');
-      }
-    } catch { /* no-op */ }
+    const hrefNorm = norm(a.getAttribute('href'));
+    if (hrefNorm === current) {
+      a.setAttribute('aria-current', 'page'); // triggers underline via CSS
+    }
   }
 })();
