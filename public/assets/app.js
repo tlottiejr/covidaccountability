@@ -128,26 +128,33 @@ async function verifyTurnstileToken() {
   }
 }
 
-// --- events ------------------------------------------------------------------
-stateSelect.addEventListener('change', () => {
-  const code = stateSelect.value;
-  renderBoardsFor(code);
-  const label = stateSelect.options[stateSelect.selectedIndex]?.text || '';
-  say(`State ${label} selected.`);
-});
-
+// --- robust open flow: preserve user gesture ---------------------------------
+// Strategy: open a blank tab *synchronously* on click to keep the gesture,
+// then navigate it after (async) verification. If blocked, fallback to same-tab.
 openBtn.addEventListener('click', async () => {
-  if (!selected?.link?.url) return;
+  const url = selected?.link?.url;
+  if (!url) return;
+
+  // 1) Try to pre-open a new tab before any await (preserves user gesture).
+  let win = null;
+  try { win = window.open('', '_blank'); } catch { win = null; }
+  if (win) { try { win.opener = null; } catch {} }
 
   say('Verifying…');
   const verify = await verifyTurnstileToken();
-  if (verify.success) say('Verification passed. Opening board site in a new tab.');
-  else say('Verification unavailable. Opening board site (fallback).');
 
+  // 2) If we have a tab, navigate it now.
+  if (win && !win.closed) {
+    try { win.location.href = url; } catch { /* ignore */ }
+    say(verify.success ? 'Verification passed. Opening board site.' : 'Verification unavailable. Opening board site.');
+    return;
+  }
+
+  // 3) Popup blocked: fallback to same-tab navigation.
   try {
-    window.open(selected.link.url, '_blank', 'noopener');
+    location.assign(url);
   } catch {
-    location.href = selected.link.url; // popup blocked → same-tab fallback
+    location.href = url;
   }
 });
 
@@ -161,4 +168,3 @@ openBtn.addEventListener('click', async () => {
     say('Could not load state links. Please try again later.');
   }
 })();
-
