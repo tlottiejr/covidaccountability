@@ -1,0 +1,141 @@
+name: State Board Link Health
+
+on:
+  schedule:
+    - cron: "0 8 * * *"   # once every 24h at 08:00 UTC (staggered 1h after refs)
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+concurrency:
+  group: health-boards
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Ensure health directory
+        run: |
+          mkdir -p public/assets/health
+
+      - name: Check state-board links and build state-health.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const fsp = fs.promises;
+
+          const INPUT = 'public/assets/state-links.json';
+          const HEALTH_DIR = 'public/assets/health';
+          const OUTPUT = path.join(HEALTH_DIR, 'state-health.json');
+          const INDEX = path.join(HEALTH_DIR, 'index.json');
+
+          function nowIso(){ return new Date().toISOString(); }
+          const up = s => String(s||'').trim().toUpperCase();
+
+          function normLink(x){
+            if (!x) return null;
+            if (typeof x === 'string') return { board: 'Board', url: x, primary: true };
+            const url = x.url || x.href || x.link || '';
+            if (!url) return null;
+            return { board: x.board || x.name || x.title || 'Board', url, primary: !!x.primary, unavailable: !!x.unavailable };
+          }
+          function normState(s){
+            if (!s) return null;
+            const code = s.code || s.abbr || s.state || '';
+            const name = s.name || s.title || s.stateName || '';
+            let links = [];
+            if (Array.isArray(s.links)) links = s.links.map(normLink).filter(Boolean);
+            else if (Array.isArray(s.boards)) links = s.boards.map(normLink).filter(Boolean);
+            else if (s.link || s.url) {
+              const single = normLink({ board: s.board || name || 'Board', url: s.link || s.url, primary: true, unavailable: s.unavailable });
+              if (single) links = [single];
+            }
+            return { code: up(code), name: String(name || code || '').trim(), links };
+          }
+
+          async function loadStates() {
+            if (!fs.existsSync(INPUT)) return [];
+            const raw = JSON.parse(await fsp.readFile(INPUT, 'utf8'));
+            const arr = Array.isArray(raw) ? raw : (Array.isArray(raw?.states) ? raw.states : []);
+            return arr.map(normState).filter(Boolean);
+          }
+
+          async function probe(url, timeoutMs = 20000, method='HEAD') {
+            const ac = new AbortController();
+            const t = setTimeout(()=>ac.abort(new Error('timeout')), timeoutMs);
+            try {
+              const res = await fetch(url, { method, redirect: 'follow', signal: ac.signal });
+              return { ok:true, status: res.status, finalUrl: res.url, redirected: res.redirected };
+            } catch (e) {
+              if (method === 'HEAD') return probe(url, timeoutMs, 'GET');
+              return { ok:false, error: String(e) };
+            } finally {
+              clearTimeout(t);
+            }
+          }
+
+          (async () => {
+            const states = await loadStates();
+            const out = { generatedAt: nowIso(), items: [] };
+
+            for (const st of states) {
+              for (const l of (st.links || [])) {
+                const r = await probe(l.url);
+                const rec = {
+                  state: st.name || st.code,
+                  board: l.board || 'Board',
+                  url: l.url,
+                  status: r.ok ? r.status : 0,
+                  finalUrl: r.finalUrl || '',
+                  redirected: !!r.redirected || (!!r.finalUrl && new URL(r.finalUrl).host !== new URL(l.url).host),
+                  error: !r.ok || (r.ok && r.status >= 400),
+                  checkedAt: nowIso()
+                };
+                out.items.push(rec);
+              }
+            }
+
+            await fsp.writeFile(OUTPUT, JSON.stringify(out, null, 2));
+
+            // Update index summary (merge with existing if present)
+            const idx = fs.existsSync(INDEX) ? JSON.parse(await fsp.readFile(INDEX, 'utf8')) : { summary:{} };
+            const counts = { ok:0, redirects:0, errors:0 };
+            for (const i of out.items) {
+              if (i.error) counts.errors++;
+              else if (i.redirected) counts.redirects++;
+              else counts.ok++;
+            }
+            idx.summary = idx.summary || {};
+            idx.summary.boards = { ...counts, updatedAt: out.generatedAt };
+            await fsp.writeFile(INDEX, JSON.stringify(idx, null, 2));
+          })().catch(e => { console.error(e); process.exit(1); });
+          NODE
+
+      - name: Create PR with changes (only if files changed)
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(health): update state board link health"
+          title: "chore(health): update state board link health"
+          body: |
+            Automated daily refresh of state board link health snapshots.
+
+            Files:
+            - `public/assets/health/state-health.json`
+            - `public/assets/health/index.json`
+          branch: chore/health/boards
+          base: main
+          labels: health, automation
+          add-paths: |
+            public/assets/health/state-health.json
+            public/assets/health/index.json
+          delete-branch: true
+          draft: false
