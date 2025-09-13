@@ -17,8 +17,7 @@ export async function onRequestPost({ request, env }) {
 
     const r = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
-      body: form,
-      headers: { "content-type": "application/x-www-form-urlencoded" }
+      body: form
     });
 
     const data = await r.json().catch(() => ({}));
