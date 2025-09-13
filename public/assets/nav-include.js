@@ -33,7 +33,6 @@
           <a href="/why-report.html">Why Report</a>
           <a href="/who-can-report.html">Who Can Report</a>
           <a href="/references.html">References</a>
-          <a href="/complaint-portal.html">Complaint Portal</a>
           <a href="/donate.html">Donate</a>
         </nav>
         <div></div>
