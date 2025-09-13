@@ -1,52 +1,428 @@
 [
-  { "code": "AL", "name": "Alabama", "links": [ { "board": "Alabama Board of Medical Examiners", "url": "https://www.albme.gov/consumers/complaints/#filing-a-complaint", "primary": true } ] },
-  { "code": "AK", "name": "Alaska", "links": [ { "board": "Alaska State Medical Board", "url": "https://www.commerce.alaska.gov/web/cbpl/ProfessionalLicensing/BoardofMedicalExaminers.aspx", "primary": true } ] },
-  { "code": "AZ", "name": "Arizona", "links": [ { "board": "Arizona Medical Board", "url": "https://www.azmd.gov/Complaints/Complaint-Forms", "primary": true } ] },
-  { "code": "AR", "name": "Arkansas", "links": [ { "board": "Arkansas State Medical Board", "url": "https://www.armedicalboard.org/complaint-form/", "primary": true } ] },
-  { "code": "CA", "name": "California", "links": [ { "board": "Medical Board of California", "url": "https://www.mbc.ca.gov/Consumers/Complaints/", "primary": true } ] },
-  { "code": "CO", "name": "Colorado", "links": [ { "board": "Colorado Medical Board", "url": "https://dpo.colorado.gov/Medical/Complaints", "primary": true } ] },
-  { "code": "CT", "name": "Connecticut", "links": [ { "board": "Connecticut Department of Public Health", "url": "https://portal.ct.gov/DPH/Practitioner-Licensing--Investigations/Investigation/How-to-file-a-complaint", "primary": true } ] },
-  { "code": "DE", "name": "Delaware", "links": [ { "board": "Delaware Division of Professional Regulation", "url": "https://dpr.delaware.gov/complaint/", "primary": true } ] },
-  { "code": "FL", "name": "Florida", "links": [ { "board": "Florida Board of Medicine", "url": "https://flboardofmedicine.gov/complaint-process/", "primary": true } ] },
-  { "code": "GA", "name": "Georgia", "links": [ { "board": "Georgia Composite Medical Board", "url": "https://medicalboard.georgia.gov/how-guide/how-file-complaint", "primary": true } ] },
-  { "code": "HI", "name": "Hawaii", "links": [ { "board": "Hawaii Regulated Industries Complaints Office", "url": "https://cca.hawaii.gov/rico/complaints/online/", "primary": true } ] },
-  { "code": "ID", "name": "Idaho", "links": [ { "board": "Idaho Board of Medicine", "url": "https://bom.idaho.gov/BOMPortal/AgencyAdditional.aspx?Agency=427&AgencyLinkID=640", "primary": true } ] },
-  { "code": "IL", "name": "Illinois", "links": [ { "board": "Illinois Department of Financial & Professional Regulation", "url": "https://idfpr.illinois.gov/Forms/Complaints/ComplaintForms.html", "primary": true } ] },
-  { "code": "IN", "name": "Indiana", "links": [ { "board": "Indiana Professional Licensing Agency", "url": "https://www.in.gov/attorneygeneral/consumer-protection-division/protecting-consumers/file-a-complaint/", "primary": true } ] },
-  { "code": "IA", "name": "Iowa", "links": [ { "board": "Iowa Board of Medicine", "url": "https://medicalboard.iowa.gov/complaints", "primary": true } ] },
-  { "code": "KS", "name": "Kansas", "links": [ { "board": "Kansas Board of Healing Arts", "url": "https://www.ksbha.org/complaints.shtml", "primary": true } ] },
-  { "code": "KY", "name": "Kentucky", "links": [ { "board": "Kentucky Board of Medical Licensure", "url": "https://kbml.ky.gov/grievance/Pages/default.aspx", "primary": true } ] },
-  { "code": "LA", "name": "Louisiana", "links": [ { "board": "Louisiana State Board of Medical Examiners", "url": "https://www.lsbme.la.gov/content/filing-complaint", "primary": true } ] },
-  { "code": "ME", "name": "Maine", "links": [ { "board": "Maine Board of Licensure in Medicine", "url": "https://www.maine.gov/md/complaint/complaint.html", "primary": true } ] },
-  { "code": "MD", "name": "Maryland", "links": [ { "board": "Maryland Board of Physicians", "url": "https://www.mbp.state.md.us/resource_information/complaints/complaints.aspx", "primary": true } ] },
-  { "code": "MA", "name": "Massachusetts", "links": [ { "board": "Massachusetts Board of Registration in Medicine", "url": "https://www.mass.gov/how-to/file-a-complaint-with-the-board-of-registration-in-medicine", "primary": true } ] },
-  { "code": "MI", "name": "Michigan", "links": [ { "board": "Michigan Department of Licensing and Regulatory Affairs", "url": "https://www.michigan.gov/lara/bureau-list/bpl/complaints", "primary": true } ] },
-  { "code": "MN", "name": "Minnesota", "links": [ { "board": "Minnesota Board of Medical Practice", "url": "https://mn.gov/boards/medical-practice/complaints-discipline/file-a-complaint.jsp", "primary": true } ] },
-  { "code": "MS", "name": "Mississippi", "links": [ { "board": "Mississippi State Board of Medical Licensure", "url": "https://www.msbml.ms.gov/complaint-process", "primary": true } ] },
-  { "code": "MO", "name": "Missouri", "links": [ { "board": "Missouri Board of Registration for the Healing Arts", "url": "https://pr.mo.gov/healingarts-complaint-forms.asp", "primary": true } ] },
-  { "code": "MT", "name": "Montana", "links": [ { "board": "Montana Board of Medical Examiners", "url": "https://boards.bsd.dli.mt.gov/medical-examiners/complaints/", "primary": true } ] },
-  { "code": "NE", "name": "Nebraska", "links": [ { "board": "Nebraska Department of Health and Human Services", "url": "https://dhhs.ne.gov/Pages/Complaints.aspx", "primary": true } ] },
-  { "code": "NV", "name": "Nevada", "links": [ { "board": "Nevada State Board of Medical Examiners", "url": "https://medboard.nv.gov/Patients/File_a_Complaint/", "primary": true } ] },
-  { "code": "NH", "name": "New Hampshire", "links": [ { "board": "New Hampshire Board of Medicine", "url": "https://www.oplc.nh.gov/board-medicine/filing-complaint", "primary": true } ] },
-  { "code": "NJ", "name": "New Jersey", "links": [ { "board": "New Jersey State Board of Medical Examiners", "url": "https://www.njconsumeraffairs.gov/bme/Pages/filing-a-complaint.aspx", "primary": true } ] },
-  { "code": "NM", "name": "New Mexico", "links": [ { "board": "New Mexico Medical Board", "url": "https://www.nmmb.state.nm.us/complaint-information", "primary": true } ] },
-  { "code": "NY", "name": "New York", "links": [ { "board": "New York State Office of Professions", "url": "http://www.op.nysed.gov/opd/complain.htm", "primary": true } ] },
-  { "code": "NC", "name": "North Carolina", "links": [ { "board": "North Carolina Medical Board", "url": "https://www.ncmedboard.org/complaints-information/submit-a-complaint", "primary": true } ] },
-  { "code": "ND", "name": "North Dakota", "links": [ { "board": "North Dakota Board of Medicine", "url": "https://www.ndbom.org/complaints/", "primary": true } ] },
-  { "code": "OH", "name": "Ohio", "links": [ { "board": "State Medical Board of Ohio", "url": "https://elicense.ohio.gov/oh_filecomplaint", "primary": true } ] },
-  { "code": "OK", "name": "Oklahoma", "links": [ { "board": "Oklahoma State Board of Medical Licensure and Supervision", "url": "https://www.okmedicalboard.org/complaint", "primary": true } ] },
-  { "code": "OR", "name": "Oregon", "links": [ { "board": "Oregon Medical Board", "url": "https://www.oregon.gov/omb/complaints/Pages/complaints.aspx", "primary": true } ] },
-  { "code": "PA", "name": "Pennsylvania", "links": [ { "board": "Pennsylvania Department of State", "url": "https://www.dos.pa.gov/LicensingServices/ComplaintsDiscipline/Pages/default.aspx", "primary": true } ] },
-  { "code": "RI", "name": "Rhode Island", "links": [ { "board": "Rhode Island Department of Health", "url": "https://health.ri.gov/complaints/", "primary": true } ] },
-  { "code": "SC", "name": "South Carolina", "links": [ { "board": "South Carolina Department of Labor, Licensing and Regulation", "url": "https://llr.sc.gov/med/complaint.aspx", "primary": true } ] },
-  { "code": "SD", "name": "South Dakota", "links": [ { "board": "South Dakota Board of Medical and Osteopathic Examiners", "url": "https://www.sdbmoe.gov/complaints", "primary": true } ] },
-  { "code": "TN", "name": "Tennessee", "links": [ { "board": "Tennessee Department of Health", "url": "https://www.tn.gov/health/health-professionals/hcf-main/filing-complaints.html", "primary": true } ] },
-  { "code": "TX", "name": "Texas", "links": [ { "board": "Texas Medical Board", "url": "https://www.tmb.state.tx.us/page/place-a-complaint", "primary": true } ] },
-  { "code": "UT", "name": "Utah", "links": [ { "board": "Utah Division of Occupational and Professional Licensing", "url": "https://dopl.utah.gov/complaints/", "primary": true } ] },
-  { "code": "VT", "name": "Vermont", "links": [ { "board": "Vermont Board of Medical Practice", "url": "https://www.healthvermont.gov/health-professionals-systems/board-medical-practice/file-complaint", "primary": true } ] },
-  { "code": "VA", "name": "Virginia", "links": [ { "board": "Virginia Department of Health Professions", "url": "https://www.dhp.virginia.gov/boards/medicine/complaints_enf/complaints/complaintinfo.htm", "primary": true } ] },
-  { "code": "WA", "name": "Washington", "links": [ { "board": "Washington Medical Commission", "url": "https://wmc.wa.gov/patient-resources/complaints", "primary": true } ] },
-  { "code": "WV", "name": "West Virginia", "links": [ { "board": "West Virginia Board of Medicine", "url": "https://wvbom.wv.gov/complaints.asp", "primary": true } ] },
-  { "code": "WI", "name": "Wisconsin", "links": [ { "board": "Wisconsin Department of Safety and Professional Services", "url": "https://dsps.wi.gov/Pages/SelfService/FileAComplaint.aspx", "primary": true } ] },
-  { "code": "WY", "name": "Wyoming", "links": [ { "board": "Wyoming Board of Medicine", "url": "https://wyomedboard.wyo.gov/discipline/complaint-information", "primary": true } ] }
+  {
+    "code": "AL",
+    "name": "Alabama",
+    "links": [
+      { "board": "Alabama Board of Medical Examiners", "url": "https://www.albme.gov/consumers/complaints/#filing-a-complaint", "primary": true },
+      { "board": "Medical Licensure Commission of Alabama", "url": "https://www.albme.gov/consumers/complaints/#filing-a-complaint", "primary": false }
+    ]
+  },
+  {
+    "code": "AK",
+    "name": "Alaska",
+    "links": [
+      { "board": "Alaska State Medical Board", "url": "https://www.commerce.alaska.gov/web/cbpl/ProfessionalLicensing/StateMedicalBoard.aspx", "primary": true },
+      { "board": "Alaska State Medical Board — File a Complaint", "url": "https://www.commerce.alaska.gov/web/cbpl/ComplaintFAQs.aspx", "primary": false }
+    ]
+  },
+  {
+    "code": "AZ",
+    "name": "Arizona",
+    "links": [
+      { "board": "Arizona Medical Board", "url": "https://www.azmd.gov/Complaints/Complaint-Forms", "primary": true },
+      { "board": "Arizona Board of Osteopathic Examiners in Medicine and Surgery", "url": "https://azdo.gov/consumer-resources/filing-complaint", "primary": false }
+    ]
+  },
+  {
+    "code": "AR",
+    "name": "Arkansas",
+    "links": [
+      { "board": "Arkansas State Medical Board", "url": "https://www.armedicalboard.org/complaint-form/", "primary": true }
+    ]
+  },
+  {
+    "code": "CA",
+    "name": "California",
+    "links": [
+      { "board": "Medical Board of California", "url": "https://www.mbc.ca.gov/Consumers/Complaints/", "primary": true },
+      { "board": "Osteopathic Medical Board of California", "url": "https://ombc.ca.gov/consumers/complaints.shtml", "primary": false }
+    ]
+  },
+  {
+    "code": "CO",
+    "name": "Colorado",
+    "links": [
+      { "board": "Colorado Medical Board", "url": "https://dpo.colorado.gov/Medical/Complaints", "primary": true }
+    ]
+  },
+  {
+    "code": "CT",
+    "name": "Connecticut",
+    "links": [
+      { "board": "Connecticut Medical Examining Board", "url": "https://portal.ct.gov/DPH/Public-Health-Hearing-Office/Connecticut-Medical-Examining-Board/Connecticut-Medical-Examining-Board", "primary": true },
+      { "board": "Connecticut — File a Complaint", "url": "https://portal.ct.gov/DPH/Practitioner-Licensing--Investigations/Investigations/How-to-file-a-complaint", "primary": false }
+    ]
+  },
+  {
+    "code": "DE",
+    "name": "Delaware",
+    "links": [
+      { "board": "Delaware Board of Medical Licensure and Discipline", "url": "https://dpr.delaware.gov/boards/medicalpractice/", "primary": true },
+      { "board": "Delaware — File a Complaint (DELPROS)", "url": "https://delpros.delaware.gov/", "primary": false }
+    ]
+  },
+  {
+    "code": "DC",
+    "name": "District of Columbia",
+    "links": [
+      { "board": "District of Columbia Board of Medicine", "url": "https://dchealth.dc.gov/bomed", "primary": true },
+      { "board": "DC — File a Complaint", "url": "https://dchealth.dc.gov/node/145702", "primary": false }
+    ]
+  },
+  {
+    "code": "FL",
+    "name": "Florida",
+    "links": [
+      { "board": "Florida Board of Medicine", "url": "https://complaint-portal.mqa.flhealthsource.gov/home", "primary": true },
+      { "board": "Florida Board of Osteopathic Medicine", "url": "https://complaint-portal.mqa.flhealthsource.gov/home", "primary": false }
+    ]
+  },
+  {
+    "code": "GA",
+    "name": "Georgia",
+    "links": [
+      { "board": "Georgia Composite Medical Board", "url": "https://medicalboard.georgia.gov/how-guide/how-file-complaint", "primary": true }
+    ]
+  },
+  {
+    "code": "GU",
+    "name": "Guam",
+    "links": [
+      { "board": "Guam Board of Medical Examiners", "url": "https://guamhplo.org/gbme", "primary": true },
+      { "board": "Guam — File a Complaint", "url": "https://guamhplo.org/gbme", "primary": false }
+    ]
+  },
+  {
+    "code": "HI",
+    "name": "Hawaii",
+    "links": [
+      { "board": "Hawaii Medical Board", "url": "https://cca.hawaii.gov/pvl/boards/medical/", "primary": true },
+      { "board": "Hawaii — RICO Online Complaints", "url": "https://cca.hawaii.gov/rico/complaints/online/", "primary": false }
+    ]
+  },
+  {
+    "code": "ID",
+    "name": "Idaho",
+    "links": [
+      { "board": "Idaho Board of Medicine", "url": "https://bom.idaho.gov/", "primary": true },
+      { "board": "Idaho — Filing a Complaint", "url": "https://dopl.idaho.gov/filing-a-complaint/", "primary": false }
+    ]
+  },
+  {
+    "code": "IL",
+    "name": "Illinois",
+    "links": [
+      { "board": "Illinois (IDFPR) — Physicians", "url": "https://idfpr.illinois.gov/profs/physicians.html", "primary": true },
+      { "board": "Illinois — File a Complaint", "url": "https://idfpr.illinois.gov/Forms/Complaints/ComplaintForms.html", "primary": false }
+    ]
+  },
+  {
+    "code": "IN",
+    "name": "Indiana",
+    "links": [
+      { "board": "Medical Licensing Board of Indiana (PLA)", "url": "https://www.in.gov/pla/professions/medical-licensing-board-of-indiana/", "primary": true },
+      { "board": "Indiana — Consumer Complaint (AG)", "url": "https://www.in.gov/attorneygeneral/consumer-protection-division/consumer-complaint/", "primary": false }
+    ]
+  },
+  {
+    "code": "IA",
+    "name": "Iowa",
+    "links": [
+      { "board": "Iowa Board of Medicine", "url": "https://medicalboard.iowa.gov/complaints", "primary": true }
+    ]
+  },
+  {
+    "code": "KS",
+    "name": "Kansas",
+    "links": [
+      { "board": "Kansas State Board of Healing Arts", "url": "https://www.ksbha.ks.gov/", "primary": true },
+      { "board": "Kansas — File a Complaint", "url": "https://www.ksbha.ks.gov/complaints.shtml", "primary": false }
+    ]
+  },
+  {
+    "code": "KY",
+    "name": "Kentucky",
+    "links": [
+      { "board": "Kentucky Board of Medical Licensure", "url": "https://kbml.ky.gov/board/Pages/Complaints.aspx", "primary": true }
+    ]
+  },
+  {
+    "code": "LA",
+    "name": "Louisiana",
+    "links": [
+      { "board": "Louisiana State Board of Medical Examiners", "url": "http://www.lsbme.la.gov/", "primary": true },
+      { "board": "Louisiana — File a Complaint", "url": "https://www.lsbme.la.gov/content/filing-complaint", "primary": false }
+    ]
+  },
+  {
+    "code": "ME",
+    "name": "Maine",
+    "links": [
+      { "board": "Maine Board of Licensure in Medicine", "url": "https://www.maine.gov/md/complaint/complaint.html", "primary": true },
+      { "board": "Maine Board of Osteopathic Licensure", "url": "https://www.maine.gov/osteo/", "primary": false }
+    ]
+  },
+  {
+    "code": "MD",
+    "name": "Maryland",
+    "links": [
+      { "board": "Maryland Board of Physicians", "url": "https://www.mbp.state.md.us/resource_information/complaints/complaints.aspx", "primary": true }
+    ]
+  },
+  {
+    "code": "MA",
+    "name": "Massachusetts",
+    "links": [
+      { "board": "Massachusetts Board of Registration in Medicine", "url": "https://www.mass.gov/orgs/board-of-registration-in-medicine", "primary": true },
+      { "board": "Massachusetts — File a Complaint", "url": "https://www.mass.gov/how-to/file-a-complaint-with-the-board-of-registration-in-medicine", "primary": false }
+    ]
+  },
+  {
+    "code": "MI",
+    "name": "Michigan",
+    "links": [
+      { "board": "Michigan Board of Medicine (LARA BPL)", "url": "https://www.michigan.gov/lara/bureau-list/bpl/health/hp-lic-health-prof/medical", "primary": true },
+      { "board": "Michigan Board of Osteopathic Medicine and Surgery (LARA BPL)", "url": "https://www.michigan.gov/lara/bureau-list/bpl/health/hp-lic-health-prof/osteo", "primary": false }
+    ]
+  },
+  {
+    "code": "MN",
+    "name": "Minnesota",
+    "links": [
+      { "board": "Minnesota Board of Medical Practice", "url": "https://mn.gov/boards/medical-practice/", "primary": true },
+      { "board": "Minnesota — File a Complaint", "url": "https://mn.gov/boards/medical-practice/public/complaints/complaint-form/", "primary": false }
+    ]
+  },
+  {
+    "code": "MS",
+    "name": "Mississippi",
+    "links": [
+      { "board": "Mississippi State Board of Medical Licensure", "url": "https://www.msbml.ms.gov/complaint-process", "primary": true }
+    ]
+  },
+  {
+    "code": "MO",
+    "name": "Missouri",
+    "links": [
+      { "board": "Missouri Board of Registration for the Healing Arts", "url": "https://pr.mo.gov/healingarts.asp", "primary": true },
+      { "board": "Missouri — File a Complaint", "url": "https://mopro.mo.gov/form/hacomp", "primary": false }
+    ]
+  },
+  {
+    "code": "MT",
+    "name": "Montana",
+    "links": [
+      { "board": "Montana Board of Medical Examiners", "url": "https://boards.bsd.dli.mt.gov/medical-examiners/", "primary": true },
+      { "board": "Montana — File a Complaint", "url": "https://bsd.dli.mt.gov/filing-a-complaint/", "primary": false }
+    ]
+  },
+  {
+    "code": "NE",
+    "name": "Nebraska",
+    "links": [
+      { "board": "Nebraska Board of Medicine and Surgery", "url": "https://dhhs.ne.gov/licensure/pages/medicine-and-surgery.aspx", "primary": true },
+      { "board": "Nebraska — File a Complaint", "url": "https://phcmplnt-dhhs.ne.gov/", "primary": false }
+    ]
+  },
+  {
+    "code": "NV",
+    "name": "Nevada",
+    "links": [
+      { "board": "Nevada State Board of Medical Examiners", "url": "https://medboard.nv.gov/Patients/File_a_Complaint/", "primary": true },
+      { "board": "Nevada State Board of Osteopathic Medicine", "url": "https://osboe.state.nv.us/", "primary": false }
+    ]
+  },
+  {
+    "code": "NH",
+    "name": "New Hampshire",
+    "links": [
+      { "board": "New Hampshire Board of Medicine", "url": "https://www.oplc.nh.gov/board-medicine", "primary": true },
+      { "board": "New Hampshire — File a Complaint", "url": "https://www.oplc.nh.gov/complaints", "primary": false }
+    ]
+  },
+  {
+    "code": "NJ",
+    "name": "New Jersey",
+    "links": [
+      { "board": "New Jersey State Board of Medical Examiners", "url": "https://www.njconsumeraffairs.gov/bme/Pages/default.aspx", "primary": true },
+      { "board": "New Jersey — File a Complaint", "url": "https://www.njconsumeraffairs.gov/bme/Pages/filing-a-complaint.aspx", "primary": false }
+    ]
+  },
+  {
+    "code": "NM",
+    "name": "New Mexico",
+    "links": [
+      { "board": "New Mexico Medical Board", "url": "https://www.nmmb.state.nm.us/", "primary": true },
+      { "board": "New Mexico — File a Complaint", "url": "https://www.nmmb.state.nm.us/complaint-information", "primary": false }
+    ]
+  },
+  {
+    "code": "NY",
+    "name": "New York",
+    "links": [
+      { "board": "New York State Board for Medicine (Licensure)", "url": "https://www.op.nysed.gov/professions-index/medicine", "primary": true },
+      { "board": "NY Office of Professional Medical Conduct (Discipline) — File a Complaint", "url": "https://www.health.ny.gov/professionals/doctors/conduct/file_a_complaint.htm", "primary": false }
+    ]
+  },
+  {
+    "code": "MP",
+    "name": "Northern Mariana Islands",
+    "links": [
+      { "board": "CNMI Board of Professional Licensing — Health Care Professions Licensing Board", "url": "https://www.cnmilicensing.gov.mp/", "primary": true }
+    ]
+  },
+  {
+    "code": "NC",
+    "name": "North Carolina",
+    "links": [
+      { "board": "North Carolina Medical Board", "url": "https://www.ncmedboard.org/", "primary": true },
+      { "board": "North Carolina — File a Complaint", "url": "https://www.ncmedboard.org/resources-information/consumer-resources/how-to-file-a-complaint", "primary": false }
+    ]
+  },
+  {
+    "code": "ND",
+    "name": "North Dakota",
+    "links": [
+      { "board": "North Dakota Board of Medicine", "url": "https://www.ndbom.org/", "primary": true },
+      { "board": "North Dakota — File a Complaint", "url": "https://www.ndbom.org/public/complaints/", "primary": false }
+    ]
+  },
+  {
+    "code": "OH",
+    "name": "Ohio",
+    "links": [
+      { "board": "State Medical Board of Ohio", "url": "https://elicense.ohio.gov/oh_filecomplaint", "primary": true }
+    ]
+  },
+  {
+    "code": "OK",
+    "name": "Oklahoma",
+    "links": [
+      { "board": "Oklahoma Board of Medical Licensure and Supervision", "url": "https://www.okmedicalboard.org/complaint", "primary": true },
+      { "board": "Oklahoma State Board of Osteopathic Examiners", "url": "https://osboe.portalus.thentiacloud.net/", "primary": false }
+    ]
+  },
+  {
+    "code": "OR",
+    "name": "Oregon",
+    "links": [
+      { "board": "Oregon Medical Board", "url": "https://www.oregon.gov/omb/Pages/default.aspx", "primary": true },
+      { "board": "Oregon — File a Complaint", "url": "https://www.oregon.gov/omb/complaints/Pages/complaints.aspx", "primary": false }
+    ]
+  },
+  {
+    "code": "PA",
+    "name": "Pennsylvania",
+    "links": [
+      { "board": "Pennsylvania State Board of Medicine", "url": "https://www.dos.pa.gov/ProfessionalLicensing/BoardsCommissions/Medicine/Pages/default.aspx", "primary": true },
+      { "board": "Pennsylvania State Board of Osteopathic Medicine", "url": "https://www.dos.pa.gov/ProfessionalLicensing/BoardsCommissions/OsteopathicMedicine/Pages/default.aspx", "primary": false },
+      { "board": "Pennsylvania — File a Complaint (PALS)", "url": "https://www.dos.pa.gov/ProfessionalLicensing/FileaComplaint/Pages/default.aspx", "primary": false }
+    ]
+  },
+  {
+    "code": "PR",
+    "name": "Puerto Rico",
+    "links": [
+      { "board": "Puerto Rico Board of Medical Licensure and Discipline", "url": "https://www.salud.pr.gov/CMS/120", "primary": true }
+    ]
+  },
+  {
+    "code": "RI",
+    "name": "Rhode Island",
+    "links": [
+      { "board": "Rhode Island Board of Medical Licensure and Discipline", "url": "https://health.ri.gov/licensing/physicians", "primary": true },
+      { "board": "Rhode Island — File a Complaint", "url": "https://health.ri.gov/complaints/file", "primary": false }
+    ]
+  },
+  {
+    "code": "SC",
+    "name": "South Carolina",
+    "links": [
+      { "board": "South Carolina Board of Medical Examiners", "url": "https://llr.sc.gov/med/complaint.aspx", "primary": true }
+    ]
+  },
+  {
+    "code": "SD",
+    "name": "South Dakota",
+    "links": [
+      { "board": "South Dakota Board of Medical and Osteopathic Examiners", "url": "https://www.sdbmoe.gov/complaints", "primary": true }
+    ]
+  },
+  {
+    "code": "TN",
+    "name": "Tennessee",
+    "links": [
+      { "board": "Tennessee Board of Medical Examiners", "url": "https://www.tn.gov/health/health-program-areas/health-professional-boards/me-board.html", "primary": true },
+      { "board": "Tennessee Board of Osteopathic Examination", "url": "https://www.tn.gov/health/health-program-areas/health-professional-boards/osteo-board.html", "primary": false }
+    ]
+  },
+  {
+    "code": "TX",
+    "name": "Texas",
+    "links": [
+      { "board": "Texas Medical Board", "url": "https://www.tmb.state.tx.us/page/place-a-complaint", "primary": true }
+    ]
+  },
+  {
+    "code": "UT",
+    "name": "Utah",
+    "links": [
+      { "board": "Utah Medical Licensing Board (DOPL)", "url": "https://dopl.utah.gov/md/index.html", "primary": true },
+      { "board": "Utah — File a Complaint", "url": "https://dopl.utah.gov/complaints/", "primary": false }
+    ]
+  },
+  {
+    "code": "VT",
+    "name": "Vermont",
+    "links": [
+      { "board": "Vermont Board of Medical Practice", "url": "https://www.healthvermont.gov/systems/medical-practice-board", "primary": true },
+      { "board": "Vermont Board of Osteopathic Physicians and Surgeons (OPR)", "url": "https://sos.vermont.gov/osteopathic-physicians/", "primary": false }
+    ]
+  },
+  {
+    "code": "VI",
+    "name": "U.S. Virgin Islands",
+    "links": [
+      { "board": "Virgin Islands Board of Medical Examiners", "url": "https://www.vimedicalboard.org/", "primary": true }
+    ]
+  },
+  {
+    "code": "VA",
+    "name": "Virginia",
+    "links": [
+      { "board": "Virginia Board of Medicine", "url": "http://www.dhp.virginia.gov/Boards/Medicine/", "primary": true },
+      { "board": "Virginia — File a Complaint", "url": "https://www.dhp.virginia.gov/boards/medicine/complaints_enf/complaints/complaintinfo.htm", "primary": false }
+    ]
+  },
+  {
+    "code": "WA",
+    "name": "Washington",
+    "links": [
+      { "board": "Washington Medical Commission", "url": "https://wmc.wa.gov/complaints-actions/file-complaint-against-md-or-pa", "primary": true },
+      { "board": "Washington Board of Osteopathic Medicine and Surgery", "url": "https://doh.wa.gov/licenses-permits-and-certificates/health-professions/osteopathic-medicine-and-surgery", "primary": false }
+    ]
+  },
+  {
+    "code": "WV",
+    "name": "West Virginia",
+    "links": [
+      { "board": "West Virginia Board of Medicine", "url": "https://wvbom.wv.gov/complaints.asp", "primary": true },
+      { "board": "West Virginia Board of Osteopathic Medicine", "url": "https://www.wvbdosteo.org/", "primary": false }
+    ]
+  },
+  {
+    "code": "WI",
+    "name": "Wisconsin",
+    "links": [
+      { "board": "Wisconsin Medical Examining Board (DSPS)", "url": "https://dsps.wi.gov/Pages/BoardsCouncils/MEB/Default.aspx", "primary": true },
+      { "board": "Wisconsin — File a Complaint", "url": "https://dsps.wi.gov/Pages/SelfService/FileAComplaint.aspx", "primary": false }
+    ]
+  },
+  {
+    "code": "WY",
+    "name": "Wyoming",
+    "links": [
+      { "board": "Wyoming Board of Medicine", "url": "https://wyomedboard.wyo.gov/discipline/complaint-information", "primary": true }
+    ]
+  }
 ]
