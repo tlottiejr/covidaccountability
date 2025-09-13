@@ -1,61 +1,62 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Complaint Portal — COVID Accountability</title>
-  <link rel="stylesheet" href="/assets/site.css" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Complaint Portal — COVIDAccountabilityNow</title>
+  <link rel="stylesheet" href="/assets/site.css"/>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
 </head>
 <body>
-  <div class="container">
-    <header class="header">
-      <a href="/">COVID Accountability</a>
-      <nav>
-        <a href="/complaint-portal.html" aria-current="page">Complaint portal</a>
-      </nav>
-    </header>
+  <div id="nav-root"></div>
+  <script src="/assets/nav-include.js" defer></script>
 
-    <div class="card">
-      <h1>Report a Complaint</h1>
+  <main class="container">
+    <h1>Complaint Portal</h1>
+    <p class="small">Choose your state to open the official complaint page... Optionally, write your experience and save a personal copy.</p>
 
-      <div class="row">
-        <div>
-          <label for="state">Select a state</label>
-          <select id="state" aria-label="Select state"></select>
+    <div class="grid grid-2">
+      <section class="card">
+        <h2>Find your state board</h2>
+
+        <label for="stateSelect">State</label>
+        <select id="stateSelect" aria-label="State"></select>
+
+        <div style="margin-top: 16px;"><div class="small">Board</div><div id="stateName">—</div></div>
+        <div style="margin-top: 12px;"><div class="small">URL</div><div id="stateUrl"><span class="small">Not available yet</span></div></div>
+        <div style="margin-top: 12px;"><div class="small">Host</div><div id="stateHost">—</div></div>
+        <div style="margin-top: 12px;"><div class="small">Status</div><div id="stateStatus"><span class="badge">—</span></div></div>
+
+        <div style="margin-top: 12px;" class="small" id="dataSource" aria-live="polite"></div>
+        <div style="margin-top: 16px;"><button id="openBtn" class="btn" disabled>Open board page</button></div>
+
+        <div style="margin-top: 16px;">
+          <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8"></div>
         </div>
-      </div>
+      </section>
 
-      <div class="row" style="margin-top:12px;">
-        <div>
-          <label>Board name</label>
-          <div id="boardName">—</div>
+      <section class="card">
+        <h2>Write your experience (optional)</h2>
+
+        <label for="nameInput">Your name</label>
+        <input id="nameInput" type="text" placeholder="Jane Doe" autocomplete="name"/>
+
+        <label for="emailInput">Your email</label>
+        <input id="emailInput" type="email" placeholder="jane@example.com" autocomplete="email"/>
+
+        <label for="detailsInput">What happened?</label>
+        <textarea id="detailsInput" rows="8" placeholder="Describe the issue..."></textarea>
+
+        <div class="row">
+          <label class="checkbox"><input id="saveJson" type="checkbox"/> Save a copy (PDF)</label>
+          <button id="copyText" class="btn-outline" type="button">Copy text</button>
         </div>
-        <div>
-          <label>Board URL</label>
-          <div id="boardUrl">—</div>
-        </div>
-      </div>
 
-      <div class="row" style="margin-top:12px;">
-        <div>
-          <label>Board host</label>
-          <div id="boardHost">—</div>
-        </div>
-      </div>
-
-      <div style="margin-top:12px;">
-        <button id="openBoard" type="button" disabled aria-disabled="true">Open board page</button>
-        <div id="boardStatus" class="status" aria-live="polite">—</div>
-      </div>
-
-      <!-- Turnstile widget (no callbacks needed in this version) -->
-      <div id="turnstile-block" style="margin-top:12px;">
-        <div class="cf-turnstile" data-sitekey="REPLACE_WITH_REAL_TURNSTILE_SITE_KEY"></div>
-      </div>
+        <div class="small muted">We don’t store this. It stays on your device.</div>
+      </section>
     </div>
-  </div>
+  </main>
 
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <script src="/assets/app.js" defer></script>
 </body>
 </html>
