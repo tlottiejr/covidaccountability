@@ -3,64 +3,70 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Complaint Portal — COVIDAccountabilityNow</title>
+  <title>Complaint Portal — COVID Accountability Now</title>
   <link rel="stylesheet" href="/assets/site.css"/>
-  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
+  <link rel="stylesheet" href="/assets/portal.css"/>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
   <div id="nav-root"></div>
   <script src="/assets/nav-include.js" defer></script>
 
-  <main class="container">
+  <main class="container" id="main">
     <h1>Complaint Portal</h1>
-    <p class="small">Choose your state to open the official complaint page. Optionally, write your experience and save a personal copy.</p>
+    <p class="small">
+      Select your state and the appropriate board. We’ll open the official site in a new tab.
+      Your report content is prepared locally and not stored by us.
+    </p>
 
-    <div class="grid grid-2">
-      <section class="card">
-        <h2>Find your state board</h2>
+    <!-- Status live region (screen-reader announcements) -->
+    <div id="sr-status" class="visually-hidden" role="status" aria-live="polite"></div>
 
-        <label for="stateSelect">State</label>
-        <select id="stateSelect" aria-label="State"></select>
-
-        <div style="margin-top: 16px;"><div class="small">Board</div><div id="stateName">—</div></div>
-        <div style="margin-top: 12px;"><div class="small">URL</div><div id="stateUrl"><span class="small">Not available yet</span></div></div>
-        <div style="margin-top: 12px;"><div class="small">Host</div><div id="stateHost">—</div></div>
-        <div style="margin-top: 12px;"><div class="small">Status</div><div id="stateStatus"><span class="badge">—</span></div></div>
-
-        <div style="margin-top: 12px;" class="small" id="dataSource" aria-live="polite"></div>
-        <div style="margin-top: 16px;"><button id="openBtn" class="btn" disabled>Open board page</button></div>
-      </section>
-
-      <section class="card">
-        <h2>Share your experience (optional)</h2>
-        <div class="grid">
-          <div><label for="nameInput">Name (optional)</label><input id="nameInput" type="text" placeholder="Your name…"/></div>
-          <div><label for="emailInput">Email (optional)</label><input id="emailInput" type="email" placeholder="you@example.com"/></div>
-          <div><label for="detailsInput">Details</label><textarea id="detailsInput" placeholder="Describe what happened…"></textarea></div>
-        </div>
-        <div style="margin-top: 16px;">
-          <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8"></div>
-          <div class="small" style="margin-top: 8px;">Verification prevents spam.</div>
-        </div>
-      </section>
-    </div>
-
-    <section class="card" style="margin-top: 18px;">
-      <h2>Optional actions</h2>
-      <div class="grid">
-        <label><input type="checkbox" id="saveJson"/> Save a local copy (PDF)</label>
-        <label><input type="checkbox" id="copyText"/> Copy text to clipboard</label>
-        <div><button id="reportBtn" class="btn">Submit report</button></div>
-      </div>
-      <p class="small" style="margin-top:12px;">
-        We do not store your report content. Use the options above to save or copy your information locally, then file your report on the official state site.
-      </p>
+    <section class="card" aria-labelledby="stateLegend">
+      <fieldset class="stack">
+        <legend id="stateLegend" class="h4">Choose your state</legend>
+        <label for="stateSelect" class="visually-hidden">State</label>
+        <select id="stateSelect" name="state" autocomplete="address-level1" aria-describedby="stateHelp">
+          <option value="">— Select your state —</option>
+        </select>
+        <p id="stateHelp" class="small">
+          We maintain links to official complaint portals. After choosing a state, pick a board.
+        </p>
+      </fieldset>
     </section>
 
-    <footer><a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a></footer>
+    <section class="card" aria-labelledby="boardsLegend">
+      <fieldset class="stack">
+        <legend id="boardsLegend" class="h4">Select a board in your state</legend>
+        <!-- Radios render here -->
+        <div id="boards" role="radiogroup" aria-labelledby="boardsLegend"></div>
+      </fieldset>
+    </section>
+
+    <section class="card" aria-labelledby="openLegend">
+      <h2 id="openLegend" class="h4">Open board site</h2>
+      <div class="stack">
+        <div class="turnstile-box" aria-label="Human verification">
+          <!-- If Turnstile is configured for this domain, it will render here; otherwise this stays empty. -->
+          <div class="cf-turnstile" data-sitekey="" data-theme="light"></div>
+        </div>
+
+        <button id="openBtn" class="btn" type="button" disabled aria-disabled="true" aria-describedby="openHelp">
+          Open selected board page
+        </button>
+        <p id="openHelp" class="small">
+          We’ll open the selected board in a new tab. Verification is used when available; if it fails,
+          we still open the board (fallback).
+        </p>
+      </div>
+    </section>
   </main>
 
-  <script src="/assets/app.js" defer></script>
+  <footer>
+    <a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a>
+  </footer>
+
+  <script src="/assets/app.js" type="module"></script>
 </body>
 </html>
 
