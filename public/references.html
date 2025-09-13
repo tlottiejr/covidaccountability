@@ -1,11 +1,25 @@
 <!doctype html>
 <html lang="en">
+<style>
+  /* Hide any data/status chip above the grid */
+  #refStatus, .ref-status, #dataSource, .data-source { display: none !important; }
+</style>
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>References — COVIDAccountabilityNow</title>
   <link rel="stylesheet" href="/assets/site.css"/>
 </head>
+<script>
+  (function () {
+    document.querySelectorAll('#refStatus,.ref-status,#dataSource,.data-source').forEach(n => n.remove());
+    const nodes = Array.from(document.querySelectorAll('div,section,p,span'));
+    nodes.forEach(n => {
+      const t = (n.textContent || '').trim();
+      if (/^Loaded\s+\d+\s+references/i.test(t) && /assets\/references\.json/i.test(t)) n.remove();
+    });
+  })();
+</script>
 <body>
   <div id="nav-root"></div>
   <script src="/assets/nav-include.js" defer></script>
