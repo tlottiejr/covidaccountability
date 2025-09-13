@@ -11,7 +11,7 @@
     dataSource: $('#dataSource'),
     openBtn: $('#openBtn'),
     reportBtn: $('#reportBtn'),
-    saveJson: $('#saveJson'),      // checkbox; now saves PDF (ID unchanged)
+    saveJson: $('#saveJson'),      // checkbox; now saves TXT (kept id for parity)
     copyText: $('#copyText'),
     nameInput: $('#nameInput'),
     emailInput: $('#emailInput'),
@@ -32,10 +32,12 @@
 
   // ---------- UI helpers ----------
   function setBadge(text, danger = false) {
+    if (!els.stateStatus) return;
     els.stateStatus.innerHTML = `<span class="badge${danger ? ' danger' : ''}">${text}</span>`;
   }
-  function showSource(text) { els.dataSource.textContent = text || ''; }
+  function showSource(text) { if (els.dataSource) els.dataSource.textContent = text || ''; }
   function flash(text, ms = 3000) {
+    if (!els.dataSource) return;
     const old = els.dataSource.textContent;
     els.dataSource.textContent = text;
     setTimeout(() => { els.dataSource.textContent = old; }, ms);
@@ -177,11 +179,11 @@
   function setSelectedLink(l) {
     selectedLinkUrl = l?.url || '';
     selectedLinkBoard = l?.board || '';
-    els.stateName.textContent = selectedLinkBoard || '—';
+    if (els.stateName) els.stateName.textContent = selectedLinkBoard || '—';
     try {
       const u = new URL(selectedLinkUrl);
-      els.stateHost.textContent = u.hostname;
-    } catch { els.stateHost.textContent = '—'; }
+      if (els.stateHost) els.stateHost.textContent = u.hostname;
+    } catch { if (els.stateHost) els.stateHost.textContent = '—'; }
   }
 
   function renderLinks(state) {
@@ -191,9 +193,9 @@
 
     if (!state || !state.links || state.links.length === 0) {
       container.innerHTML = `<span class="small">Not available yet</span>`;
-      els.stateName.textContent = '—';
-      els.stateHost.textContent = '—';
-      els.openBtn.disabled = true;
+      if (els.stateName) els.stateName.textContent = '—';
+      if (els.stateHost) els.stateHost.textContent = '—';
+      if (els.openBtn) els.openBtn.disabled = true;
       setBadge('Unavailable', true);
       return;
     }
@@ -249,16 +251,16 @@
       btn.remove();
     });
 
-    els.openBtn.disabled = false;
+    if (els.openBtn) els.openBtn.disabled = false;
     setBadge('Ready');
   }
 
   function renderState(s) {
     selected = s || null;
     if (!s) {
-      els.stateName.textContent = '—';
-      els.stateHost.textContent = '—';
-      els.openBtn.disabled = true;
+      if (els.stateName) els.stateName.textContent = '—';
+      if (els.stateHost) els.stateHost.textContent = '—';
+      if (els.openBtn) els.openBtn.disabled = true;
       els.stateUrl.innerHTML = '';
       return;
     }
@@ -276,8 +278,7 @@
   // ---------- Turnstile integration ----------
   async function verifyTurnstile() {
     try {
-      // site injects widget; this gets the response if present
-      // window.turnstile is available on production; guard for local preview
+      // window.turnstile is present when the widget renders; guard for preview
       const token = window.turnstile?.getResponse?.() || '';
       if (!token) return false;
       const res = await fetch('/api/verify-turnstile', {
@@ -300,10 +301,10 @@
         try { return new URL(selectedLinkUrl).hostname; } catch { return ''; }
       })() } : null,
       reporter: {
-        name: els.nameInput.value.trim(),
-        email: els.emailInput.value.trim()
+        name: els.nameInput?.value.trim() || '',
+        email: els.emailInput?.value.trim() || ''
       },
-      details: els.details.value.trim()
+      details: els.details?.value.trim() || ''
     };
   }
 
@@ -326,9 +327,7 @@
     return lines.join('\n');
   }
 
-  // simple PDF via window.print replacement (placeholder retained for parity)
-  function savePdf(text) {
-    // For MVP, we generate a text blob and save .txt; leaving ID “saveJson” as-is for acceptance compatibility
+  function saveTxt(text) {
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     const a = document.createElement('a');
     a.href = URL.createObjectURL(blob);
@@ -351,20 +350,20 @@
 
   els.reportBtn?.addEventListener('click', async () => {
     if (!selected) { flash('Choose a state first.'); return; }
-    if (!els.saveJson.checked && !els.copyText.checked) {
-      flash('Select at least one option: Save PDF or Copy text.'); return;
+    if (!els.saveJson?.checked && !els.copyText?.checked) {
+      flash('Select at least one option: Save or Copy.'); return;
     }
     const r = buildReport();
     const ts = new Date(r.generatedAt).toISOString().replace(/[:.]/g,'-');
     const base = selected ? selected.code : 'report';
 
     let did = [];
-    if (els.copyText.checked) {
+    if (els.copyText?.checked) {
       await navigator.clipboard.writeText(toText(r));
       did.push('copied');
     }
-    if (els.saveJson.checked) {
-      savePdf(toText(r));
+    if (els.saveJson?.checked) {
+      saveTxt(toText(r));
       did.push('saved');
     }
     flash(`Report ${did.join(' & ')} (${base}-${ts})`);
@@ -374,7 +373,7 @@
     STATES = await loadStates();
     if (!STATES.length) {
       setBadge('No data', true);
-      els.openBtn.disabled = true;
+      if (els.openBtn) els.openBtn.disabled = true;
       showSource('No data sources resolved — ensure /assets/state-links.json exists.');
       return;
     }
