@@ -1,2 +1,8 @@
-/*
+/* 
   X-Robots-Tag: noindex, nofollow, noarchive
+
+/assets/app.js
+  Cache-Control: no-cache, must-revalidate
+
+/assets/state-links.json
+  Cache-Control: no-cache
