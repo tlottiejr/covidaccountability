@@ -1,42 +1,71 @@
 <!doctype html>
 <html lang="en">
-<style>
-  /* Hide any data/status chip above the grid */
-  #refStatus, .ref-status, #dataSource, .data-source { display: none !important; }
-</style>
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
   <title>References — COVIDAccountabilityNow</title>
   <link rel="stylesheet" href="/assets/site.css"/>
 </head>
-<script>
-  (function () {
-    document.querySelectorAll('#refStatus,.ref-status,#dataSource,.data-source').forEach(n => n.remove());
-    const nodes = Array.from(document.querySelectorAll('div,section,p,span'));
-    nodes.forEach(n => {
-      const t = (n.textContent || '').trim();
-      if (/^Loaded\s+\d+\s+references/i.test(t) && /assets\/references\.json/i.test(t)) n.remove();
-    });
-  })();
-</script>
 <body>
   <div id="nav-root"></div>
   <script src="/assets/nav-include.js" defer></script>
 
   <main class="container">
     <h1>References</h1>
-    <p class="small">
-      Curated materials that support reporting and accountability. Video references are embedded when available; others link out to their sources.
-    </p>
+    <p class="small">Curated materials that support reporting and accountability.</p>
 
-    <section id="refsStatus" class="card small">Loading…</section>
-    <section id="refsList" class="grid grid-2"></section>
+    <section id="refsStatus" role="status" aria-live="polite" class="card small">Loading…</section>
+    <section id="refsList" class="grid grid-2" role="list"></section>
   </main>
 
-  <footer><a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a></footer>
+  <footer>
+    <a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a>
+  </footer>
 
-  <script src="/assets/references.js" defer></script>
-  <script defer src="/assets/references-auto.js"></script>
+  <!-- Self-contained renderer (no external references*.js) -->
+  <script type="module">
+    const statusEl = document.getElementById('refsStatus');
+    const listEl = document.getElementById('refsList');
+
+    const esc = (s='') => s.toString()
+      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
+      .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
+
+    async function loadReferences() {
+      const res = await fetch('/assets/references.json?v=' + Date.now(), { cache: 'no-store' });
+      if (!res.ok) throw new Error('HTTP ' + res.status);
+      return res.json();
+    }
+
+    function render(items = []) {
+      listEl.innerHTML = '';
+      for (const r of items) {
+        const card = document.createElement('article');
+        card.setAttribute('role', 'listitem');
+        card.className = 'card';
+        card.innerHTML = `
+          <h3 class="h4">
+            <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title || r.url)}</a>
+          </h3>
+          <p class="small">
+            ${esc(r.source || '')}${r.date ? ' · ' + esc(r.date) : ''}
+          </p>
+          ${r.description ? `<p>${esc(r.description)}</p>` : ''}
+        `;
+        listEl.appendChild(card);
+      }
+    }
+
+    (async () => {
+      try {
+        const data = await loadReferences();
+        render(Array.isArray(data) ? data : []);
+        statusEl.remove(); // remove status/blip when done
+      } catch (e) {
+        statusEl.textContent = 'Could not load references.';
+        console.error('references load error:', e);
+      }
+    })();
+  </script>
 </body>
 </html>
