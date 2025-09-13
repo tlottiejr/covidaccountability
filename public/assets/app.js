@@ -1,4 +1,4 @@
-/* public/assets/app.js — resilient loader + board name + local save/copy actions (PDF) */
+/* public/assets/app.js — resilient loader + board name + local save/copy actions (TXT) */
 (() => {
   const $ = (sel) => document.querySelector(sel);
 
@@ -11,7 +11,7 @@
     dataSource: $('#dataSource'),
     openBtn: $('#openBtn'),
     reportBtn: $('#reportBtn'),
-    saveJson: $('#saveJson'),      // checkbox; now saves TXT (kept id for parity)
+    saveJson: $('#saveJson'),      // checkbox; saves TXT (kept id for parity)
     copyText: $('#copyText'),
     nameInput: $('#nameInput'),
     emailInput: $('#emailInput'),
@@ -28,7 +28,7 @@
     '/state-links.json',
     '/public/assets/state-links.json'
   ];
-  const STATIC_JS_FALLBACK = '/assets/state-links.js'; // optional fallback
+  const STATIC_JS_FALLBACK = '/assets/state-links.js'; // optional
 
   // ---------- UI helpers ----------
   function setBadge(text, danger = false) {
@@ -102,7 +102,6 @@
   }
 
   async function tryStaticJSON() {
-    // derive a token once to append to all static candidates
     const v = await getVersionToken('/assets/state-links.json');
     for (const p of STATIC_JSON_CANDIDATES) {
       const url = `${p}?v=${encodeURIComponent(v)}`;
@@ -186,12 +185,14 @@
     } catch { if (els.stateHost) els.stateHost.textContent = '—'; }
   }
 
+  // SHOW ALL LINKS BY DEFAULT (no toggle), DOM-safe
   function renderLinks(state) {
     const container = els.stateUrl;
     container.innerHTML = '';
-    selectedLinkUrl = ''; selectedLinkBoard = '';
+    selectedLinkUrl = '';
+    selectedLinkBoard = '';
 
-    if (!state || !state.links || state.links.length === 0) {
+    if (!state || !Array.isArray(state.links) || state.links.length === 0) {
       container.innerHTML = `<span class="small">Not available yet</span>`;
       if (els.stateName) els.stateName.textContent = '—';
       if (els.stateHost) els.stateHost.textContent = '—';
@@ -200,57 +201,48 @@
       return;
     }
 
-    // pick primary or first
-    const primaryIdx = Math.max(0, state.links.findIndex(l => l.primary));
-    const primary = state.links[primaryIdx];
-    const others = state.links.filter((_, i) => i !== primaryIdx);
-    setSelectedLink(primary);
+    // Default selection: primary if present, else first
+    const primaryIdx = state.links.findIndex(l => l && l.primary);
+    const checkedIdx = primaryIdx >= 0 ? primaryIdx : 0;
 
-    // primary block
-    const htmlPrimary = `
-      <div>
-        <label>
-          <input type="radio" name="linkChoice-${state.code}" value="${primary.url}"
-                 data-board="${primary.board || 'Official Complaint Link'}" checked />
-          <strong>${primary.board || 'Official Complaint Link'}</strong>
-          <div class="small" style="margin-left:24px;">${primary.url}</div>
-        </label>
-      </div>`;
+    // Build radios with pure DOM (avoids template pitfalls)
+    state.links.forEach((link, idx) => {
+      const board = link.board || 'Official Complaint Link';
+      const url = link.url || '';
 
-    // others, initially hidden
-    const htmlOthers = others.map((l, idx) => `
-      <div class="moreLink" style="margin:6px 0; display:none;">
-        <label>
-          <input type="radio" name="linkChoice-${state.code}" value="${l.url}"
-                 data-board="${l.board || 'Official Complaint Link'}" />
-          <strong>${l.board || 'Official Complaint Link'}</strong>
-          <div class="small" style="margin-left:24px;">${l.url}</div>
-        </label>
-      </div>
-    `).join('');
+      const row = document.createElement('div');
+      row.style.margin = '6px 0';
 
-    const toggleBtn = others.length
-      ? `<button type="button" id="moreLinksBtn" class="btn" style="margin-top:8px;">More links (${others.length})</button>`
-      : '';
+      const label = document.createElement('label');
+      const input = document.createElement('input');
+      input.type = 'radio';
+      input.name = `linkChoice-${state.code}`;
+      input.value = url;
+      input.setAttribute('data-board', board);
+      if (idx === checkedIdx) input.checked = true;
 
-    container.innerHTML = `${htmlPrimary}${toggleBtn}<div id="moreLinksWrap">${htmlOthers}</div>`;
-
-    // radio change -> update selection and host display
-    container.querySelectorAll(`input[type="radio"][name="linkChoice-${state.code}"]`).forEach(r => {
-      r.addEventListener('change', (e) => {
-        const url = e.target.value;
-        const board = e.target.getAttribute('data-board') || '';
-        setSelectedLink({ url, board });
+      input.addEventListener('change', () => {
+        setSelectedLink({ url: input.value, board: input.getAttribute('data-board') || '' });
       });
+
+      const strong = document.createElement('strong');
+      strong.textContent = board;
+
+      const small = document.createElement('div');
+      small.className = 'small';
+      small.style.marginLeft = '24px';
+      small.textContent = url;
+
+      label.appendChild(input);
+      label.appendChild(strong);
+      label.appendChild(small);
+
+      row.appendChild(label);
+      container.appendChild(row);
     });
 
-    const btn = container.querySelector('#moreLinksBtn');
-    const wrap = container.querySelector('#moreLinksWrap');
-    btn?.addEventListener('click', () => {
-      wrap.querySelectorAll('.moreLink').forEach(x => x.style.display = 'block');
-      btn.remove();
-    });
-
+    // Apply initial selection & enable button
+    setSelectedLink(state.links[checkedIdx]);
     if (els.openBtn) els.openBtn.disabled = false;
     setBadge('Ready');
   }
@@ -278,7 +270,6 @@
   // ---------- Turnstile integration ----------
   async function verifyTurnstile() {
     try {
-      // window.turnstile is present when the widget renders; guard for preview
       const token = window.turnstile?.getResponse?.() || '';
       if (!token) return false;
       const res = await fetch('/api/verify-turnstile', {
@@ -291,7 +282,7 @@
     } catch { return false; }
   }
 
-  // ---------- Build report (for PDF/Text) ----------
+  // ---------- Report helpers (optional) ----------
   function buildReport() {
     const now = new Date().toISOString();
     return {
@@ -307,7 +298,6 @@
       details: els.details?.value.trim() || ''
     };
   }
-
   function toText(r) {
     const lines = [];
     lines.push(`# Complaint Portal — Report`);
@@ -326,7 +316,6 @@
     lines.push(r.details || '');
     return lines.join('\n');
   }
-
   function saveTxt(text) {
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     const a = document.createElement('a');
@@ -340,7 +329,7 @@
   els.openBtn?.addEventListener('click', async () => {
     if (!selectedLinkUrl) return;
     setBadge('Verifying…');
-    let ok = false; 
+    let ok = false;
     try { ok = await verifyTurnstile(); } catch {}
     if (!ok) { setBadge('Verification failed — opening anyway', true); }
     else { setBadge('Opening…'); }
