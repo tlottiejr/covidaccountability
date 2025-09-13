@@ -1,0 +1,685 @@
+{
+  "generatedAt": "2025-09-13T08:59:14.639Z",
+  "items": [
+    {
+      "state": "Alabama",
+      "board": "Alabama Board of Medical Examiners",
+      "url": "https://www.albme.gov/consumers/complaints/#filing-a-complaint",
+      "status": 200,
+      "finalUrl": "https://www.albme.gov/consumers/complaints/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:15.088Z"
+    },
+    {
+      "state": "Alabama",
+      "board": "Medical Licensure Commission of Alabama",
+      "url": "https://www.albme.gov/consumers/complaints/#filing-a-complaint",
+      "status": 200,
+      "finalUrl": "https://www.albme.gov/consumers/complaints/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:15.359Z"
+    },
+    {
+      "state": "Alaska",
+      "board": "Alaska State Medical Board",
+      "url": "https://www.commerce.alaska.gov/web/cbpl/ComplaintFAQs.aspx",
+      "status": 200,
+      "finalUrl": "https://www.commerce.alaska.gov/web/cbpl/ComplaintFAQs.aspx",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:15.722Z"
+    },
+    {
+      "state": "Arizona",
+      "board": "Arizona Medical Board",
+      "url": "https://azmd.gov/Regulation/Regulation#",
+      "status": 403,
+      "finalUrl": "https://azmd.gov/Regulation/Regulation",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-13T08:59:15.797Z"
+    },
+    {
+      "state": "Arizona",
+      "board": "Arizona Board of Osteopathic Examiners",
+      "url": "https://azdo.gov/consumer-resources/filing-complaint",
+      "status": 200,
+      "finalUrl": "https://azdo.gov/consumer-resources/filing-complaint",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:15.946Z"
+    },
+    {
+      "state": "Arkansas",
+      "board": "Arkansas State Medical Board",
+      "url": "https://www.armedicalboard.org/Public/FileAComplaint.aspx",
+      "status": 200,
+      "finalUrl": "https://www.armedicalboard.org/Public/FileAComplaint.aspx",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:16.282Z"
+    },
+    {
+      "state": "California",
+      "board": "Medical Board of California",
+      "url": "https://www.mbc.ca.gov/Consumers/file-a-complaint/",
+      "status": 200,
+      "finalUrl": "https://www.mbc.ca.gov/Consumers/file-a-complaint/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:16.628Z"
+    },
+    {
+      "state": "California",
+      "board": "Osteopathic Medical Board of California",
+      "url": "https://www.ombc.ca.gov/consumer_complaint/file_a_complaint.shtml",
+      "status": 200,
+      "finalUrl": "https://www.ombc.ca.gov/consumer_complaint/file_a_complaint.shtml",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:16.985Z"
+    },
+    {
+      "state": "Colorado",
+      "board": "CO Division of Professions and Occupations",
+      "url": "https://dpo.colorado.gov/FileComplaint",
+      "status": 200,
+      "finalUrl": "https://dpo.colorado.gov/FileComplaint",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:17.064Z"
+    },
+    {
+      "state": "Connecticut",
+      "board": "CT Department of Public Health — Petition Form",
+      "url": "https://portal.ct.gov/-/media/DPH/PIU-documents/2021-petition-form.pdf",
+      "status": 200,
+      "finalUrl": "https://portal.ct.gov/-/media/DPH/PIU-documents/2021-petition-form.pdf",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:17.202Z"
+    },
+    {
+      "state": "Delaware",
+      "board": "Delaware Professional Regulation (DELPROS)",
+      "url": "https://delpros.delaware.gov/oh_filecomplaint",
+      "status": 200,
+      "finalUrl": "https://delpros.delaware.gov/oh_filecomplaint",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:17.692Z"
+    },
+    {
+      "state": "District of Columbia",
+      "board": "DC Health — File a Complaint",
+      "url": "https://dchealth.dc.gov/node/145702",
+      "status": 200,
+      "finalUrl": "https://dchealth.dc.gov/node/145702",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:17.762Z"
+    },
+    {
+      "state": "Florida",
+      "board": "Florida Board of Medicine",
+      "url": "https://complaint-portal.mqa.flhealthsource.gov/home",
+      "status": 200,
+      "finalUrl": "https://complaint-portal.mqa.flhealthsource.gov/home",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:17.811Z"
+    },
+    {
+      "state": "Florida",
+      "board": "Florida Board of Osteopathic Medicine",
+      "url": "https://complaint-portal.mqa.flhealthsource.gov/home",
+      "status": 200,
+      "finalUrl": "https://complaint-portal.mqa.flhealthsource.gov/home",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:17.847Z"
+    },
+    {
+      "state": "Georgia",
+      "board": "Georgia Composite Medical Board",
+      "url": "https://medicalboard.georgia.gov/consumer-resources/filing-complaint",
+      "status": 200,
+      "finalUrl": "https://medicalboard.georgia.gov/consumer-resources/filing-complaint",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:17.927Z"
+    },
+    {
+      "state": "Guam",
+      "board": "Guam Health Professional Licensing Office",
+      "url": "https://guamhplo.org/sites/default/files/hplo_complaint_form_updated_form_fillable_01.11.2022_0.pdf",
+      "status": 200,
+      "finalUrl": "https://guamhplo.org/sites/default/files/hplo_complaint_form_updated_form_fillable_01.11.2022_0.pdf",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:18.075Z"
+    },
+    {
+      "state": "Hawaii",
+      "board": "Hawaii RICO (DCCA) — File a Complaint",
+      "url": "https://cca.hawaii.gov/rico/file/",
+      "status": 200,
+      "finalUrl": "https://cca.hawaii.gov/rico/file/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:18.153Z"
+    },
+    {
+      "state": "Idaho",
+      "board": "Idaho Division of Occupational & Professional Licenses",
+      "url": "https://dopl.idaho.gov/filing-a-complaint/",
+      "status": 200,
+      "finalUrl": "https://dopl.idaho.gov/filing-a-complaint/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:20.590Z"
+    },
+    {
+      "state": "Illinois",
+      "board": "Illinois Dept. of Financial & Professional Regulation (IDFPR)",
+      "url": "https://idfpr.illinois.gov/admin/complaints.html",
+      "status": 200,
+      "finalUrl": "https://idfpr.illinois.gov/admin/complaints.html",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:20.791Z"
+    },
+    {
+      "state": "Indiana",
+      "board": "Indiana Attorney General — Consumer Complaint",
+      "url": "https://www.in.gov/attorneygeneral/consumer-protection-division/file-a-complaint/",
+      "status": 200,
+      "finalUrl": "https://www.in.gov/attorneygeneral/consumer-protection-division/file-a-complaint/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:20.984Z"
+    },
+    {
+      "state": "Iowa",
+      "board": "Iowa DIAL — Board of Medicine",
+      "url": "https://dial.iowa.gov/about-dial/boards/medicine",
+      "status": 200,
+      "finalUrl": "https://dial.iowa.gov/about-dial/boards/medicine",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:21.282Z"
+    },
+    {
+      "state": "Kansas",
+      "board": "Kansas State Board of Healing Arts",
+      "url": "https://www.ksbha.ks.gov/departments/disciplinary-investigations",
+      "status": 403,
+      "finalUrl": "https://www.ksbha.ks.gov/departments/disciplinary-investigations",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-13T08:59:21.497Z"
+    },
+    {
+      "state": "Kentucky",
+      "board": "Kentucky Board of Medical Licensure",
+      "url": "https://kbml.ky.gov/grievances/Pages/default.aspx",
+      "status": 200,
+      "finalUrl": "https://kbml.ky.gov/grievances/Pages/default.aspx",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:21.762Z"
+    },
+    {
+      "state": "Louisiana",
+      "board": "Louisiana State Board of Medical Examiners",
+      "url": "https://www.lsbme.la.gov/content/investigations",
+      "status": 200,
+      "finalUrl": "https://www.lsbme.la.gov/content/investigations",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:22.326Z"
+    },
+    {
+      "state": "Maine",
+      "board": "Maine Board of Licensure in Medicine",
+      "url": "https://www.maine.gov/md/complaint/file-complaint",
+      "status": 200,
+      "finalUrl": "https://www.maine.gov/md/complaint/file-complaint",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:22.909Z"
+    },
+    {
+      "state": "Maine",
+      "board": "Maine Board of Osteopathic Licensure",
+      "url": "https://www.maine.gov/osteo/file-complaint",
+      "status": 200,
+      "finalUrl": "https://www.maine.gov/osteo/file-complaint",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:23.031Z"
+    },
+    {
+      "state": "Maryland",
+      "board": "Maryland Board of Physicians",
+      "url": "https://www.mbp.state.md.us/resource_information/res_con/resource_consumer_complaints.aspx",
+      "status": 200,
+      "finalUrl": "https://www.mbp.state.md.us/resource_information/res_con/resource_consumer_complaints.aspx",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:23.132Z"
+    },
+    {
+      "state": "Massachusetts",
+      "board": "Massachusetts Board of Registration in Medicine",
+      "url": "https://www.mass.gov/info-details/submit-a-complaint-against-a-physician",
+      "status": 403,
+      "finalUrl": "https://www.mass.gov/info-details/submit-a-complaint-against-a-physician",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-13T08:59:23.376Z"
+    },
+    {
+      "state": "Michigan",
+      "board": "Michigan LARA — MiPLUS (Medicine)",
+      "url": "https://www.michigan.gov/lara/bureau-list/bpl/complaint/miplus/filing-a-complaint-with-miplus",
+      "status": 200,
+      "finalUrl": "https://www.michigan.gov/lara/bureau-list/bpl/complaint/miplus/filing-a-complaint-with-miplus",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:23.690Z"
+    },
+    {
+      "state": "Michigan",
+      "board": "Michigan LARA — MiPLUS (Osteopathic Medicine & Surgery)",
+      "url": "https://www.michigan.gov/lara/bureau-list/bpl/complaint/miplus/filing-a-complaint-with-miplus",
+      "status": 200,
+      "finalUrl": "https://www.michigan.gov/lara/bureau-list/bpl/complaint/miplus/filing-a-complaint-with-miplus",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:23.730Z"
+    },
+    {
+      "state": "Minnesota",
+      "board": "Minnesota Board of Medical Practice",
+      "url": "https://mn.gov/boards/medical-practice/consumers/complaints/",
+      "status": 200,
+      "finalUrl": "https://mn.gov/boards/medical-practice/consumers/complaints/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:23.940Z"
+    },
+    {
+      "state": "Mississippi",
+      "board": "Mississippi State Board of Medical Licensure",
+      "url": "https://www.msbml.ms.gov/Complaints",
+      "status": 200,
+      "finalUrl": "https://www.msbml.ms.gov/Complaints",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:24.169Z"
+    },
+    {
+      "state": "Missouri",
+      "board": "Missouri Division of Professional Registration — Complaint",
+      "url": "https://mopro.mo.gov/license/s/complaint-form",
+      "status": 0,
+      "finalUrl": "",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-13T08:59:24.397Z"
+    },
+    {
+      "state": "Montana",
+      "board": "Montana Board of Medical Examiners",
+      "url": "https://bsd.dli.mt.gov/filing-complaint?pk_vid=91c8f2d5e42f8e3a1650989125a91371",
+      "status": 200,
+      "finalUrl": "https://bsd.dli.mt.gov/filing-complaint?pk_vid=91c8f2d5e42f8e3a1650989125a91371",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:25.000Z"
+    },
+    {
+      "state": "Nebraska",
+      "board": "Nebraska DHHS — Complaint Form",
+      "url": "https://phcmplnt-dhhs.ne.gov/Home/DownloadForm?formName=PHA-27-A.pdf",
+      "status": 405,
+      "finalUrl": "https://phcmplnt-dhhs.ne.gov/Home/DownloadForm?formName=PHA-27-A.pdf",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-13T08:59:25.202Z"
+    },
+    {
+      "state": "Nevada",
+      "board": "Nevada State Board of Medical Examiners",
+      "url": "https://medboard.nv.gov/Patients/File_a_Complaint/",
+      "status": 200,
+      "finalUrl": "https://medboard.nv.gov/Patients/File_a_Complaint/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:25.453Z"
+    },
+    {
+      "state": "New Hampshire",
+      "board": "New Hampshire OPLC — File a Complaint",
+      "url": "https://www.oplc.nh.gov/about-enforcement/file-complaint",
+      "status": 403,
+      "finalUrl": "https://www.oplc.nh.gov/about-enforcement/file-complaint",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-13T08:59:25.580Z"
+    },
+    {
+      "state": "New Jersey",
+      "board": "New Jersey Division of Consumer Affairs",
+      "url": "https://www.njconsumeraffairs.gov/Pages/Consumer-Complaints.aspx",
+      "status": 403,
+      "finalUrl": "https://www.njconsumeraffairs.gov/Pages/Consumer-Complaints.aspx",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-13T08:59:25.711Z"
+    },
+    {
+      "state": "New Mexico",
+      "board": "New Mexico Medical Board",
+      "url": "https://www.nmmb.state.nm.us/complaints/",
+      "status": 200,
+      "finalUrl": "https://www.nmmb.state.nm.us/complaints/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:25.941Z"
+    },
+    {
+      "state": "New York",
+      "board": "NY Dept. of Health — OPMC",
+      "url": "https://www.health.ny.gov/professionals/doctors/conduct/file_a_complaint.htm",
+      "status": 403,
+      "finalUrl": "https://www.health.ny.gov/professionals/doctors/conduct/file_a_complaint.htm",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-13T08:59:26.080Z"
+    },
+    {
+      "state": "New York",
+      "board": "NYSED Office of the Professions — Medicine",
+      "url": "https://www.op.nysed.gov/professions-index/medicine",
+      "status": 200,
+      "finalUrl": "https://www.op.nysed.gov/professions-index/medicine",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:26.141Z"
+    },
+    {
+      "state": "Northern Mariana Islands",
+      "board": "CNMI Licensing",
+      "url": "https://www.cnmilicensing.gov.mp/",
+      "status": 200,
+      "finalUrl": "https://www.cnmilicensing.gov.mp/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:32.229Z"
+    },
+    {
+      "state": "North Carolina",
+      "board": "North Carolina Medical Board",
+      "url": "https://www.ncmedboard.org/resources-information/consumer-resources/complaint-process/file-a-complaint",
+      "status": 200,
+      "finalUrl": "https://www.ncmedboard.org/resources-information/consumer-resources/complaint-process/file-a-complaint",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:33.579Z"
+    },
+    {
+      "state": "North Dakota",
+      "board": "North Dakota Board of Medicine",
+      "url": "https://www.ndbom.org/public/complaint/index.asp",
+      "status": 0,
+      "finalUrl": "",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-13T08:59:34.126Z"
+    },
+    {
+      "state": "Ohio",
+      "board": "State Medical Board of Ohio",
+      "url": "https://med.ohio.gov/Regulation/File-a-Complaint",
+      "status": 404,
+      "finalUrl": "https://med.ohio.gov/Regulation/File-a-Complaint",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-13T08:59:34.377Z"
+    },
+    {
+      "state": "Oklahoma",
+      "board": "OK State Board of Medical Licensure & Supervision",
+      "url": "https://secure.okmedicalboard.org/complaint/",
+      "status": 403,
+      "finalUrl": "https://secure.okmedicalboard.org/complaint/",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-13T08:59:34.575Z"
+    },
+    {
+      "state": "Oklahoma",
+      "board": "Oklahoma Board of Osteopathic Examiners",
+      "url": "https://osboe.portalus.thentiacloud.net/webs/portal/register/#/complaint",
+      "status": 405,
+      "finalUrl": "https://osboe.portalus.thentiacloud.net/webs/portal/register/",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-13T08:59:34.934Z"
+    },
+    {
+      "state": "Oregon",
+      "board": "Oregon Medical Board",
+      "url": "https://www.oregon.gov/omb/investigations/pages/how-to-file-a-complaint.aspx",
+      "status": 200,
+      "finalUrl": "https://www.oregon.gov/omb/investigations/pages/how-to-file-a-complaint.aspx",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:35.525Z"
+    },
+    {
+      "state": "Pennsylvania",
+      "board": "PA Dept. of State — File a Complaint (Medicine)",
+      "url": "https://www.pa.gov/agencies/dos/file-a-complaint",
+      "status": 200,
+      "finalUrl": "https://www.pa.gov/agencies/dos/file-a-complaint",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:35.601Z"
+    },
+    {
+      "state": "Pennsylvania",
+      "board": "PA Dept. of State — File a Complaint (Osteopathic)",
+      "url": "https://www.pa.gov/agencies/dos/file-a-complaint",
+      "status": 200,
+      "finalUrl": "https://www.pa.gov/agencies/dos/file-a-complaint",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:35.632Z"
+    },
+    {
+      "state": "Puerto Rico",
+      "board": "Departamento de Salud de Puerto Rico — Querellas",
+      "url": "https://www.salud.pr.gov/CMS/120",
+      "status": 200,
+      "finalUrl": "https://www.salud.pr.gov/CMS/120",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:36.355Z"
+    },
+    {
+      "state": "Rhode Island",
+      "board": "Rhode Island Department of Health — Submit a Complaint",
+      "url": "https://health.ri.gov/licensing/submit-complaint",
+      "status": 200,
+      "finalUrl": "https://health.ri.gov/licensing/submit-complaint",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:36.436Z"
+    },
+    {
+      "state": "South Carolina",
+      "board": "South Carolina LLR — File a Complaint",
+      "url": "https://llr.sc.gov/fileacomplaint.aspx",
+      "status": 200,
+      "finalUrl": "https://llr.sc.gov/fileacomplaint.aspx",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:36.805Z"
+    },
+    {
+      "state": "South Dakota",
+      "board": "South Dakota Board of Medical & Osteopathic Examiners",
+      "url": "https://www.sdbmoe.gov/complaints/",
+      "status": 200,
+      "finalUrl": "https://www.sdbmoe.gov/complaints/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:37.057Z"
+    },
+    {
+      "state": "Tennessee",
+      "board": "Tennessee Board of Medical Examiners",
+      "url": "https://www.tn.gov/content/tn/health/health-program-areas/health-professional-boards/report-a-concern.html",
+      "status": 200,
+      "finalUrl": "https://www.tn.gov/content/tn/health/health-program-areas/health-professional-boards/report-a-concern.html",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:37.377Z"
+    },
+    {
+      "state": "Tennessee",
+      "board": "Tennessee Board of Osteopathic Examination",
+      "url": "https://www.tn.gov/content/tn/health/health-program-areas/health-professional-boards/report-a-concern.html",
+      "status": 200,
+      "finalUrl": "https://www.tn.gov/content/tn/health/health-program-areas/health-professional-boards/report-a-concern.html",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:37.500Z"
+    },
+    {
+      "state": "Texas",
+      "board": "Texas Medical Board",
+      "url": "https://www.tmb.state.tx.us/page/place-a-complaint",
+      "status": 200,
+      "finalUrl": "https://www.tmb.state.tx.us/page/place-a-complaint",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:39.183Z"
+    },
+    {
+      "state": "Utah",
+      "board": "Utah Division of Professional Licensing (DOPL)",
+      "url": "https://dopl.utah.gov/file-a-complaint/",
+      "status": 200,
+      "finalUrl": "https://dopl.utah.gov/file-a-complaint/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:39.429Z"
+    },
+    {
+      "state": "Vermont",
+      "board": "Vermont Board of Medical Practice (VDH)",
+      "url": "https://www.healthvermont.gov/systems/board-medical-practice/file-complaint",
+      "status": 200,
+      "finalUrl": "https://www.healthvermont.gov/systems/board-medical-practice/file-complaint",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:39.805Z"
+    },
+    {
+      "state": "Vermont",
+      "board": "Vermont Office of Professional Regulation (OPR)",
+      "url": "https://sos.vermont.gov/opr/complaints-conduct-discipline/",
+      "status": 200,
+      "finalUrl": "https://sos.vermont.gov/opr/complaints-conduct-discipline/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:39.993Z"
+    },
+    {
+      "state": "U.S. Virgin Islands",
+      "board": "VI Board of Medical Examiners",
+      "url": "https://www.vimedicalboard.org/complaints/",
+      "status": 200,
+      "finalUrl": "https://www.vimedicalboard.org/complaints/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:40.509Z"
+    },
+    {
+      "state": "Virginia",
+      "board": "Virginia Department of Health Professions — Enforcement",
+      "url": "https://www.dhp.virginia.gov/PractitionerResources/Enforcement/FileaComplaint/",
+      "status": 200,
+      "finalUrl": "https://www.dhp.virginia.gov/PractitionerResources/Enforcement/FileaComplaint/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:40.610Z"
+    },
+    {
+      "state": "Washington",
+      "board": "Washington Medical Commission (MD/PA)",
+      "url": "https://wmc.wa.gov/complaints-actions/file-complaint-against-md-or-pa",
+      "status": 200,
+      "finalUrl": "https://wmc.wa.gov/complaints-actions/file-complaint-against-md-or-pa",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:41.016Z"
+    },
+    {
+      "state": "Washington",
+      "board": "Washington State Department of Health — Provider/Facility",
+      "url": "https://doh.wa.gov/licenses-permits-and-certificates/file-complaint-about-provider-or-facility",
+      "status": 200,
+      "finalUrl": "https://doh.wa.gov/licenses-permits-and-certificates/file-complaint-about-provider-or-facility",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:41.141Z"
+    },
+    {
+      "state": "West Virginia",
+      "board": "West Virginia Board of Medicine",
+      "url": "https://wvbom.wv.gov/Instructions_and_Forms.asp",
+      "status": 0,
+      "finalUrl": "",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-13T08:59:41.439Z"
+    },
+    {
+      "state": "West Virginia",
+      "board": "West Virginia Board of Osteopathic Medicine",
+      "url": "https://www.wvbdosteo.org/complaint/",
+      "status": 0,
+      "finalUrl": "",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-13T08:59:42.009Z"
+    },
+    {
+      "state": "Wisconsin",
+      "board": "Wisconsin DSPS — File a Complaint",
+      "url": "https://dsps.wi.gov/Pages/SelfService/FileAComplaint.aspx",
+      "status": 200,
+      "finalUrl": "https://dsps.wi.gov/Pages/SelfService/FileAComplaint.aspx",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:42.235Z"
+    },
+    {
+      "state": "Wyoming",
+      "board": "Wyoming Board of Medicine",
+      "url": "https://wyomedboard.wyo.gov/consumers/file-a-complaint",
+      "status": 200,
+      "finalUrl": "https://wyomedboard.wyo.gov/consumers/file-a-complaint",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-13T08:59:42.394Z"
+    }
+  ]
+}
