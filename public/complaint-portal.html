@@ -8,12 +8,13 @@
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
 </head>
 <body>
+  <!-- existing site nav -->
   <div id="nav-root"></div>
   <script src="/assets/nav-include.js" defer></script>
 
   <main class="container">
     <h1>Complaint Portal</h1>
-    <p class="small">Choose your state to open the official complaint page... Optionally, write your experience and save a personal copy.</p>
+    <p class="small">Choose your state to open the official complaint page. While we harden verification, you can also use the direct links below.</p>
 
     <div class="grid grid-2">
       <section class="card">
@@ -22,16 +23,42 @@
         <label for="stateSelect">State</label>
         <select id="stateSelect" aria-label="State"></select>
 
-        <div style="margin-top: 16px;"><div class="small">Board</div><div id="stateName">—</div></div>
-        <div style="margin-top: 12px;"><div class="small">URL</div><div id="stateUrl"><span class="small">Not available yet</span></div></div>
-        <div style="margin-top: 12px;"><div class="small">Host</div><div id="stateHost">—</div></div>
-        <div style="margin-top: 12px;"><div class="small">Status</div><div id="stateStatus"><span class="badge">—</span></div></div>
+        <div style="margin-top: 16px;">
+          <div class="small">Board</div>
+          <div id="stateName">—</div>
+        </div>
 
-        <div style="margin-top: 12px;" class="small" id="dataSource" aria-live="polite"></div>
-        <div style="margin-top: 16px;"><button id="openBtn" class="btn" disabled>Open board page</button></div>
+        <div style="margin-top: 12px;">
+          <div class="small">URL</div>
+          <!-- We render radio options (for selecting which link the button uses) here -->
+          <div id="stateUrl"><span class="small">Not available yet</span></div>
+        </div>
+
+        <div style="margin-top: 12px;">
+          <div class="small">Host</div>
+          <div id="stateHost">—</div>
+        </div>
+
+        <div style="margin-top: 12px;">
+          <div class="small">Status</div>
+          <div id="stateStatus"><span class="badge">—</span></div>
+          <div class="small" id="dataSource" aria-live="polite" style="margin-top:6px;"></div>
+        </div>
 
         <div style="margin-top: 16px;">
+          <button id="openBtn" class="btn" disabled>Open board page</button>
+        </div>
+
+        <!-- Turnstile widget stays (button uses it), but direct links below don't require it -->
+        <div style="margin-top: 16px;">
           <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8"></div>
+        </div>
+
+        <hr style="margin:16px 0;border:none;border-top:1px solid #e6eefc"/>
+
+        <div>
+          <div class="small" style="font-weight:600;">Direct links (temporary)</div>
+          <div id="directLinks" class="small" style="margin-top:6px;">—</div>
         </div>
       </section>
 
@@ -47,7 +74,7 @@
         <label for="detailsInput">What happened?</label>
         <textarea id="detailsInput" rows="8" placeholder="Describe the issue..."></textarea>
 
-        <div class="row">
+        <div class="row" style="margin-top:8px;">
           <label class="checkbox"><input id="saveJson" type="checkbox"/> Save a copy (PDF)</label>
           <button id="copyText" class="btn-outline" type="button">Copy text</button>
         </div>
