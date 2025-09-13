@@ -186,19 +186,60 @@
     } catch { if (els.stateHost) els.stateHost.textContent = '—'; }
   }
 
-  function renderLinks(state) {
-    const container = els.stateUrl;
-    container.innerHTML = '';
-    selectedLinkUrl = ''; selectedLinkBoard = '';
+  // Replace the entire renderLinks function with this:
+function renderLinks(state) {
+  const container = els.stateUrl;
+  container.innerHTML = '';
+  selectedLinkUrl = ''; selectedLinkBoard = '';
 
-    if (!state || !state.links || state.links.length === 0) {
-      container.innerHTML = `<span class="small">Not available yet</span>`;
-      if (els.stateName) els.stateName.textContent = '—';
-      if (els.stateHost) els.stateHost.textContent = '—';
-      if (els.openBtn) els.openBtn.disabled = true;
-      setBadge('Unavailable', true);
-      return;
-    }
+  if (!state || !state.links || state.links.length === 0) {
+    container.innerHTML = `<span class="small">Not available yet</span>`;
+    if (els.stateName) els.stateName.textContent = '—';
+    if (els.stateHost) els.stateHost.textContent = '—';
+    if (els.openBtn) els.openBtn.disabled = true;
+    setBadge('Unavailable', true);
+    return;
+  }
+
+  // Determine which link is checked by default: primary if present, else first.
+  const primaryIdx = state.links.findIndex(l => l.primary);
+  const checkedIdx = primaryIdx >= 0 ? primaryIdx : 0;
+  setSelectedLink(state.links[checkedIdx]);
+
+  // Render ALL links as radios
+  const options = state.links.map((l, idx) => {
+    const board = l.board || 'Official Complaint Link';
+    const url = l.url;
+    const checked = idx === checkedIdx ? 'checked' : '';
+    return `
+      <div style="margin:6px 0;">
+        <label>
+          <input type="radio"
+                 name="linkChoice-${state.code}"
+                 value="${url}"
+                 data-board="${board}"
+                 ${checked} />
+          <strong>${board}</strong>
+          <div class="small" style="margin-left:24px;">${url}</div>
+        </label>
+      </div>
+    `;
+  }).join('');
+
+  container.innerHTML = options;
+
+  // Wire up radio changes
+  container.querySelectorAll(`input[type="radio"][name="linkChoice-${state.code}"]`).forEach(r => {
+    r.addEventListener('change', (e) => {
+      const url = e.target.value;
+      const board = e.target.getAttribute('data-board') || '';
+      setSelectedLink({ url, board });
+    });
+  });
+
+  if (els.openBtn) els.openBtn.disabled = false;
+  setBadge('Ready');
+}
 
     // pick primary or first
     const primaryIdx = Math.max(0, state.links.findIndex(l => l.primary));
