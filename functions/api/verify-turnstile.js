@@ -19,7 +19,6 @@ export async function onRequestPost({ request, env }) {
       method: "POST",
       body: form
     });
-
     const data = await r.json().catch(() => ({}));
     const ok = !!data.success;
 
