@@ -1,4 +1,4 @@
-/* public/assets/app.js — radios + hyperlink under each board; no data-source or direct-links section */
+/* Radios + hyperlink under each board; robust loader; no "data source" UI */
 (() => {
   const $ = (sel) => document.querySelector(sel);
 
@@ -9,28 +9,25 @@
     stateHost:   $('#stateHost'),
     stateStatus: $('#stateStatus'),
     openBtn:     $('#openBtn'),
-
     saveJson:    $('#saveJson'),
     copyText:    $('#copyText'),
     nameInput:   $('#nameInput'),
     emailInput:  $('#emailInput'),
-    detailsInput:'#detailsInput' ? $('#detailsInput') : null
+    detailsInput:$('#detailsInput')
   };
 
   let STATES = [];
   let selected = null;
   let selectedLinkIdx = 0;
 
-  // ---------- utils ----------
+  // ---------- helpers ----------
   const setBadge = (text, cls = '') => {
     const span = els.stateStatus.querySelector('.badge') || document.createElement('span');
     span.className = `badge ${cls}`.trim();
     span.textContent = text;
     if (!els.stateStatus.contains(span)) els.stateStatus.appendChild(span);
   };
-
   const getHost = (url) => { try { return new URL(url).hostname; } catch { return ''; } };
-
   const enableOpen = (enabled) => {
     els.openBtn.disabled = !enabled;
     els.openBtn.setAttribute('aria-disabled', String(!enabled));
@@ -41,12 +38,11 @@
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.text();
   };
-
   const parseMaybeWrapped = (txt) => {
     const json = JSON.parse(txt.replace(/^\uFEFF/, ''));
+    // supports top-level array OR {states:[…]}
     return Array.isArray(json) ? json : (Array.isArray(json.states) ? json.states : []);
   };
-
   const primaryIndex = (links = []) => {
     const i = links.findIndex(l => l && l.primary === true);
     return i >= 0 ? i : 0;
@@ -54,13 +50,13 @@
 
   // ---------- data load ----------
   async function loadStates() {
-    // Try API first, fall back to static JSON
+    // 1) API (if present)
     try {
       const txt = await fetchText('/api/states');
       const j = JSON.parse(txt);
       if (Array.isArray(j) && j.length) {
+        // normalize possible row shape {code,name,link,board}
         if (!j[0].links) {
-          // flat rows -> normalize
           const by = {};
           j.forEach(r => {
             by[r.code] ||= { code: r.code, name: r.name, links: [] };
@@ -74,14 +70,19 @@
         }
         return j;
       }
-    } catch (_) {}
+    } catch(_) {}
 
-    try {
-      const txt = await fetchText('/assets/state-links.json');
-      return parseMaybeWrapped(txt);
-    } catch {
-      return [];
+    // 2) Static JSON (your repo file)
+    const candidates = ['/assets/state-links.json', '/state-links.json', '/public/assets/state-links.json'];
+    for (const path of candidates) {
+      try {
+        const txt = await fetchText(path);
+        const states = parseMaybeWrapped(txt);
+        if (Array.isArray(states) && states.length) return states;
+      } catch(_) {}
     }
+
+    return [];
   }
 
   // ---------- UI ----------
@@ -115,7 +116,6 @@
       const wrapper = document.createElement('div');
       wrapper.style.margin = '8px 0';
 
-      // radio
       const lab = document.createElement('label');
       lab.style.display = 'flex';
       lab.style.alignItems = 'flex-start';
@@ -201,8 +201,8 @@
       generatedAt: now,
       state: selected ? { code: selected.code, name: selected.name } : null,
       board: link ? { name: link.board, url: link.url, host: link?.url ? getHost(link.url) : null } : null,
-      user: { name: $('#nameInput')?.value || null, email: $('#emailInput')?.value || null },
-      details: $('#detailsInput')?.value || ''
+      user: { name: els.nameInput?.value || null, email: els.emailInput?.value || null },
+      details: els.detailsInput?.value || ''
     };
   }
   function reportToText(r) {
@@ -229,24 +229,27 @@
   // ---------- boot ----------
   (async () => {
     STATES = await loadStates();
-
-    // populate state dropdown
+    if (!STATES.length) {
+      setBadge('No data', 'error');
+      enableOpen(false);
+      return;
+    }
     renderStateOptions(STATES);
 
-    // events
     els.stateSelect?.addEventListener('change', () => {
       const s = STATES.find(x => x.code === els.stateSelect.value) || null;
       updateForState(s);
     });
     els.openBtn?.addEventListener('click', onOpenClick);
 
-    $('#copyText')?.addEventListener('click', () => {
+    els.copyText?.addEventListener('click', () => {
       const txt = reportToText(buildReport());
       navigator.clipboard?.writeText(txt).catch(()=>{});
     });
-    $('#saveJson')?.addEventListener('change', () => {
+    els.saveJson?.addEventListener('change', () => {
       const txt = reportToText(buildReport());
       saveAsTxt(txt);
     });
   })();
 })();
+
