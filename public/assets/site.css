@@ -189,4 +189,44 @@ footer a:visited{
 
 /* Reference grid spacing */
 .grid.grid-2 .card{margin-bottom:6px}
+/* --- Home hero CTA buttons (scoped; no HTML edits needed) --- */
+/* Targets the buttons inside the FIRST .card on the page (your home hero). */
+main.container > .card:first-of-type .btn{
+  /* gradient from white → light blue → brand blue */
+  background: linear-gradient(90deg, #ffffff 0%, #bfe0ff 30%, #60a5fa 65%, #2563eb 100%);
+  color: #0b1220; /* readable on the light gradient */
+  border: 1px solid rgba(37,99,235,.35);
+  text-decoration: none;
+}
 
+/* Hover/focus: gradient goes away, link-like underline appears (hotbar vibe) */
+main.container > .card:first-of-type .btn:hover,
+main.container > .card:first-of-type .btn:focus{
+  background: transparent;
+  color: var(--link-color);
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  position: relative; /* for the glow underline */
+  filter: none;       /* override base .btn hover filter */
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+
+/* Subtle glowing underline like the nav on hover/active */
+main.container > .card:first-of-type .btn:hover::after,
+main.container > .card:first-of-type .btn:focus::after{
+  content:"";
+  position:absolute;
+  left:12px; right:12px; bottom:6px;
+  height:3px; border-radius:3px;
+  background: linear-gradient(90deg, #2a6cf0 0%, #6aa8ff 100%);
+  box-shadow: 0 4px 12px rgba(37,99,235,.35);
+}
+
+/* Optional: make the two CTAs sit nicely together on small screens */
+main.container > .card:first-of-type .btn + .btn{
+  margin-left: 10px;
+}
+@media (max-width:560px){
+  main.container > .card:first-of-type .btn + .btn{ margin-left: 0; margin-top: 10px; }
+}
