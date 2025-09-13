@@ -1,35 +1,42 @@
-/* public/assets/app.js — radios + hyperlink under each board; robust loader; no data-source UI */
+// Rollback: simple, robust loader; primary/first link is used for the button.
+// Extra links are shown as plain hyperlinks below. Button falls back if verify/API fails.
 (() => {
-  const $ = (sel) => document.querySelector(sel);
+  const $ = (s) => document.querySelector(s);
 
   const els = {
     stateSelect: $('#stateSelect'),
-    stateName:   $('#stateName'),
-    stateUrl:    $('#stateUrl'),
-    stateHost:   $('#stateHost'),
-    stateStatus: $('#stateStatus'),
+    boardName:   $('#boardName'),
+    boardUrl:    $('#boardUrl'),
+    boardHost:   $('#boardHost'),
+    status:      $('#status'),
     openBtn:     $('#openBtn'),
-    saveJson:    $('#saveJson'),
-    copyText:    $('#copyText'),
+    moreLinksWrap: $('#moreLinksWrap'),
+    moreLinks:     $('#moreLinks'),
+
     nameInput:   $('#nameInput'),
     emailInput:  $('#emailInput'),
-    detailsInput:$('#detailsInput')
+    detailsInput:$('#detailsInput'),
+    saveCopy:    $('#saveCopy'),
+    copyText:    $('#copyText'),
   };
 
   let STATES = [];
-  let selected = null;
-  let selectedLinkIdx = 0;
+  let current = null;       // current state object
+  let mainLink = null;      // chosen primary/first link
 
-  const setBadge = (text, cls = '') => {
-    const span = els.stateStatus.querySelector('.badge') || document.createElement('span');
-    span.className = `badge ${cls}`.trim();
-    span.textContent = text;
-    if (!els.stateStatus.contains(span)) els.stateStatus.appendChild(span);
+  // ---------- helpers ----------
+  const setBadge = (text, kind = '') => {
+    let b = els.status.querySelector('.badge');
+    if (!b) { b = document.createElement('span'); b.className = 'badge'; els.status.appendChild(b); }
+    b.className = `badge ${kind}`.trim();
+    b.textContent = text;
   };
-  const getHost = (url) => { try { return new URL(url).hostname; } catch { return ''; } };
-  const enableOpen = (enabled) => {
-    els.openBtn.disabled = !enabled;
-    els.openBtn.setAttribute('aria-disabled', String(!enabled));
+
+  const hostOf = (url) => { try { return new URL(url).hostname; } catch { return ''; } };
+
+  const primaryOrFirst = (links = []) => {
+    const i = links.findIndex(l => l && l.primary === true);
+    return links[(i >= 0 ? i : 0)] || null;
   };
 
   const fetchText = async (url) => {
@@ -37,17 +44,17 @@
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     return res.text();
   };
-  const parseMaybeWrapped = (txt) => {
-    const json = JSON.parse(txt.replace(/^\uFEFF/, ''));
-    return Array.isArray(json) ? json : (Array.isArray(json.states) ? json.states : []);
-  };
-  const primaryIndex = (links = []) => {
-    const i = links.findIndex(l => l && l.primary === true);
-    return i >= 0 ? i : 0;
+
+  const parseStates = (txt) => {
+    const j = JSON.parse(txt.replace(/^\uFEFF/, ''));
+    if (Array.isArray(j)) return j;
+    if (j && Array.isArray(j.states)) return j.states;
+    return [];
   };
 
+  // ---------- data load (robust) ----------
   async function loadStates() {
-    // Try API first
+    // (1) API if present
     try {
       const txt = await fetchText('/api/states');
       const j = JSON.parse(txt);
@@ -57,8 +64,8 @@
           j.forEach(r => {
             by[r.code] ||= { code: r.code, name: r.name, links: [] };
             if (r.link) by[r.code].links.push({
-              board:   r.board || r.name || 'Board',
-              url:     r.link,
+              board: r.board || r.name || 'Board',
+              url:   r.link,
               primary: by[r.code].links.length === 0
             });
           });
@@ -68,24 +75,25 @@
       }
     } catch (_) {}
 
-    // Then static JSON (robust fallbacks)
+    // (2) Static JSON (multiple fallback paths)
     const candidates = [
       '/assets/state-links.json',
       'assets/state-links.json',
       '/public/assets/state-links.json',
       './assets/state-links.json'
     ];
-    for (const path of candidates) {
+    for (const p of candidates) {
       try {
-        const txt = await fetchText(path);
-        const states = parseMaybeWrapped(txt);
+        const txt = await fetchText(p);
+        const states = parseStates(txt);
         if (Array.isArray(states) && states.length) return states;
       } catch (_) {}
     }
     return [];
   }
 
-  function renderStateOptions(states) {
+  // ---------- UI ----------
+  function fillDropdown(states) {
     els.stateSelect.innerHTML = '';
     const ph = document.createElement('option');
     ph.value = '';
@@ -100,72 +108,50 @@
     });
   }
 
-  function renderLinksRadios(state) {
-    els.stateUrl.innerHTML = '';
-    if (!state || !Array.isArray(state.links) || state.links.length === 0) {
-      els.stateUrl.innerHTML = '<span class="small">Not available yet</span>';
-      return;
+  function renderState(state) {
+    current = state || null;
+    const links = state?.links || [];
+    mainLink = primaryOrFirst(links);
+
+    els.boardName.textContent = mainLink?.board || state?.name || '—';
+    els.boardUrl.innerHTML = mainLink?.url
+      ? `<a href="${mainLink.url}" target="_blank" rel="noopener">${mainLink.url}</a>`
+      : 'Not available yet';
+    els.boardHost.textContent = mainLink?.url ? hostOf(mainLink.url) : '—';
+
+    // extra links
+    els.moreLinks.innerHTML = '';
+    const extras = links.filter(l => l && l !== mainLink);
+    if (extras.length) {
+      els.moreLinksWrap.style.display = '';
+      extras.forEach(l => {
+        const li = document.createElement('li');
+        const a = document.createElement('a');
+        a.href = l.url;
+        a.target = '_blank';
+        a.rel = 'noopener';
+        a.textContent = l.board || l.url;
+        li.appendChild(a);
+
+        const span = document.createElement('span');
+        span.className = 'small';
+        span.style.marginLeft = '6px';
+        span.textContent = `(${hostOf(l.url)})`;
+        li.appendChild(span);
+
+        els.moreLinks.appendChild(li);
+      });
+    } else {
+      els.moreLinksWrap.style.display = 'none';
     }
 
-    const group = document.createElement('div');
-    group.setAttribute('role', 'radiogroup');
-    group.id = 'linkOptions';
-
-    state.links.forEach((lnk, idx) => {
-      const wrapper = document.createElement('div');
-      wrapper.style.margin = '8px 0';
-
-      const lab = document.createElement('label');
-      lab.style.display = 'flex';
-      lab.style.alignItems = 'flex-start';
-      lab.style.gap = '8px';
-
-      const input = document.createElement('input');
-      input.type = 'radio';
-      input.name = 'link-choice';
-      input.value = String(idx);
-      input.checked = (idx === selectedLinkIdx);
-      input.addEventListener('change', () => {
-        selectedLinkIdx = idx;
-        els.stateName.textContent = lnk.board || state.name || 'Board';
-        els.stateHost.textContent = getHost(lnk.url) || '—';
-        enableOpen(Boolean(lnk.url));
-      });
-
-      const text = document.createElement('div');
-      const title = document.createElement('strong');
-      title.textContent = lnk.board || 'Board';
-      const url = document.createElement('div');
-      url.className = 'small';
-      url.innerHTML = lnk.url
-        ? `<a href="${lnk.url}" target="_blank" rel="noopener">${lnk.url}</a>`
-        : '—';
-
-      text.appendChild(title);
-      text.appendChild(url);
-
-      lab.appendChild(input);
-      lab.appendChild(text);
-      wrapper.appendChild(lab);
-      group.appendChild(wrapper);
-    });
-
-    els.stateUrl.appendChild(group);
+    const enabled = Boolean(mainLink?.url);
+    els.openBtn.disabled = !enabled;
+    els.openBtn.setAttribute('aria-disabled', String(!enabled));
+    setBadge(enabled ? 'OK' : '—', enabled ? 'ok' : '');
   }
 
-  function updateForState(state) {
-    selected = state || null;
-    selectedLinkIdx = selected ? primaryIndex(selected.links) : 0;
-    const link = selected?.links?.[selectedLinkIdx] || null;
-
-    els.stateName.textContent = link?.board || selected?.name || '—';
-    els.stateHost.textContent = link?.url ? getHost(link.url) : '—';
-
-    renderLinksRadios(selected);
-    enableOpen(Boolean(link?.url));
-    setBadge(selected ? 'OK' : '—', selected ? 'ok' : '');
-  }
-
+  // ---------- button flow (Turnstile with graceful fallback) ----------
   async function verifyTurnstile() {
     const token = document.querySelector('input[name="cf-turnstile-response"]')?.value || '';
     if (!token) return false;
@@ -180,68 +166,61 @@
     } catch { return false; }
   }
 
-  async function onOpenClick(ev) {
-    ev.preventDefault();
-    const link = selected?.links?.[selectedLinkIdx];
-    if (!link?.url) return;
+  async function onOpenClick(e) {
+    e.preventDefault();
+    if (!mainLink?.url) return;
     setBadge('Verifying…');
-    const ok = await verifyTurnstile();
-    if (!ok) { setBadge('Verification failed', 'error'); return; }
+    let ok = false;
+    try { ok = await verifyTurnstile(); } catch { ok = false; }
+
+    if (!ok) {
+      // graceful fallback so users aren’t blocked
+      setBadge('Opening (no verify)…', 'ok');
+      window.open(mainLink.url, '_blank', 'noopener');
+      return;
+    }
     setBadge('Opening…', 'ok');
-    window.open(link.url, '_blank', 'noopener');
+    window.open(mainLink.url, '_blank', 'noopener');
   }
 
-  function buildReport() {
-    const now = new Date().toISOString();
-    const link = selected?.links?.[selectedLinkIdx];
-    return {
-      generatedAt: now,
-      state: selected ? { code: selected.code, name: selected.name } : null,
-      board: link ? { name: link.board, url: link.url, host: link?.url ? getHost(link.url) : null } : null,
-      user: { name: els.nameInput?.value || null, email: els.emailInput?.value || null },
-      details: els.detailsInput?.value || ''
-    };
-  }
-  function reportToText(r) {
-    return [
-      `Generated: ${r.generatedAt}`,
-      r.state ? `State: ${r.state.name} (${r.state.code})` : `State: —`,
-      r.board ? `Board: ${r.board.name}\nURL: ${r.board.url}\nHost: ${r.board.host}` : `Board: —`,
-      r.user?.name ? `Name: ${r.user.name}` : '',
-      r.user?.email ? `Email: ${r.user.email}` : '',
-      '',
-      'Details:',
-      r.details || '—'
-    ].filter(Boolean).join('\n');
-  }
-  function saveAsTxt(text) {
-    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'complaint.txt';
-    a.click();
-    URL.revokeObjectURL(a.href);
-  }
-
+  // ---------- boot ----------
   (async () => {
     try { STATES = await loadStates(); } catch { STATES = []; }
-    if (!STATES.length) { setBadge('No data', 'error'); enableOpen(false); return; }
+    if (!STATES.length) { setBadge('No data', 'error'); return; }
 
-    renderStateOptions(STATES);
-    els.stateSelect?.addEventListener('change', () => {
+    fillDropdown(STATES);
+
+    els.stateSelect.addEventListener('change', () => {
       const s = STATES.find(x => x.code === els.stateSelect.value) || null;
-      updateForState(s);
+      renderState(s);
     });
-    els.openBtn?.addEventListener('click', onOpenClick);
 
+    els.openBtn.addEventListener('click', onOpenClick);
+
+    // optional helpers
     els.copyText?.addEventListener('click', () => {
-      const txt = reportToText(buildReport());
-      navigator.clipboard?.writeText(txt).catch(()=>{});
+      const lines = [
+        `State: ${current?.name || '—'} (${current?.code || '—'})`,
+        `Board: ${mainLink?.board || '—'}`,
+        `URL: ${mainLink?.url || '—'}`,
+        '',
+        'Details:',
+        els.detailsInput?.value || '—'
+      ];
+      const s = lines.join('\n');
+      navigator.clipboard?.writeText(s).catch(()=>{});
     });
-    els.saveJson?.addEventListener('change', () => {
-      const txt = reportToText(buildReport());
-      saveAsTxt(txt);
+
+    els.saveCopy?.addEventListener('change', () => {
+      const blob = new Blob(
+        [`State: ${current?.name || '—'}\nBoard: ${mainLink?.board || '—'}\nURL: ${mainLink?.url || '—'}\n\nDetails:\n${els.detailsInput?.value || '—'}`],
+        { type: 'text/plain;charset=utf-8' }
+      );
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = 'complaint.txt';
+      a.click();
+      URL.revokeObjectURL(a.href);
     });
   })();
 })();
-
