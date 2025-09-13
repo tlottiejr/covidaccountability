@@ -1,17 +1,17 @@
-/* public/assets/app.js — resilient loader + board name + local save/copy actions (TXT) */
+/* public/assets/app.js — resilient loader, all links visible, Turnstile fallback-open */
 (() => {
   const $ = (sel) => document.querySelector(sel);
 
   const els = {
     stateSelect: $('#stateSelect'),
-    stateName: $('#stateName'),   // shows BOARD name
+    stateName: $('#stateName'),
     stateUrl: $('#stateUrl'),
     stateHost: $('#stateHost'),
     stateStatus: $('#stateStatus'),
     dataSource: $('#dataSource'),
     openBtn: $('#openBtn'),
     reportBtn: $('#reportBtn'),
-    saveJson: $('#saveJson'),      // checkbox; saves TXT (kept id for parity)
+    saveJson: $('#saveJson'),
     copyText: $('#copyText'),
     nameInput: $('#nameInput'),
     emailInput: $('#emailInput'),
@@ -28,36 +28,26 @@
     '/state-links.json',
     '/public/assets/state-links.json'
   ];
-  const STATIC_JS_FALLBACK = '/assets/state-links.js'; // optional
+  const STATIC_JS_FALLBACK = '/assets/state-links.js'; // optional legacy
 
-  // ---------- UI helpers ----------
   function setBadge(text, danger = false) {
-    if (!els.stateStatus) return;
-    els.stateStatus.innerHTML = `<span class="badge${danger ? ' danger' : ''}">${text}</span>`;
+    if (els.stateStatus) els.stateStatus.innerHTML = `<span class="badge${danger ? ' danger' : ''}">${text}</span>`;
   }
   function showSource(text) { if (els.dataSource) els.dataSource.textContent = text || ''; }
-  function flash(text, ms = 3000) {
-    if (!els.dataSource) return;
-    const old = els.dataSource.textContent;
-    els.dataSource.textContent = text;
-    setTimeout(() => { els.dataSource.textContent = old; }, ms);
-  }
 
-  // ---------- network & normalize ----------
   async function fetchText(url, timeout = 15000) {
     const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), timeout);
+    const t = setTimeout(() => ctrl.abort(), timeout);
     try {
       const res = await fetch(url, { cache: 'no-store', signal: ctrl.signal, credentials: 'omit' });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       return await res.text();
-    } finally { clearTimeout(timer); }
+    } finally { clearTimeout(t); }
   }
   function parseJsonStrict(text) {
-    const t = text.replace(/^\uFEFF/, ''); // strip BOM
+    const t = text.replace(/^\uFEFF/, '');
     return JSON.parse(t);
   }
-  // Derive a stable version token from ETag/Last-Modified; fallback to timestamp.
   async function getVersionToken(url) {
     try {
       const res = await fetch(url, { method: 'HEAD', cache: 'no-store', credentials: 'omit' });
@@ -69,7 +59,6 @@
     return String(Date.now());
   }
   function normalizeData(raw) {
-    // new multi-link
     if (Array.isArray(raw) && raw.length && raw[0].links) {
       return raw.map(s => ({
         code: s.code, name: s.name,
@@ -82,15 +71,9 @@
         unavailable: false
       }));
     }
-    // static JS fallback shape: window.__STATE_LINKS__
     if (raw && raw.__STATIC__ === true && Array.isArray(raw.states)) {
-      return raw.states.map(s => ({
-        code: s.code, name: s.name,
-        links: s.links || [],
-        unavailable: false
-      }));
+      return raw.states.map(s => ({ code: s.code, name: s.name, links: s.links || [], unavailable: false }));
     }
-    // API legacy: { code, name, link }
     if (Array.isArray(raw) && raw.length && raw[0].link) {
       return raw.map(s => ({
         code: s.code, name: s.name,
@@ -102,24 +85,26 @@
   }
 
   async function tryStaticJSON() {
+    // 1) try with ?v=token  2) if that fails, try plain path (covers weird caches)
     const v = await getVersionToken('/assets/state-links.json');
     for (const p of STATIC_JSON_CANDIDATES) {
-      const url = `${p}?v=${encodeURIComponent(v)}`;
-      try {
-        const text = await fetchText(url);
-        if (/^\s*</.test(text)) { // HTML
-          console.warn('[portal] static JSON returned HTML at', url);
-          continue;
+      for (const candidate of [`${p}?v=${encodeURIComponent(v)}`, p]) {
+        try {
+          const text = await fetchText(candidate);
+          if (/^\s*</.test(text)) { // HTML response (404 page, etc.)
+            console.warn('[portal] got HTML, not JSON:', candidate);
+            continue;
+          }
+          const raw = parseJsonStrict(text);
+          const norm = normalizeData(raw);
+          if (norm.length) {
+            console.info('[portal] loaded static JSON:', candidate, norm.length, 'states');
+            showSource(`Data source: ${candidate}`);
+            return norm;
+          }
+        } catch (e) {
+          console.warn('[portal] static JSON failed:', candidate, e?.message || e);
         }
-        const raw = parseJsonStrict(text);
-        const norm = normalizeData(raw);
-        if (norm.length) {
-          console.info('[portal] loaded static JSON:', url, norm.length, 'states');
-          showSource(`Data source: ${p}`);
-          return norm;
-        }
-      } catch (e) {
-        console.warn('[portal] static JSON failed:', url, e?.message || e);
       }
     }
     return [];
@@ -127,16 +112,12 @@
   async function tryStaticJS() {
     try {
       const text = await fetchText(STATIC_JS_FALLBACK);
-      if (/^\s*</.test(text)) return []; // HTML
+      if (/^\s*</.test(text)) return [];
       const fn = new Function(`${text}; return window.__STATE_LINKS__ || null;`);
       const obj = fn.call(window);
       if (obj && obj.states) {
         const norm = normalizeData({ __STATIC__: true, states: obj.states });
-        if (norm.length) {
-          console.info('[portal] loaded static JS:', STATIC_JS_FALLBACK, norm.length, 'states');
-          showSource(`Data source: ${STATIC_JS_FALLBACK}`);
-          return norm;
-        }
+        if (norm.length) { showSource(`Data source: ${STATIC_JS_FALLBACK}`); return norm; }
       }
     } catch (e) { console.warn('[portal] static JS failed:', e?.message || e); }
     return [];
@@ -144,26 +125,16 @@
   async function tryApi() {
     try {
       const text = await fetchText(`/api/states?v=${Date.now()}`);
-      const raw = parseJsonStrict(text);
-      const norm = normalizeData(raw);
-      if (norm.length) {
-        console.info('[portal] loaded /api/states:', norm.length, 'states');
-        showSource('Data source: /api/states');
-        return norm;
-      }
+      const norm = normalizeData(parseJsonStrict(text));
+      if (norm.length) { showSource('Data source: /api/states'); return norm; }
     } catch (e) { console.warn('[portal] /api/states failed:', e?.message || e); }
     return [];
   }
   async function tryLegacy() {
     try {
       const text = await fetchText(`/assets/states.json?v=${Date.now()}`);
-      const raw = parseJsonStrict(text);
-      const norm = normalizeData(raw);
-      if (norm.length) {
-        console.info('[portal] loaded legacy /assets/states.json:', norm.length);
-        showSource('Data source: /assets/states.json');
-        return norm;
-      }
+      const norm = normalizeData(parseJsonStrict(text));
+      if (norm.length) { showSource('Data source: /assets/states.json'); return norm; }
     } catch (e) { console.warn('[portal] legacy states.json failed:', e?.message || e); }
     return [];
   }
@@ -174,7 +145,6 @@
     out = await tryLegacy();         return out;
   }
 
-  // ---------- state rendering ----------
   function setSelectedLink(l) {
     selectedLinkUrl = l?.url || '';
     selectedLinkBoard = l?.board || '';
@@ -185,7 +155,7 @@
     } catch { if (els.stateHost) els.stateHost.textContent = '—'; }
   }
 
-  // SHOW ALL LINKS BY DEFAULT (no toggle), DOM-safe
+  // SHOW ALL links by default (no toggle) — DOM-built for safety
   function renderLinks(state) {
     const container = els.stateUrl;
     container.innerHTML = '';
@@ -201,47 +171,29 @@
       return;
     }
 
-    // Default selection: primary if present, else first
     const primaryIdx = state.links.findIndex(l => l && l.primary);
     const checkedIdx = primaryIdx >= 0 ? primaryIdx : 0;
 
-    // Build radios with pure DOM (avoids template pitfalls)
     state.links.forEach((link, idx) => {
-      const board = link.board || 'Official Complaint Link';
-      const url = link.url || '';
-
-      const row = document.createElement('div');
-      row.style.margin = '6px 0';
-
+      const row = document.createElement('div'); row.style.margin = '6px 0';
       const label = document.createElement('label');
       const input = document.createElement('input');
       input.type = 'radio';
       input.name = `linkChoice-${state.code}`;
-      input.value = url;
-      input.setAttribute('data-board', board);
+      input.value = link.url || '';
+      input.setAttribute('data-board', link.board || 'Official Complaint Link');
       if (idx === checkedIdx) input.checked = true;
+      input.addEventListener('change', () => setSelectedLink({
+        url: input.value,
+        board: input.getAttribute('data-board') || ''
+      }));
+      const strong = document.createElement('strong'); strong.textContent = link.board || 'Official Complaint Link';
+      const small = document.createElement('div'); small.className = 'small'; small.style.marginLeft = '24px'; small.textContent = link.url || '';
 
-      input.addEventListener('change', () => {
-        setSelectedLink({ url: input.value, board: input.getAttribute('data-board') || '' });
-      });
-
-      const strong = document.createElement('strong');
-      strong.textContent = board;
-
-      const small = document.createElement('div');
-      small.className = 'small';
-      small.style.marginLeft = '24px';
-      small.textContent = url;
-
-      label.appendChild(input);
-      label.appendChild(strong);
-      label.appendChild(small);
-
-      row.appendChild(label);
-      container.appendChild(row);
+      label.appendChild(input); label.appendChild(strong); label.appendChild(small);
+      row.appendChild(label); container.appendChild(row);
     });
 
-    // Apply initial selection & enable button
     setSelectedLink(state.links[checkedIdx]);
     if (els.openBtn) els.openBtn.disabled = false;
     setBadge('Ready');
@@ -267,14 +219,12 @@
     });
   }
 
-  // ---------- Turnstile integration ----------
   async function verifyTurnstile() {
     try {
       const token = window.turnstile?.getResponse?.() || '';
       if (!token) return false;
       const res = await fetch('/api/verify-turnstile', {
-        method: 'POST',
-        headers: { 'content-type': 'application/json' },
+        method: 'POST', headers: { 'content-type': 'application/json' },
         body: JSON.stringify({ token })
       });
       const json = await res.json();
@@ -282,15 +232,15 @@
     } catch { return false; }
   }
 
-  // ---------- Report helpers (optional) ----------
   function buildReport() {
     const now = new Date().toISOString();
     return {
       generatedAt: now,
       state: selected ? { name: selected.name, code: selected.code } : null,
-      board: selectedLinkUrl ? { name: selectedLinkBoard, url: selectedLinkUrl, host: (() => {
-        try { return new URL(selectedLinkUrl).hostname; } catch { return ''; }
-      })() } : null,
+      board: selectedLinkUrl ? {
+        name: selectedLinkBoard, url: selectedLinkUrl,
+        host: (() => { try { return new URL(selectedLinkUrl).hostname; } catch { return ''; } })()
+      } : null,
       reporter: {
         name: els.nameInput?.value.trim() || '',
         email: els.emailInput?.value.trim() || ''
@@ -301,69 +251,45 @@
   function toText(r) {
     const lines = [];
     lines.push(`# Complaint Portal — Report`);
-    lines.push(`Generated: ${r.generatedAt}`);
-    lines.push('');
+    lines.push(`Generated: ${r.generatedAt}`); lines.push('');
     lines.push(`State: ${r.state ? `${r.state.name} (${r.state.code})` : '—'}`);
     lines.push(`Board: ${r.board?.name || '—'}`);
     lines.push(`URL: ${r.board?.url || '—'}`);
-    lines.push(`Host: ${r.board?.host || '—'}`);
-    lines.push('');
-    lines.push(`Reporter`);
-    lines.push(`Name: ${r.reporter?.name || ''}`);
-    lines.push(`Email: ${r.reporter?.email || ''}`);
-    lines.push('');
-    lines.push(`Details`);
-    lines.push(r.details || '');
+    lines.push(`Host: ${r.board?.host || '—'}`); lines.push('');
+    lines.push(`Reporter`); lines.push(`Name: ${r.reporter?.name || ''}`); lines.push(`Email: ${r.reporter?.email || ''}`);
+    lines.push(''); lines.push('Details'); lines.push(r.details || '');
     return lines.join('\n');
   }
   function saveTxt(text) {
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(blob);
-    a.download = 'report.txt';
-    a.click();
-    URL.revokeObjectURL(a.href);
+    const a = document.createElement('a'); a.href = URL.createObjectURL(blob);
+    a.download = 'report.txt'; a.click(); URL.revokeObjectURL(a.href);
   }
 
-  // ---------- events ----------
   els.openBtn?.addEventListener('click', async () => {
     if (!selectedLinkUrl) return;
     setBadge('Verifying…');
-    let ok = false;
-    try { ok = await verifyTurnstile(); } catch {}
-    if (!ok) { setBadge('Verification failed — opening anyway', true); }
-    else { setBadge('Opening…'); }
-    window.open(selectedLinkUrl, '_blank', 'noopener');
-    setBadge('Opened');
+    let ok = false; try { ok = await verifyTurnstile(); } catch {}
+    if (!ok) setBadge('Verification failed — opening anyway', true); else setBadge('Opening…');
+    window.open(selectedLinkUrl, '_blank', 'noopener'); setBadge('Opened');
   });
 
   els.reportBtn?.addEventListener('click', async () => {
-    if (!selected) { flash('Choose a state first.'); return; }
-    if (!els.saveJson?.checked && !els.copyText?.checked) {
-      flash('Select at least one option: Save or Copy.'); return;
-    }
-    const r = buildReport();
-    const ts = new Date(r.generatedAt).toISOString().replace(/[:.]/g,'-');
-    const base = selected ? selected.code : 'report';
-
-    let did = [];
-    if (els.copyText?.checked) {
-      await navigator.clipboard.writeText(toText(r));
-      did.push('copied');
-    }
-    if (els.saveJson?.checked) {
-      saveTxt(toText(r));
-      did.push('saved');
-    }
-    flash(`Report ${did.join(' & ')} (${base}-${ts})`);
+    if (!selected) { showSource('Choose a state first.'); return; }
+    if (!els.saveJson?.checked && !els.copyText?.checked) { showSource('Select Save or Copy.'); return; }
+    const r = buildReport(); const txt = toText(r);
+    if (els.copyText?.checked) await navigator.clipboard.writeText(txt);
+    if (els.saveJson?.checked) saveTxt(txt);
+    showSource('Report copied/saved locally.');
   });
 
   (async function init() {
+    setBadge('Loading…');
     STATES = await loadStates();
     if (!STATES.length) {
       setBadge('No data', true);
       if (els.openBtn) els.openBtn.disabled = true;
-      showSource('No data sources resolved — ensure /assets/state-links.json exists.');
+      showSource('No data loaded. Check /assets/state-links.json path/JSON.');
       return;
     }
     populateSelect(STATES);
