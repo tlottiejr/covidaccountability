@@ -1,4 +1,4 @@
-name: Link Health
+name: State Board Link Health
 
 on:
   schedule:
