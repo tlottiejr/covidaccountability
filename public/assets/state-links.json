@@ -19,7 +19,7 @@
     "code": "AZ",
     "name": "Arizona",
     "links": [
-      { "board": "Arizona Medical Board", "url": "https://www.azmd.gov/Complaints/Complaint-Forms", "primary": true },
+      { "board": "Arizona Medical Board", "url": "https://azmd.gov/Regulation/Regulation#", "primary": true },
       { "board": "Arizona Board of Osteopathic Examiners in Medicine and Surgery", "url": "https://azdo.gov/consumer-resources/filing-complaint", "primary": false }
     ]
   },
@@ -27,7 +27,7 @@
     "code": "AR",
     "name": "Arkansas",
     "links": [
-      { "board": "Arkansas State Medical Board", "url": "https://www.armedicalboard.org/complaint-form/", "primary": true }
+      { "board": "Arkansas State Medical Board", "url": "https://www.armedicalboard.org/Public/FileAComplaint.aspx", "primary": true }
     ]
   },
   {
