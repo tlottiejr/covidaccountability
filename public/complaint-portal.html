@@ -8,7 +8,6 @@
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
 </head>
 <body>
-  <!-- Top nav -->
   <div id="nav-root"></div>
   <script src="/assets/nav-include.js" defer></script>
 
@@ -23,72 +22,45 @@
         <label for="stateSelect">State</label>
         <select id="stateSelect" aria-label="State"></select>
 
-        <div style="margin-top:16px;">
-          <div class="small">Board</div>
-          <div id="boardName">—</div>
-        </div>
+        <div style="margin-top: 16px;"><div class="small">Board</div><div id="stateName">—</div></div>
+        <div style="margin-top: 12px;"><div class="small">URL</div><div id="stateUrl"><span class="small">Not available yet</span></div></div>
+        <div style="margin-top: 12px;"><div class="small">Host</div><div id="stateHost">—</div></div>
+        <div style="margin-top: 12px;"><div class="small">Status</div><div id="stateStatus"><span class="badge">—</span></div></div>
 
-        <div style="margin-top:12px;">
-          <div class="small">URL</div>
-          <div id="boardUrl" class="small">Not available yet</div>
-        </div>
-
-        <div style="margin-top:12px;">
-          <div class="small">Host</div>
-          <div id="boardHost">—</div>
-        </div>
-
-        <div style="margin-top:12px;">
-          <div class="small">Status</div>
-          <div id="status"><span class="badge">—</span></div>
-        </div>
-
-        <div style="margin-top:16px;">
-          <button id="openBtn" class="btn" disabled>Open board page</button>
-        </div>
-
-        <!-- Turnstile (button uses this) -->
-        <div style="margin-top:16px;">
-          <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8"></div>
-        </div>
-
-        <div id="moreLinksWrap" style="margin-top:16px; display:none;">
-          <div class="small" style="font-weight:600;">More links</div>
-          <ul id="moreLinks" class="small" style="margin:6px 0; padding-left:18px;"></ul>
-        </div>
+        <div style="margin-top: 12px;" class="small" id="dataSource" aria-live="polite"></div>
+        <div style="margin-top: 16px;"><button id="openBtn" class="btn" disabled>Open board page</button></div>
       </section>
 
       <section class="card">
-        <h2>Write your experience (optional)</h2>
-
-        <label for="nameInput">Your name</label>
-        <input id="nameInput" type="text" placeholder="Jane Doe" autocomplete="name"/>
-
-        <label for="emailInput">Your email</label>
-        <input id="emailInput" type="email" placeholder="jane@example.com" autocomplete="email"/>
-
-        <label for="detailsInput">What happened?</label>
-        <textarea id="detailsInput" rows="8" placeholder="Describe the issue..."></textarea>
-
-        <div class="row" style="margin-top:8px;">
-          <label class="checkbox"><input id="saveCopy" type="checkbox"/> Save a copy (PDF)</label>
-          <button id="copyText" class="btn-outline" type="button">Copy text</button>
+        <h2>Share your experience (optional)</h2>
+        <div class="grid">
+          <div><label for="nameInput">Name (optional)</label><input id="nameInput" type="text" placeholder="Your name…"/></div>
+          <div><label for="emailInput">Email (optional)</label><input id="emailInput" type="email" placeholder="you@example.com"/></div>
+          <div><label for="detailsInput">Details</label><textarea id="detailsInput" placeholder="Describe what happened…"></textarea></div>
         </div>
-
-        <div class="small muted">We don’t store this. It stays on your device.</div>
+        <div style="margin-top: 16px;">
+          <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8"></div>
+          <div class="small" style="margin-top: 8px;">Verification prevents spam.</div>
+        </div>
       </section>
     </div>
-  </main>
 
-  <!-- Inline JSON FALLBACK: paste the EXACT contents of public/assets/state-links.json below.
-       If the network fetch fails for any reason, the app uses this. -->
-  <script id="stateLinksJson" type="application/json">
-  [
-    // PASTE the full array from /assets/state-links.json here (keep valid JSON). 
-    // If you prefer not to inline, you can leave this empty; it’s only a safety net.
-  ]
-  </script>
+    <section class="card" style="margin-top: 18px;">
+      <h2>Optional actions</h2>
+      <div class="grid">
+        <label><input type="checkbox" id="saveJson"/> Save a local copy (PDF)</label>
+        <label><input type="checkbox" id="copyText"/> Copy text to clipboard</label>
+        <div><button id="reportBtn" class="btn">Submit report</button></div>
+      </div>
+      <p class="small" style="margin-top:12px;">
+        We do not store your report content. Use the options above to save or copy your information locally, then file your report on the official state site.
+      </p>
+    </section>
+
+    <footer><a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a></footer>
+  </main>
 
   <script src="/assets/app.js" defer></script>
 </body>
 </html>
+
