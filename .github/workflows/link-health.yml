@@ -1,0 +1,44 @@
+name: Link Health
+
+on:
+  workflow_dispatch:
+    inputs:
+      concurrency:
+        description: 'Max concurrent checks'
+        required: false
+        default: '12'
+      timeoutMs:
+        description: 'Timeout per request (ms)'
+        required: false
+        default: '15000'
+      failOn:
+        description: 'none|some|any'
+        required: false
+        default: 'none'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Run link checker
+        env:
+          MAX_CONCURRENCY: ${{ github.event.inputs.concurrency || '12' }}
+          TIMEOUT_MS: ${{ github.event.inputs.timeoutMs || '15000' }}
+          FAIL_ON: ${{ github.event.inputs.failOn || 'none' }}
+        run: node scripts/check-links.mjs
+
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: link-health-reports
+          path: |
+            reports/link-health.json
+            reports/link-health.csv
