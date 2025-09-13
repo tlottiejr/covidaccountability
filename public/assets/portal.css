@@ -1,0 +1,26 @@
+/* Portal-specific a11y polish (kept separate to avoid site-wide changes) */
+
+.stack > * + * { margin-top: 10px; }
+
+#boards { display: grid; gap: 8px; }
+.radio-row { display: grid; grid-template-columns: 20px 1fr; align-items: start; gap: 10px; }
+
+.radio { margin-top: 3px; cursor: pointer; }
+.radio-label { cursor: pointer; }
+.radio-title { font-weight: 600; }
+.radio-sub { display: block; color: var(--muted); font-size: 13px; }
+
+.badge { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px; font-size: 12px; }
+.badge-warn { background: rgba(220,38,38,.10); color: #b91c1c; border: 1px solid rgba(220,38,38,.25); }
+
+/* Clear, consistent focus rings */
+select:focus,
+input[type="radio"]:focus + label,
+button:focus {
+  outline: 2px solid #2a6cf0;
+  outline-offset: 2px;
+}
+
+/* Turnstile box spacing (only if it renders) */
+.turnstile-box { min-height: 0; }
+.turnstile-box:empty { display:none; }
