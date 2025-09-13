@@ -8,6 +8,7 @@
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
 </head>
 <body>
+  <!-- Site nav -->
   <div id="nav-root"></div>
   <script src="/assets/nav-include.js" defer></script>
 
@@ -22,33 +23,38 @@
         <label for="stateSelect">State</label>
         <select id="stateSelect" aria-label="State"></select>
 
-        <div style="margin-top: 16px;">
+        <div style="margin-top:16px;">
           <div class="small">Board</div>
-          <div id="stateName">—</div>
+          <div id="boardName">—</div>
         </div>
 
-        <div style="margin-top: 12px;">
+        <div style="margin-top:12px;">
           <div class="small">URL</div>
-          <!-- Radios always render, even for a single link; each shows a hyperlink -->
-          <div id="stateUrl"><span class="small">Not available yet</span></div>
+          <div id="boardUrl" class="small">Not available yet</div>
         </div>
 
-        <div style="margin-top: 12px;">
+        <div style="margin-top:12px;">
           <div class="small">Host</div>
-          <div id="stateHost">—</div>
+          <div id="boardHost">—</div>
         </div>
 
-        <div style="margin-top: 12px;">
+        <div style="margin-top:12px;">
           <div class="small">Status</div>
-          <div id="stateStatus"><span class="badge">—</span></div>
+          <div id="status"><span class="badge">—</span></div>
         </div>
 
-        <div style="margin-top: 16px;">
+        <div style="margin-top:16px;">
           <button id="openBtn" class="btn" disabled>Open board page</button>
         </div>
 
-        <div style="margin-top: 16px;">
+        <!-- Turnstile (used by button, but we also fall back if verification/API fails) -->
+        <div style="margin-top:16px;">
           <div class="cf-turnstile" data-sitekey="REPLACE_WITH_YOUR_SITE_KEY"></div>
+        </div>
+
+        <div id="moreLinksWrap" style="margin-top:16px; display:none;">
+          <div class="small" style="font-weight:600;">More links</div>
+          <ul id="moreLinks" class="small" style="margin:6px 0; padding-left:18px;"></ul>
         </div>
       </section>
 
@@ -65,7 +71,7 @@
         <textarea id="detailsInput" rows="8" placeholder="Describe the issue..."></textarea>
 
         <div class="row" style="margin-top:8px;">
-          <label class="checkbox"><input id="saveJson" type="checkbox"/> Save a copy (PDF)</label>
+          <label class="checkbox"><input id="saveCopy" type="checkbox"/> Save a copy (PDF)</label>
           <button id="copyText" class="btn-outline" type="button">Copy text</button>
         </div>
 
