@@ -6,3 +6,12 @@
 
 /assets/state-links.json
   Cache-Control: no-cache
+
+/assets/board-index.json
+  Cache-Control: no-cache
+
+/assets/references.json
+  Cache-Control: no-cache
+
+/assets/board-index.html
+  Cache-Control: no-cache
