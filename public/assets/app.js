@@ -1,4 +1,4 @@
-/* Radios + hyperlink under each board; robust loader; no "data source" UI */
+/* public/assets/app.js — radios + hyperlink under each board; robust loader; no data-source UI */
 (() => {
   const $ = (sel) => document.querySelector(sel);
 
@@ -20,7 +20,6 @@
   let selected = null;
   let selectedLinkIdx = 0;
 
-  // ---------- helpers ----------
   const setBadge = (text, cls = '') => {
     const span = els.stateStatus.querySelector('.badge') || document.createElement('span');
     span.className = `badge ${cls}`.trim();
@@ -40,7 +39,6 @@
   };
   const parseMaybeWrapped = (txt) => {
     const json = JSON.parse(txt.replace(/^\uFEFF/, ''));
-    // supports top-level array OR {states:[…]}
     return Array.isArray(json) ? json : (Array.isArray(json.states) ? json.states : []);
   };
   const primaryIndex = (links = []) => {
@@ -48,14 +46,12 @@
     return i >= 0 ? i : 0;
   };
 
-  // ---------- data load ----------
   async function loadStates() {
-    // 1) API (if present)
+    // Try API first
     try {
       const txt = await fetchText('/api/states');
       const j = JSON.parse(txt);
       if (Array.isArray(j) && j.length) {
-        // normalize possible row shape {code,name,link,board}
         if (!j[0].links) {
           const by = {};
           j.forEach(r => {
@@ -70,22 +66,25 @@
         }
         return j;
       }
-    } catch(_) {}
+    } catch (_) {}
 
-    // 2) Static JSON (your repo file)
-    const candidates = ['/assets/state-links.json', '/state-links.json', '/public/assets/state-links.json'];
+    // Then static JSON (robust fallbacks)
+    const candidates = [
+      '/assets/state-links.json',
+      'assets/state-links.json',
+      '/public/assets/state-links.json',
+      './assets/state-links.json'
+    ];
     for (const path of candidates) {
       try {
         const txt = await fetchText(path);
         const states = parseMaybeWrapped(txt);
         if (Array.isArray(states) && states.length) return states;
-      } catch(_) {}
+      } catch (_) {}
     }
-
     return [];
   }
 
-  // ---------- UI ----------
   function renderStateOptions(states) {
     els.stateSelect.innerHTML = '';
     const ph = document.createElement('option');
@@ -167,7 +166,6 @@
     setBadge(selected ? 'OK' : '—', selected ? 'ok' : '');
   }
 
-  // ---------- verification + open ----------
   async function verifyTurnstile() {
     const token = document.querySelector('input[name="cf-turnstile-response"]')?.value || '';
     if (!token) return false;
@@ -193,7 +191,6 @@
     window.open(link.url, '_blank', 'noopener');
   }
 
-  // ---------- report helpers ----------
   function buildReport() {
     const now = new Date().toISOString();
     const link = selected?.links?.[selectedLinkIdx];
@@ -226,16 +223,11 @@
     URL.revokeObjectURL(a.href);
   }
 
-  // ---------- boot ----------
   (async () => {
-    STATES = await loadStates();
-    if (!STATES.length) {
-      setBadge('No data', 'error');
-      enableOpen(false);
-      return;
-    }
-    renderStateOptions(STATES);
+    try { STATES = await loadStates(); } catch { STATES = []; }
+    if (!STATES.length) { setBadge('No data', 'error'); enableOpen(false); return; }
 
+    renderStateOptions(STATES);
     els.stateSelect?.addEventListener('change', () => {
       const s = STATES.find(x => x.code === els.stateSelect.value) || null;
       updateForState(s);
