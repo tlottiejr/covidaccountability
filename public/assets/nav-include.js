@@ -1,9 +1,27 @@
-// Top nav: centered menu, no brand link on the left, persistent active underline
+// Top nav: centered menu + persistent active underline + perf preconnect
 (function () {
+  // --- tiny perf lift: preconnect to Turnstile so TLS is warm when it loads ---
+  (function ensurePreconnect() {
+    try {
+      const head = document.head || document.getElementsByTagName('head')[0];
+      if (!head) return;
+      const exists = (href) => !!head.querySelector(`link[rel="preconnect"][href="${href}"]`);
+      const add = (href, crossorigin) => {
+        if (exists(href)) return;
+        const l = document.createElement('link');
+        l.rel = 'preconnect';
+        l.href = href;
+        if (crossorigin) l.crossOrigin = '';
+        head.appendChild(l);
+      };
+      add('https://challenges.cloudflare.com', true);
+    } catch { /* no-op */ }
+  })();
+
   const root = document.getElementById('nav-root');
   if (!root) return;
 
-  // Render: spacer • centered nav • spacer
+  // Render: spacer • centered nav • spacer (no brand link on the left)
   root.innerHTML = `
     <div class="top">
       <div class="inner">
@@ -15,6 +33,7 @@
           <a href="/why-report.html">Why Report</a>
           <a href="/who-can-report.html">Who Can Report</a>
           <a href="/references.html">References</a>
+          <a href="/complaint-portal.html">Complaint Portal</a>
           <a href="/donate.html">Donate</a>
         </nav>
         <div></div>
@@ -27,10 +46,10 @@
     try {
       const u = new URL(p, location.origin);
       let path = u.pathname.toLowerCase();
-      path = path.replace(/\/index\.html?$/i, "/"); // index → /
-      path = path.replace(/\/$/i, "");              // trim trailing slash
-      path = path.replace(/\.html$/i, "");          // trim .html
-      return path || "/";
+      path = path.replace(/\/index\.html?$/i, '/'); // index → /
+      path = path.replace(/\/$/i, '');              // trim trailing slash
+      path = path.replace(/\.html$/i, '');          // trim .html
+      return path || '/';
     } catch {
       return p;
     }
