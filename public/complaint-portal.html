@@ -8,7 +8,7 @@
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
 </head>
 <body>
-  <!-- existing site nav -->
+  <!-- Top nav -->
   <div id="nav-root"></div>
   <script src="/assets/nav-include.js" defer></script>
 
@@ -30,7 +30,7 @@
 
         <div style="margin-top: 12px;">
           <div class="small">URL</div>
-          <!-- Radio options (always, even when there’s only one link). Each shows a hyperlink under the board name. -->
+          <!-- Radios always render here (even for a single link); each radio shows a hyperlink under the board name -->
           <div id="stateUrl"><span class="small">Not available yet</span></div>
         </div>
 
@@ -48,9 +48,9 @@
           <button id="openBtn" class="btn" disabled>Open board page</button>
         </div>
 
-        <!-- Turnstile widget for the button flow -->
+        <!-- Turnstile for the button flow -->
         <div style="margin-top: 16px;">
-          <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8"></div>
+          <div class="cf-turnstile" data-sitekey="REPLACE_WITH_YOUR_SITE_KEY"></div>
         </div>
       </section>
 
