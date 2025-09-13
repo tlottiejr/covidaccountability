@@ -2,42 +2,38 @@ name: References Link Health
 
 on:
   schedule:
-    - cron: '35 9 * * 0'  # Sundays @ 09:35 UTC (adjust if you want)
-  workflow_dispatch:
-    inputs:
-      concurrency:
-        description: 'Max concurrent checks'
-        required: false
-        default: '8'
-      timeoutMs:
-        description: 'Timeout per request (ms)'
-        required: false
-        default: '12000'
-      failOn:
-        description: 'none|some|any'
-        required: false
-        default: 'none'
+    - cron: '35 9 * * 0'   # Sundays 09:35 UTC
+  workflow_dispatch: {}
 
 jobs:
-  audit:
+  check:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      actions: write
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
       - name: Setup Node
         uses: actions/setup-node@v4
         with:
           node-version: '20'
-      - name: Run references link checker
+
+      - name: Run link health check
         env:
-          MAX_CONCURRENCY: ${{ github.event.inputs.concurrency || '8' }}
-          TIMEOUT_MS: ${{ github.event.inputs.timeoutMs || '12000' }}
-          FAIL_ON: ${{ github.event.inputs.failOn || 'none' }}
-        run: node scripts/check-reference-links.mjs
-      - name: Upload reports
+          MAX_CONCURRENCY: '8'
+          TIMEOUT_MS: '15000'
+          USER_AGENT: 'Mozilla/5.0 (compatible; CAN-LinkHealth/1.0; +https://covidaccountabilitynow.org)'
+        run: |
+          node scripts/check-references.mjs
+
+      - name: Upload artifacts
         uses: actions/upload-artifact@v4
         with:
           name: references-link-health
+          if-no-files-found: error
           path: |
-            reports/references-link-health.json
-            reports/references-link-health.csv
+            reports/references-link-health-*.json
+            reports/references-link-health-*.csv
+            reports/README.md
