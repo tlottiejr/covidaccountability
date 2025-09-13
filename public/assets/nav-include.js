@@ -1,33 +1,40 @@
-// Inject shared nav partial and auto-highlight current page
-(() => {
-  async function inject(selector, url) {
-    const host = document.querySelector(selector);
-    if (!host) return;
+// Injects the top nav and marks the current page so the underline is persistent.
+(function () {
+  const root = document.getElementById('nav-root');
+  if (!root) return;
+
+  // Render nav
+  root.innerHTML = `
+    <div class="top">
+      <div class="inner">
+        <div class="brand">
+          <span class="dot" aria-hidden="true"></span>
+          <a href="/" class="title" style="text-decoration:none">COVID Accountability Now</a>
+        </div>
+        <nav aria-label="Primary">
+          <a href="/">Home</a>
+          <a href="/about.html">About Us</a>
+          <a href="/our-story.html">Our Story</a>
+          <a href="/why-report.html">Why Report</a>
+          <a href="/who-can-report.html">Who Can Report</a>
+          <a href="/references.html">References</a>
+          <a href="/donate.html">Donate</a>
+        </nav>
+      </div>
+    </div>
+  `;
+
+  // Set aria-current="page" on the active link (normalizes / and /index.html)
+  const path = (location.pathname || '/').replace(/\/index\.html?$/i, '/');
+  const links = root.querySelectorAll('nav a');
+
+  for (const a of links) {
     try {
-      const res = await fetch(url, { cache: 'no-store' });
-      if (!res.ok) throw new Error(res.status);
-      host.outerHTML = await res.text();
-      highlight();
-    } catch (e) {
-      console.warn('[nav] include failed:', e);
-    }
+      const href = new URL(a.getAttribute('href'), location.origin).pathname
+        .replace(/\/index\.html?$/i, '/');
+      if (href === path) {
+        a.setAttribute('aria-current', 'page');
+      }
+    } catch { /* no-op */ }
   }
-
-  function normalize(pathname) {
-    // Treat directory index as /index.html for highlight comparison
-    return pathname.endsWith('/') ? pathname + 'index.html' : pathname;
-  }
-
-  function highlight() {
-    const here = normalize(location.pathname);
-    document.querySelectorAll('.top .inner a').forEach(a => {
-      try {
-        const href = new URL(a.getAttribute('href'), location.origin).pathname;
-        if (normalize(href) === here) a.setAttribute('aria-current', 'page');
-      } catch {}
-    });
-  }
-
-  // Replace <div id="nav-root"></div> with the partial
-  inject('#nav-root', '/partials/nav.html');
 })();
