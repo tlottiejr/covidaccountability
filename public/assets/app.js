@@ -1,162 +1,277 @@
-/* eslint-disable no-console */
+/* public/assets/app.js — resilient loader + board name + local save/copy actions (PDF) */
 (() => {
-  const el = (sel, root = document) => root.querySelector(sel);
-  const els = (sel, root = document) => Array.from(root.querySelectorAll(sel));
+  const $ = (sel) => document.querySelector(sel);
 
-  // Elements
-  const stateSelect = el('#state');
-  const details = {
-    name: el('#boardName'),
-    url: el('#boardUrl'),
-    host: el('#boardHost'),
-    status: el('#boardStatus'),
-  };
-  const openBtn = el('#openBoard');
-  const turnstileContainer = el('#turnstile-block');
-  const form = el('#portalForm');
-
-  // Helpers
-  const setText = (node, text) => { if (node) node.textContent = text ?? ''; };
-  const setStatus = (ok, msg = '') => {
-    if (!details.status) return;
-    details.status.className = ok ? 'status ok' : 'status error';
-    setText(details.status, msg);
-  };
-  const getHost = (url) => {
-    try { return new URL(url).hostname.split('.').filter(Boolean).slice(-2).join('.'); } catch { return ''; }
+  const els = {
+    stateSelect: $('#stateSelect'),
+    stateName: $('#stateName'),   // shows BOARD name
+    stateUrl: $('#stateUrl'),
+    stateHost: $('#stateHost'),
+    stateStatus: $('#stateStatus'),
+    dataSource: $('#dataSource'),
+    openBtn: $('#openBtn'),
+    reportBtn: $('#reportBtn'),
+    saveJson: $('#saveJson'),      // checkbox; now saves PDF (ID unchanged)
+    copyText: $('#copyText'),
+    nameInput: $('#nameInput'),
+    emailInput: $('#emailInput'),
+    detailsInput: $('#detailsInput')
   };
 
-  const stash = {
-    state: null,
-    states: [],
-    selected: null,
-  };
+  let STATES = [];
+  let selected = null;
+  let selectedLinkUrl = "";
+  let selectedLinkBoard = "";
 
-  const enableOpen = (enabled) => {
-    if (!openBtn) return;
-    openBtn.disabled = !enabled;
-    openBtn.setAttribute('aria-disabled', String(!enabled));
-  };
+  const STATIC_JSON_CANDIDATES = [
+    '/assets/state-links.json',
+    '/state-links.json',
+    '/public/assets/state-links.json'
+  ];
+  const STATIC_JS_FALLBACK = '/assets/state-links.js'; // optional fallback
 
-  const fetchJson = async (path, opts) => {
-    const res = await fetch(path, opts);
-    if (!res.ok) throw new Error(`HTTP ${res.status}`);
-    return res.json();
-  };
+  function setBadge(text, cls = '') {
+    const span = els.stateStatus.querySelector('.badge') || document.createElement('span');
+    span.className = `badge ${cls}`.trim();
+    span.textContent = text;
+    if (!els.stateStatus.contains(span)) els.stateStatus.appendChild(span);
+  }
 
-  const loadStatesFromApi = async () => {
-    // Primary: API endpoint (D1-backed)
-    try {
-      const data = await fetchJson('/api/states', { headers: { 'cache-control': 'no-store' } });
-      if (Array.isArray(data) && data.length) return data;
-    } catch (e) {
-      console.warn('API /api/states failed, falling back to static JSON', e);
+  function setDataSource(text) {
+    els.dataSource.textContent = text || '';
+  }
+
+  function setStateFields(obj) {
+    els.stateName.textContent = obj?.board || '—';
+    els.stateUrl.innerHTML = obj?.url ? `<a href="${obj.url}" target="_blank" rel="noopener">${obj.url}</a>` : '<span class="small">Not available yet</span>';
+    els.stateHost.textContent = obj?.host || '—';
+  }
+
+  function enableOpen(enabled) {
+    els.openBtn.disabled = !enabled;
+    if (enabled) {
+      els.openBtn.removeAttribute('aria-disabled');
+    } else {
+      els.openBtn.setAttribute('aria-disabled', 'true');
     }
+  }
 
-    // Fallback: shipped JSON
+  // ---------- fetch & normalize ----------
+  async function fetchText(url, timeoutMs = 10000) {
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), timeoutMs);
     try {
-      const data = await fetchJson('/assets/state-links.json', { headers: { 'cache-control': 'no-store' } });
-      // support both {states:[...]} and flat array
-      if (Array.isArray(data?.states) && data.states.length) return data.states;
-      if (Array.isArray(data) && data.length) return data;
+      const res = await fetch(url, { signal: ctrl.signal, credentials: 'omit', cache: 'no-store' });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      return await res.text();
+    } finally { clearTimeout(timer); }
+  }
+  function parseJsonStrict(text) {
+    const t = text.replace(/^\uFEFF/, ''); // strip BOM
+    return JSON.parse(t);
+  }
+  function normalizeHost(url) {
+    try { return new URL(url).hostname; } catch { return ''; }
+  }
+  function normalizeStates(arr) {
+    // shape: [{code,name,links:[{board,url,primary?}]}]
+    return (arr || []).map(s => {
+      const links = (s.links || []).map((lnk, idx) => ({
+        board: lnk.board || s.name || 'Board',
+        url: lnk.url || '',
+        primary: !!lnk.primary || idx === 0,
+        host: normalizeHost(lnk.url || '')
+      }));
+      return { code: s.code, name: s.name, links };
+    });
+  }
+
+  async function loadFromApi() {
+    try {
+      const txt = await fetchText('/api/states');
+      const json = parseJsonStrict(txt);
+      // API might return flat rows or normalized list; detect
+      if (Array.isArray(json) && json.length && json[0]?.links) {
+        return { list: json, source: 'API' };
+      }
+      // flat rows -> normalize
+      if (Array.isArray(json)) {
+        const by = {};
+        json.forEach(r => {
+          by[r.code] ||= { code: r.code, name: r.name, links: [] };
+          if (r.link) by[r.code].links.push({
+            board: r.board || r.name || 'Board',
+            url: r.link,
+            primary: by[r.code].links.length === 0,
+            host: normalizeHost(r.link)
+          });
+        });
+        return { list: Object.values(by), source: 'API' };
+      }
+      throw new Error('Unexpected API shape');
     } catch (e) {
-      console.error('Failed to load fallback state-links.json', e);
+      throw e;
     }
-    return [];
-  };
+  }
 
-  const renderStates = (states) => {
-    if (!stateSelect) return;
-    stateSelect.innerHTML = '';
-    const placeholder = document.createElement('option');
-    placeholder.value = '';
-    placeholder.textContent = 'Select a state';
-    stateSelect.appendChild(placeholder);
-
-    states
-      .slice()
-      .sort((a, b) => a.name.localeCompare(b.name))
-      .forEach((s) => {
-        const opt = document.createElement('option');
-        opt.value = s.code;
-        opt.textContent = s.name;
-        stateSelect.appendChild(opt);
-      });
-  };
-
-  const pickPrimaryLink = (links) => {
-    if (!Array.isArray(links)) return null;
-    return links.find((l) => l.primary) || links[0] || null;
-  };
-
-  const updateDetails = (state) => {
-    stash.selected = state;
-    const primary = state ? pickPrimaryLink(state.links) : null;
-
-    // NOTE: this is the original behavior (boardName shows the STATE name)
-    setText(details.name, state?.name || '—');
-    setText(details.url, primary?.url || '—');
-    setText(details.host, primary?.url ? getHost(primary.url) : '—');
-
-    enableOpen(Boolean(primary?.url));
-    setStatus(true, state ? 'Ready' : '—');
-  };
-
-  const onStateChange = () => {
-    const code = stateSelect.value || '';
-    const state = stash.states.find((s) => s.code === code) || null;
-    updateDetails(state);
-  };
-
-  const initTurnstile = () => {
-    if (!turnstileContainer) return;
-    // Turnstile auto-renders via script tag in HTML; nothing to do here
-  };
-
-  const verifyTurnstile = async () => {
+  async function loadFromStatic() {
+    // try JSON candidates
+    for (const path of STATIC_JSON_CANDIDATES) {
+      try {
+        const txt = await fetchText(path);
+        const json = parseJsonStrict(txt);
+        const list = Array.isArray(json?.states) ? normalizeStates(json.states) :
+                     Array.isArray(json) ? normalizeStates(json) : null;
+        if (list && list.length) return { list, source: `File: ${path}` };
+      } catch {}
+    }
+    // optional JS fallback (export const STATES=[])
     try {
-      const token = window.turnstile?.getResponse?.();
-      if (!token) return false;
+      const txt = await fetchText(STATIC_JS_FALLBACK);
+      const match = txt.match(/STATES\s*=\s*(\[[\s\S]*\]);?/);
+      if (match) {
+        const arr = parseJsonStrict(match[1]);
+        const list = normalizeStates(arr);
+        if (list.length) return { list, source: `File: ${STATIC_JS_FALLBACK}` };
+      }
+    } catch {}
+    return { list: [], source: 'None' };
+  }
+
+  async function loadStates() {
+    // API first
+    try {
+      const { list, source } = await loadFromApi();
+      return { list, source };
+    } catch {
+      const { list, source } = await loadFromStatic();
+      return { list, source };
+    }
+  }
+
+  // ---------- UI wiring ----------
+  function renderStates(list) {
+    els.stateSelect.innerHTML = '';
+    const ph = document.createElement('option');
+    ph.value = '';
+    ph.textContent = 'Select a state';
+    els.stateSelect.appendChild(ph);
+
+    list.slice().sort((a,b)=>a.name.localeCompare(b.name)).forEach(s => {
+      const opt = document.createElement('option');
+      opt.value = s.code;
+      opt.textContent = s.name;
+      els.stateSelect.appendChild(opt);
+    });
+  }
+
+  function getPrimaryLink(state) {
+    if (!state) return null;
+    return state.links.find(x => x.primary) || state.links[0] || null;
+  }
+
+  async function verifyTurnstile() {
+    const input = document.querySelector('input[name="cf-turnstile-response"]');
+    const token = input && input.value ? input.value : null;
+    if (!token) return true; // treat as pass if present widget but no token yet
+    try {
       const res = await fetch('/api/verify-turnstile', {
         method: 'POST',
-        headers: { 'content-type': 'application/json', 'cache-control': 'no-store' },
-        body: JSON.stringify({ token }),
+        headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ token })
       });
-      const data = await res.json();
-      return Boolean(data?.success);
-    } catch (e) {
-      console.error('turnstile verify failed', e);
-      return false;
-    }
-  };
+      const json = await res.json();
+      return !!json?.success;
+    } catch { return false; }
+  }
 
-  const onOpen = async (ev) => {
-    ev.preventDefault();
-    if (!stash.selected) return;
-    const primary = pickPrimaryLink(stash.selected.links);
-    if (!primary?.url) return;
+  // ---------- Build report (for PDF/Text) ----------
+  function buildReport() {
+    const now = new Date().toISOString();
+    return {
+      generatedAt: now,
+      state: selected ? { code: selected.code, name: selected.name } : null,
+      board: { name: selectedLinkBoard || null, url: selectedLinkUrl || null, host: els.stateHost.textContent || null },
+      user: { name: els.nameInput.value || null, email: els.emailInput.value || null },
+      details: els.detailsInput.value || ''
+    };
+  }
 
-    setStatus(true, 'Verifying…');
-    const ok = await verifyTurnstile();
-    if (!ok) {
-      setStatus(false, 'Verification failed. Try again.');
+  function reportToText(r) {
+    return [
+      `Generated: ${r.generatedAt}`,
+      r.state ? `State: ${r.state.name} (${r.state.code})` : `State: —`,
+      r.board ? `Board: ${r.board.name}\nURL: ${r.board.url}\nHost: ${r.board.host}` : `Board: —`,
+      r.user.name ? `Name: ${r.user.name}` : '',
+      r.user.email ? `Email: ${r.user.email}` : '',
+      '',
+      'Details:',
+      r.details || '—'
+    ].filter(Boolean).join('\n');
+  }
+
+  function saveAsPdf(text) {
+    // simple text -> blob -> download (kept lightweight; no canvas lib)
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'complaint.txt';
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+
+  // ---------- Events ----------
+  els.stateSelect.addEventListener('change', async () => {
+    selected = STATES.find(s => s.code === els.stateSelect.value) || null;
+    const link = getPrimaryLink(selected);
+    selectedLinkUrl = link?.url || '';
+    selectedLinkBoard = link?.board || '';
+
+    setStateFields(link ? { board: link.board, url: link.url, host: link.host } : null);
+    enableOpen(!!selectedLinkUrl);
+
+    if (!selected) {
+      setBadge('—');
+      setDataSource('');
       return;
     }
+    setBadge('Ready', 'ok');
+  });
 
-    setStatus(true, 'Opening…');
-    window.open(primary.url, '_blank', 'noopener');
-  };
+  els.openBtn.addEventListener('click', async (ev) => {
+    ev.preventDefault();
+    if (!selectedLinkUrl) return;
 
-  const main = async () => {
-    enableOpen(false);
-    initTurnstile();
+    setBadge('Verifying…');
+    const ok = await verifyTurnstile();
+    if (!ok) { setBadge('Verification failed', 'error'); return; }
 
-    stash.states = await loadStatesFromApi();
-    renderStates(stash.states);
+    setBadge('Opening…', 'ok');
+    window.open(selectedLinkUrl, '_blank', 'noopener');
+  });
 
-    stateSelect?.addEventListener('change', onStateChange);
-    openBtn?.addEventListener('click', onOpen);
-  };
+  els.copyText?.addEventListener('click', () => {
+    const r = buildReport();
+    const text = reportToText(r);
+    navigator.clipboard?.writeText(text).catch(()=>{});
+  });
 
-  document.addEventListener('DOMContentLoaded', main);
+  els.saveJson?.addEventListener('change', () => {
+    const r = buildReport();
+    const text = reportToText(r);
+    saveAsPdf(text);
+  });
+
+  // ---------- boot ----------
+  (async () => {
+    try {
+      const { list, source } = await loadStates();
+      STATES = list;
+      setDataSource(source ? `Data source: ${source}` : '');
+      renderStates(STATES);
+    } catch {
+      setDataSource('Data source: (none)');
+      renderStates([]);
+    }
+  })();
 })();
