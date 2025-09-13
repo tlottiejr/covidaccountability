@@ -39,21 +39,10 @@ h3{font-size:18px;margin:10px 0 8px}
 p{line-height:1.55}
 .small{color:var(--muted);font-size:13px}
 
-/* ---------- Links (global normalization: no purple visited) ---------- */
-:root{
-  --link-color: var(--accent);
-  --link-hover: var(--accent-hover);
-}
-a:link,
-a:visited{
-  color: var(--link-color);
-  text-decoration: underline;
-}
-a:hover,
-a:focus{
-  color: var(--link-hover);
-  text-decoration-thickness: 2px;
-}
+/* ---------- Links (global normalization: avoid purple visited) ---------- */
+:root{ --link-color: var(--accent); --link-hover: var(--accent-hover); }
+a:link, a:visited{ color: var(--link-color); text-decoration: underline; }
+a:hover, a:focus{ color: var(--link-hover); text-decoration-thickness: 2px; }
 
 /* ---------- Top navigation (“hotbar”) ---------- */
 .top{
@@ -77,7 +66,7 @@ a:focus{
   display:inline-flex; align-items:center; gap:8px;
   padding:8px 10px;
   border-radius:10px;
-  text-decoration:none;
+  text-decoration:none;           /* override global underline for nav */
   color:var(--text);               /* nav uses text color, not blue */
   transition:background .2s ease, color .2s ease, text-shadow .2s ease;
 }
@@ -114,8 +103,8 @@ main.container{display:block}
 .card h3{margin-top:0}
 .card .h4{font-size:17px;margin:0 0 6px}
 
-/* Limit visited normalization strictly inside cards if needed (kept for emphasis) */
-.card a:link, .card a:visited{ color: var(--link-color); }
+/* Reference grid spacing */
+.grid.grid-2 .card{margin-bottom:6px}
 
 /* ---------- Tiles (portal) ---------- */
 .tile{
@@ -130,8 +119,10 @@ main.container{display:block}
 .tile .title{display:block; font-weight:700; margin-bottom:4px}
 .tile .host{display:block; color:var(--muted); font-size:13px}
 
-/* ---------- Buttons ---------- */
-.btn{
+/* ---------- Buttons (base) ---------- */
+.btn,
+.btn:link,
+.btn:visited{
   display:inline-block;
   padding:10px 14px;
   border-radius:10px;
@@ -141,17 +132,17 @@ main.container{display:block}
   color:#fff;
   background:linear-gradient(180deg, var(--accent-2), var(--accent));
   box-shadow:0 6px 16px rgba(37,99,235,.20);
-  text-decoration:none;
+  text-decoration:none; /* prevent double underline on anchors */
+  transition:filter .15s ease, color .15s ease, background .15s ease;
 }
-.btn:hover,
-.btn:focus{
+.btn:hover, .btn:focus{
   filter:brightness(1.05);
   outline:2px solid transparent;
   outline-offset:2px;
 }
 .btn:disabled{opacity:.6; cursor:not-allowed}
 
-/* Secondary/outline variants for consistency (if used) */
+/* Secondary/outline (if used) */
 .btn-outline{
   color:var(--accent);
   background:#fff;
@@ -175,44 +166,40 @@ footer{
   padding:40px 0 50px;
   color:var(--muted);
 }
-footer a:link,
-footer a:visited{
+footer a:link, footer a:visited{
   color:var(--link-color);
   margin:0 8px;
 }
 
-/* ---------- Minor tweaks ---------- */
+/* ---------- Accessibility helpers ---------- */
 .visually-hidden{
   position:absolute !important; height:1px; width:1px; overflow:hidden;
   clip:rect(1px,1px,1px,1px); white-space:nowrap;
 }
 
-/* Reference grid spacing */
-.grid.grid-2 .card{margin-bottom:6px}
-/* --- Home hero CTA buttons (scoped; no HTML edits needed) --- */
-/* Targets the buttons inside the FIRST .card on the page (your home hero). */
-main.container > .card:first-of-type .btn{
-  /* gradient from white → light blue → brand blue */
-  background: linear-gradient(90deg, #ffffff 0%, #bfe0ff 30%, #60a5fa 65%, #2563eb 100%);
-  color: #0b1220; /* readable on the light gradient */
+/* ---------- Home hero CTA buttons (scoped) ---------- */
+/* Two CTAs in the first .card of the page */
+main.container > .card:first-of-type .btn,
+main.container > .card:first-of-type .btn:link,
+main.container > .card:first-of-type .btn:visited{
+  /* Resting gradient: blue (left) → white (right) */
+  background: linear-gradient(90deg, #2563eb 0%, #60a5fa 55%, #e6f2ff 100%);
+  color: #0b1220; /* readable on light gradient */
   border: 1px solid rgba(37,99,235,.35);
   text-decoration: none;
+  position: relative; /* for glow underline on hover */
 }
 
-/* Hover/focus: gradient goes away, link-like underline appears (hotbar vibe) */
+/* Hover/focus: remove gradient, single glow underline (no text underline) */
 main.container > .card:first-of-type .btn:hover,
 main.container > .card:first-of-type .btn:focus{
   background: transparent;
   color: var(--link-color);
-  text-decoration: underline;
-  text-decoration-thickness: 2px;
-  position: relative; /* for the glow underline */
-  filter: none;       /* override base .btn hover filter */
+  text-decoration: none; /* ensure no default underline */
+  filter: none;          /* override base .btn hover filter */
   outline: 2px solid transparent;
   outline-offset: 2px;
 }
-
-/* Subtle glowing underline like the nav on hover/active */
 main.container > .card:first-of-type .btn:hover::after,
 main.container > .card:first-of-type .btn:focus::after{
   content:"";
@@ -223,10 +210,8 @@ main.container > .card:first-of-type .btn:focus::after{
   box-shadow: 0 4px 12px rgba(37,99,235,.35);
 }
 
-/* Optional: make the two CTAs sit nicely together on small screens */
-main.container > .card:first-of-type .btn + .btn{
-  margin-left: 10px;
-}
+/* Spacing between the two CTAs */
+main.container > .card:first-of-type .btn + .btn{ margin-left:10px; }
 @media (max-width:560px){
-  main.container > .card:first-of-type .btn + .btn{ margin-left: 0; margin-top: 10px; }
+  main.container > .card:first-of-type .btn + .btn{ margin-left:0; margin-top:10px; }
 }
