@@ -14,7 +14,7 @@
 
   <main class="container">
     <h1>Complaint Portal</h1>
-    <p class="small">Choose your state to open the official complaint page. While we harden verification, you can also use the direct links below.</p>
+    <p class="small">Choose your state to open the official complaint page.</p>
 
     <div class="grid grid-2">
       <section class="card">
@@ -30,7 +30,7 @@
 
         <div style="margin-top: 12px;">
           <div class="small">URL</div>
-          <!-- We render radio options (for selecting which link the button uses) here -->
+          <!-- Radio options (always, even when there’s only one link). Each shows a hyperlink under the board name. -->
           <div id="stateUrl"><span class="small">Not available yet</span></div>
         </div>
 
@@ -42,23 +42,15 @@
         <div style="margin-top: 12px;">
           <div class="small">Status</div>
           <div id="stateStatus"><span class="badge">—</span></div>
-          <div class="small" id="dataSource" aria-live="polite" style="margin-top:6px;"></div>
         </div>
 
         <div style="margin-top: 16px;">
           <button id="openBtn" class="btn" disabled>Open board page</button>
         </div>
 
-        <!-- Turnstile widget stays (button uses it), but direct links below don't require it -->
+        <!-- Turnstile widget for the button flow -->
         <div style="margin-top: 16px;">
           <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8"></div>
-        </div>
-
-        <hr style="margin:16px 0;border:none;border-top:1px solid #e6eefc"/>
-
-        <div>
-          <div class="small" style="font-weight:600;">Direct links (temporary)</div>
-          <div id="directLinks" class="small" style="margin-top:6px;">—</div>
         </div>
       </section>
 
