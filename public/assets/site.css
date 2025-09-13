@@ -1,89 +1,75 @@
-/* LASTWORKING styles for portal cards/buttons/badges */
-
-:root {
-  --bg: #f4f7ff;
-  --card: #ffffff;
-  --text: #202534;
-  --muted: #5b6275;
-  --blue: #2e6bff;
-  --blue-700: #1f46aa;
-  --green: #3bb273;
-  --red: #d44;
-  --border: #e6eefc;
+/* public/assets/site.css — Light theme refresh */
+:root{
+  --bg:#f7fbff; --panel:#ffffff; --text:#0b1220; --muted:#4b5563;
+  --accent:#2563eb; --accent2:#0ea5e9; --danger:#dc2626;
+  --radius:14px; --gap:16px; --shadow:0 10px 25px rgba(2,6,23,.08);
 }
-
-html, body {
-  margin: 0;
-  padding: 0;
-  font-family: Inter, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
-  color: var(--text);
-  background: radial-gradient(80rem 40rem at 50% -10%, #eef3ff 0%, #ffffff 50%, #ffffff 100%);
+*{box-sizing:border-box}
+html,body{height:100%}
+body{
+  margin:0; font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Noto Sans";
+  background:
+    radial-gradient(1200px 600px at 70% -10%, rgba(37,99,235,.08), transparent 65%),
+    linear-gradient(180deg, #ffffff 0%, #eaf3ff 60%, #e1f4ff 100%);
+  color:var(--text); -webkit-font-smoothing:antialiased; -moz-osx-font-smoothing:grayscale;
 }
-
-.container { max-width: 1100px; margin: 0 auto; padding: 24px; }
-
-h1 { font-size: 28px; margin: 8px 0 0 0; }
-h2 { font-size: 20px; margin: 0 0 10px 0; }
-.small { font-size: 12px; color: var(--muted); }
-
-.grid { display: grid; gap: 18px; }
-.grid-2 { grid-template-columns: 1fr; }
-@media (min-width: 920px) { .grid-2 { grid-template-columns: 1fr 1fr; } }
-
-.card {
-  background: var(--card);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  padding: 16px;
-  box-shadow: 0 10px 24px rgba(46,107,255,0.06);
-}
-
-label { display:block; font-size:12px; margin-bottom:6px; color: var(--muted); }
-select, input[type="text"], input[type="email"], textarea {
-  width: 100%;
+.container{max-width:980px;margin:40px auto;padding:0 20px}
+nav.top{background:rgba(255,255,255,.8);backdrop-filter:blur(10px);border-bottom:1px solid rgba(2,6,23,.08);position:sticky;top:0;z-index:40}
+nav.top .inner{display:flex;flex-wrap:wrap;gap:10px;align-items:center;max-width:980px;margin:0 auto;padding:12px 20px}
+nav.top a{color:var(--muted);text-decoration:none;font-weight:600;padding:8px 12px;border-radius:10px;transition:.15s ease color,.15s ease background}
+nav.top a:hover{color:var(--text);background:rgba(2,6,23,.04)}
+nav.top a.active{color:#fff;background:linear-gradient(135deg,var(--accent),#60a5fa)}
+h1,h2,h3{line-height:1.2} h1{font-size:32px;margin:18px 0} h2{font-size:22px;margin:20px 0 10px;color:var(--accent)}
+.card{background:var(--panel);border:1px solid rgba(2,6,23,.06);border-radius:var(--radius);padding:18px;box-shadow:var(--shadow)}
+.grid{display:grid;gap:18px;grid-template-columns:1fr}
+.grid-2{grid-template-columns:1fr}
+.grid-3{grid-template-columns:1fr}
+.grid-4{grid-template-columns:1fr 1fr}
+@media(min-width:900px){.grid-2{grid-template-columns:1fr 1fr}.grid-3{grid-template-columns:1fr 1fr 1fr}.grid-4{grid-template-columns:1fr 1fr 1fr 1fr}}
+label{display:block;font-size:13px;color:var(--muted);margin-bottom:8px}
+select,input[type="text"],input[type="email"],textarea{width:100%;padding:10px 12px;border-radius:10px;border:1px solid rgba(2,6,23,.15);background:#fff;color:var(--text)}
+.btn{display:inline-block;padding:10px 14px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#60a5fa);color:#fff;text-decoration:none;border:none;cursor:pointer;box-shadow:0 6px 16px rgba(37,99,235,.2)}
+.btn:hover{filter:brightness(1.05)}
+.small{color:var(--muted);font-size:13px}
+.badge{display:inline-block;padding:2px 8px;border-radius:999px;background:rgba(14,165,233,.15);color:#0369a1}
+.tile{display:block;padding:16px;border:1px solid rgba(2,6,23,.08);border-radius:14px;background:#fff;text-decoration:none;color:inherit;box-shadow:0 6px 14px rgba(2,6,23,.06)}
+.tile h3{margin:0 0 6px 0;font-size:18px}
+.tile p{margin:0;color:var(--muted)}
+footer{margin:40px 0;text-align:center}
+/* Cards inside complaint portal */
+.badge.danger{background:var(--danger);color:#fff}
+/* --- NAV GRADIENT (consistent across all pages) --- */
+.top .inner a {
+  position: relative;
+  display: inline-block;
   padding: 10px 12px;
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  font-size: 14px;
-  outline: none;
-  background: #fff;
-}
-textarea { resize: vertical; }
-
-.row { display:flex; align-items:center; gap:12px; }
-
-.btn {
-  background: var(--blue);
-  color: #fff;
-  border: none;
-  padding: 10px 14px;
-  border-radius: 8px;
-  font-size: 14px;
-  cursor: pointer;
-  box-shadow: 0 6px 14px rgba(46,107,255,0.25);
-}
-.btn[disabled] { opacity: .5; cursor: not-allowed; }
-.btn:hover { background: var(--blue-700); }
-
-.btn-outline {
-  background: transparent;
-  color: var(--blue);
-  border: 1px solid var(--blue);
-  padding: 8px 10px;
-  border-radius: 8px;
-  font-size: 13px;
-  cursor: pointer;
+  font-weight: 600;
+  text-decoration: none;
+  background: linear-gradient(90deg, #2a6cf0 0%, #6aa8ff 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  opacity: 0.9;
+  transition: opacity .15s ease, transform .15s ease;
 }
 
-.badge {
-  display:inline-block;
-  padding: 4px 10px;
-  border-radius: 999px;
-  background: #eee;
-  font-size: 12px;
+.top .inner a:hover {
+  opacity: 1;
+  transform: translateY(-1px);
 }
-.badge.ok { background: #e9f9ef; color: #1b7b4b; }
-.badge.error { background: #ffecec; color: #aa2d2d; }
 
-/* anchors inside small blocks */
-#stateUrl a, #directLinks a { word-break: break-word; }
+.top .inner a[aria-current="page"] {
+  opacity: 1;
+  text-shadow: 0 0 0 rgba(0,0,0,0); /* keep crisp */
+}
+
+/* Optional subtle underline on hover/active for clarity */
+.top .inner a:hover::after,
+.top .inner a[aria-current="page"]::after {
+  content: "";
+  position: absolute;
+  left: 8px; right: 8px; bottom: 4px;
+  height: 2px;
+  border-radius: 2px;
+  background: linear-gradient(90deg, #2a6cf0 0%, #6aa8ff 100%);
+}
