@@ -1,46 +1,119 @@
-// Complaint Portal logic with accessibility improvements
-const jsonUrl = '/assets/state-links.json';
+// Complaint Portal logic — robust loader + a11y + safe open flow
 const stateSelect = document.getElementById('stateSelect');
 const boardsEl    = document.getElementById('boards');
 const openBtn     = document.getElementById('openBtn');
 const srStatus    = document.getElementById('sr-status');
 
-let STATE_LINKS = [];
+let STATE_LINKS = [];                 // canonical: [{code,name,links:[{board,url,primary? ,unavailable?}]}]
 let selected = { state: null, link: null };
 
-// --- utilities ---------------------------------------------------------------
+// -------------------- utilities --------------------
 const say = (msg) => { if (srStatus) srStatus.textContent = msg; };
-const esc = (s='') => s.toString()
-  .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-  .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-
+const esc = (s='') => s.toString().replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
 const hostOf = (url) => { try { return new URL(url).host; } catch { return ''; } };
-const byName = (a,b) => a.name.localeCompare(b.name);
+const byName = (a,b) => (a.name||'').localeCompare(b.name||'');
+const up = (s) => String(s||'').trim().toUpperCase();
 
-// --- fetch data --------------------------------------------------------------
-async function loadStateLinks() {
-  const res = await fetch(jsonUrl + '?v=' + Date.now(), { cache: 'no-store' });
-  if (!res.ok) throw new Error('Failed to load state links');
-  const data = await res.json();
-  if (!Array.isArray(data)) throw new Error('Invalid state-links.json shape');
-  STATE_LINKS = data.slice().sort(byName);
+// Normalize any link-ish shape into {board,url,primary?,unavailable?}
+const normLink = (x) => {
+  if (!x) return null;
+  if (typeof x === 'string') return { board: 'Board', url: x, primary: true };
+  const url = x.url || x.href || x.link || '';
+  if (!url) return null;
+  return {
+    board: x.board || x.name || x.title || 'Board',
+    url,
+    primary: !!x.primary,
+    unavailable: !!x.unavailable
+  };
+};
+
+// Normalize any state-ish shape into canonical {code,name,links:[...]}
+const normState = (s) => {
+  if (!s) return null;
+  const code = s.code || s.abbr || s.state || '';
+  const name = s.name || s.title || s.stateName || '';
+  let links = [];
+
+  // preferred array
+  if (Array.isArray(s.links)) links = s.links.map(normLink).filter(Boolean);
+  // alternative key
+  else if (Array.isArray(s.boards)) links = s.boards.map(normLink).filter(Boolean);
+  // single link
+  else if (s.link || s.url) {
+    const single = normLink({ board: s.board || name || 'Board', url: s.link || s.url, primary: true, unavailable: s.unavailable });
+    if (single) links = [single];
+  }
+
+  return {
+    code: up(code),
+    name: String(name || code || '').trim(),
+    links
+  };
+};
+
+// -------------------- loader (multi-source, tolerant) --------------------
+async function loadFrom(url, expectJson=true) {
+  const res = await fetch(url + (url.includes('?') ? '' : `?v=${Date.now()}`), { cache: 'no-store' });
+  if (!res.ok) throw new Error(`${url} ${res.status}`);
+  return expectJson ? res.json() : res.text();
 }
 
-// --- renderers ---------------------------------------------------------------
+async function loadStateLinks() {
+  // 1) canonical JSON
+  try {
+    const data = await loadFrom('/assets/state-links.json');
+    const arr = Array.isArray(data) ? data : [];
+    const out = arr.map(normState).filter(Boolean);
+    if (out.length) return out;
+  } catch {}
+
+  // 2) API (D1) possible shapes
+  try {
+    const data = await loadFrom('/api/states');
+    const arr = Array.isArray(data) ? data : (Array.isArray(data?.states) ? data.states : []);
+    const out = arr.map(normState).filter(Boolean);
+    if (out.length) return out;
+  } catch {}
+
+  // 3) legacy JSON
+  try {
+    const data = await loadFrom('/assets/states.json');
+    const arr = Array.isArray(data) ? data : (Array.isArray(data?.states) ? data.states : []);
+    const out = arr.map(normState).filter(Boolean);
+    if (out.length) return out;
+  } catch {}
+
+  throw new Error('No state links source available');
+}
+
+// -------------------- renderers --------------------
 function renderStateOptions() {
+  stateSelect.innerHTML = '<option value="">— Select your state —</option>';
   for (const s of STATE_LINKS) {
     const opt = document.createElement('option');
-    opt.value = s.code;
+    opt.value = s.code;              // code value (case-insensitive match)
     opt.textContent = s.name;
     stateSelect.appendChild(opt);
   }
 }
 
-function renderBoardsFor(code) {
+function findStateByCodeOrName(value) {
+  if (!value) return null;
+  const code = up(value);
+  let st = STATE_LINKS.find(s => up(s.code) === code);
+  if (st) return st;
+  // fallback: by display text (name)
+  st = STATE_LINKS.find(s => up(s.name) === up(stateSelect.options[stateSelect.selectedIndex]?.text || ''));
+  return st || null;
+}
+
+function renderBoardsFor(stateCodeValue) {
   boardsEl.innerHTML = '';
-  const st = STATE_LINKS.find(s => s.code === code);
-  selected.state = st || null;
   selected.link = null;
+
+  const st = findStateByCodeOrName(stateCodeValue);
+  selected.state = st || null;
 
   if (!st || !Array.isArray(st.links) || st.links.length === 0) {
     const p = document.createElement('p');
@@ -51,7 +124,6 @@ function renderBoardsFor(code) {
     return;
   }
 
-  // Radio list
   st.links.forEach((link, idx) => {
     const id = `board-${st.code}-${idx}`;
     const url = String(link.url || '');
@@ -89,8 +161,8 @@ function renderBoardsFor(code) {
     boardsEl.appendChild(row);
   });
 
-  // Preselect primary if present
-  const primary = boardsEl.querySelector('input[type=radio][data-primary="1"]');
+  // Preselect primary or first
+  const primary = boardsEl.querySelector('input[type=radio][data-primary="1"]') || boardsEl.querySelector('input[type=radio]');
   if (primary) {
     primary.checked = true;
     primary.dispatchEvent(new Event('change', { bubbles: true }));
@@ -99,21 +171,14 @@ function renderBoardsFor(code) {
   }
 }
 
-function enableOpen() {
-  openBtn.disabled = false;
-  openBtn.setAttribute('aria-disabled', 'false');
-}
-function disableOpen() {
-  openBtn.disabled = true;
-  openBtn.setAttribute('aria-disabled', 'true');
-}
+function enableOpen() { openBtn.disabled = false; openBtn.setAttribute('aria-disabled', 'false'); }
+function disableOpen() { openBtn.disabled = true; openBtn.setAttribute('aria-disabled', 'true'); }
 
-// --- turnstile verify (non-blocking fallback) --------------------------------
+// -------------------- turnstile (non-blocking) --------------------
 async function verifyTurnstileToken() {
   const el = document.querySelector('input[name="cf-turnstile-response"]');
   const token = el?.value || (window.turnstile?.getResponse ? window.turnstile.getResponse() : '');
   if (!token) return { success: false, reason: 'no-token' };
-
   try {
     const res = await fetch('/api/verify-turnstile', {
       method: 'POST',
@@ -128,14 +193,12 @@ async function verifyTurnstileToken() {
   }
 }
 
-// --- robust open flow: preserve user gesture ---------------------------------
-// Strategy: open a blank tab *synchronously* on click to keep the gesture,
-// then navigate it after (async) verification. If blocked, fallback to same-tab.
+// -------------------- robust open flow (gesture preserved) --------------------
 openBtn.addEventListener('click', async () => {
   const url = selected?.link?.url;
   if (!url) return;
 
-  // 1) Try to pre-open a new tab before any await (preserves user gesture).
+  // Pre-open to keep the user gesture
   let win = null;
   try { win = window.open('', '_blank'); } catch { win = null; }
   if (win) { try { win.opener = null; } catch {} }
@@ -143,28 +206,33 @@ openBtn.addEventListener('click', async () => {
   say('Verifying…');
   const verify = await verifyTurnstileToken();
 
-  // 2) If we have a tab, navigate it now.
   if (win && !win.closed) {
-    try { win.location.href = url; } catch { /* ignore */ }
+    try { win.location.href = url; } catch {}
     say(verify.success ? 'Verification passed. Opening board site.' : 'Verification unavailable. Opening board site.');
     return;
   }
 
-  // 3) Popup blocked: fallback to same-tab navigation.
-  try {
-    location.assign(url);
-  } catch {
-    location.href = url;
-  }
+  // Popup blocked → same-tab fallback
+  try { location.assign(url); } catch { location.href = url; }
 });
 
-// --- init --------------------------------------------------------------------
+// -------------------- init --------------------
 (async () => {
   try {
-    await loadStateLinks();
+    const data = await loadStateLinks();
+    STATE_LINKS = data.slice().sort(byName);
     renderStateOptions();
+    disableOpen();
+    say('State list loaded. Choose your state, then a board.');
   } catch (e) {
     console.error(e);
     say('Could not load state links. Please try again later.');
   }
 })();
+
+stateSelect.addEventListener('change', () => {
+  const code = stateSelect.value;
+  renderBoardsFor(code);
+  const label = stateSelect.options[stateSelect.selectedIndex]?.text || '';
+  say(`State ${label} selected.`);
+});
