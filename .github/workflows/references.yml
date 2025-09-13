@@ -9,6 +9,10 @@ on:
         description: 'Open PR with generated files? (true/false)'
         required: false
         default: 'false'
+      checkRefs:
+        description: 'Also run references link health audit (true/false)'
+        required: false
+        default: 'true'
 
 jobs:
   build:
@@ -25,8 +29,16 @@ jobs:
         with:
           node-version: '20'
 
-      - name: Build references
+      - name: Build references artifacts
         run: node scripts/build-references.mjs
+
+      - name: Refs link health (optional)
+        if: ${{ github.event.inputs.checkRefs != 'false' }}
+        env:
+          MAX_CONCURRENCY: '8'
+          TIMEOUT_MS: '12000'
+          FAIL_ON: 'none'
+        run: node scripts/check-reference-links.mjs
 
       - name: Upload artifacts
         uses: actions/upload-artifact@v4
@@ -36,6 +48,8 @@ jobs:
             public/assets/board-index.json
             public/assets/board-index.html
             public/assets/references.json
+            reports/reference-link-health.json
+            reports/reference-link-health.csv
 
       - name: Create Pull Request (optional)
         if: ${{ github.event.inputs.autopr == 'true' }}
@@ -48,3 +62,4 @@ jobs:
             public/assets/board-index.json
             public/assets/board-index.html
             public/assets/references.json
+
