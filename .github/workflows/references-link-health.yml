@@ -2,38 +2,136 @@ name: References Link Health
 
 on:
   schedule:
-    - cron: '35 9 * * 0'   # Sundays 09:35 UTC
-  workflow_dispatch: {}
+    - cron: "0 7 * * *"   # once every 24h at 07:00 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: write        # required for PRs
+  pull-requests: write
+
+concurrency:
+  group: health-refs
+  cancel-in-progress: false
 
 jobs:
   check:
     runs-on: ubuntu-latest
-    permissions:
-      contents: read
-      actions: write
+
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: '20'
-
-      - name: Run link health check
-        env:
-          MAX_CONCURRENCY: '8'
-          TIMEOUT_MS: '15000'
-          USER_AGENT: 'Mozilla/5.0 (compatible; CAN-LinkHealth/1.0; +https://covidaccountabilitynow.org)'
+      - name: Ensure health directory
         run: |
-          node scripts/check-references.mjs
+          mkdir -p public/assets/health
 
-      - name: Upload artifacts
-        uses: actions/upload-artifact@v4
+      - name: Check references and build refs-health.json
+        shell: bash
+        run: |
+          set -euo pipefail
+          node - <<'NODE'
+          const fs = require('fs');
+          const path = require('path');
+          const fsp = fs.promises;
+
+          const HEALTH_DIR = 'public/assets/health';
+          const OUTPUT = path.join(HEALTH_DIR, 'refs-health.json');
+          const INDEX = path.join(HEALTH_DIR, 'index.json');
+
+          const INPUTS = [
+            'public/assets/references.json',
+            // Optional fallback: extract anchors from the static page if JSON is absent
+            // 'public/references.html'
+          ];
+
+          function nowIso(){ return new Date().toISOString(); }
+
+          async function readReferences() {
+            for (const p of INPUTS) {
+              if (fs.existsSync(p)) {
+                if (p.endsWith('.json')) {
+                  const j = JSON.parse(await fsp.readFile(p, 'utf8'));
+                  // Normalize to array of {title,url}
+                  const arr = Array.isArray(j) ? j : (Array.isArray(j?.items) ? j.items : []);
+                  return arr.map(x => {
+                    if (typeof x === 'string') return { title: x, url: x };
+                    return { title: x.title || x.name || x.url || x.href || 'Reference', url: x.url || x.href || '' };
+                  }).filter(x => x.url);
+                }
+                if (p.endsWith('.html')) {
+                  const html = await fsp.readFile(p, 'utf8');
+                  const m = [...html.matchAll(/<a\s+(?:[^>]*?\s+)?href="([^"]+)"[^>]*>(.*?)<\/a>/gi)];
+                  return m.map(mm => ({ title: mm[2].replace(/<[^>]*>/g,''), url: mm[1] }));
+                }
+              }
+            }
+            return [];
+          }
+
+          async function probe(url, timeoutMs = 20000, method='HEAD') {
+            const ac = new AbortController();
+            const t = setTimeout(()=>ac.abort(new Error('timeout')), timeoutMs);
+            try {
+              const res = await fetch(url, { method, redirect: 'follow', signal: ac.signal });
+              return { ok:true, status: res.status, finalUrl: res.url, redirected: res.redirected };
+            } catch (e) {
+              if (method === 'HEAD') return probe(url, timeoutMs, 'GET'); // fallback
+              return { ok:false, error: String(e) };
+            } finally {
+              clearTimeout(t);
+            }
+          }
+
+          (async () => {
+            const itemsSrc = await readReferences();
+            const out = { generatedAt: nowIso(), items: [] };
+
+            for (const it of itemsSrc) {
+              const r = await probe(it.url);
+              const rec = {
+                title: it.title || it.url,
+                url: it.url,
+                status: r.ok ? r.status : 0,
+                finalUrl: r.finalUrl || '',
+                redirected: !!r.redirected || (!!r.finalUrl && new URL(r.finalUrl).host !== new URL(it.url).host),
+                error: !r.ok || (r.ok && r.status >= 400),
+                checkedAt: nowIso()
+              };
+              out.items.push(rec);
+            }
+
+            await fsp.writeFile(OUTPUT, JSON.stringify(out, null, 2));
+
+            // Update index summary (merge with existing if present)
+            const idx = fs.existsSync(INDEX) ? JSON.parse(await fsp.readFile(INDEX, 'utf8')) : { summary:{} };
+            const counts = { ok:0, redirects:0, errors:0 };
+            for (const i of out.items) {
+              if (i.error) counts.errors++;
+              else if (i.redirected) counts.redirects++;
+              else counts.ok++;
+            }
+            idx.summary = idx.summary || {};
+            idx.summary.references = { ...counts, updatedAt: out.generatedAt };
+            await fsp.writeFile(INDEX, JSON.stringify(idx, null, 2));
+          })().catch(e => { console.error(e); process.exit(1); });
+          NODE
+
+      - name: Create PR with changes (only if files changed)
+        uses: peter-evans/create-pull-request@v6
         with:
-          name: references-link-health
-          if-no-files-found: error
-          path: |
-            reports/references-link-health-*.json
-            reports/references-link-health-*.csv
-            reports/README.md
+          commit-message: "chore(health): update references link health"
+          title: "chore(health): update references link health"
+          body: |
+            Automated daily refresh of references link health snapshots.
+
+            Files:
+            - `public/assets/health/refs-health.json`
+            - `public/assets/health/index.json`
+          branch: chore/health/refs
+          base: main
+          labels: health, automation
+          add-paths: |
+            public/assets/health/refs-health.json
+            public/assets/health/index.json
+          delete-branch: true
+          draft: false
+
