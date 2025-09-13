@@ -2,7 +2,7 @@ name: Uptime & Smoke
 
 on:
   schedule:
-    - cron: "*/10 * * * *"    # every 10 minutes
+    - cron: "0 6 * * *"   # once every 24h at 06:00 UTC
   workflow_dispatch:
   push:
     branches: [ main ]
@@ -46,7 +46,6 @@ jobs:
             url="${entry%%|*}"
             expect="${entry#*|}"
 
-            # Fetch page (follow redirects); capture status & body
             http_code=$(curl -sSL -o /tmp/page.html -w "%{http_code}" "${base}${url}" || echo "000")
 
             ok_status=0
@@ -56,7 +55,6 @@ jobs:
               summary+="- ✅ ${url} (HTTP ${http_code})\n"
             else
               failures=$((failures+1))
-              head -n 1 /tmp/page.html >/dev/null 2>&1 || true
               summary+="- ❌ ${url} (HTTP ${http_code}) — missing marker or bad status\n"
             fi
           done
@@ -76,9 +74,8 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          # find existing open incident
           num=$(gh issue list --label "${INCIDENT_LABEL}" --state open --search "${INCIDENT_TITLE}" --json number --jq '.[0].number' || echo "")
-          body="Automated uptime/smoke test detected failures.\n\nSee the latest run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+          body="Automated uptime/smoke test detected failures.\n\nRun: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
 
           if [ -z "$num" ]; then
             gh issue create \
