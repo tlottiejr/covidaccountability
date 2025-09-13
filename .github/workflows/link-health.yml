@@ -1,16 +1,18 @@
 name: Link Health
 
 on:
+  schedule:
+    - cron: '15 9 * * *'   # daily at 09:15 UTC
   workflow_dispatch:
     inputs:
       concurrency:
         description: 'Max concurrent checks'
         required: false
-        default: '12'
+        default: '8'
       timeoutMs:
         description: 'Timeout per request (ms)'
         required: false
-        default: '15000'
+        default: '12000'
       failOn:
         description: 'none|some|any'
         required: false
@@ -19,6 +21,8 @@ on:
 jobs:
   audit:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -30,8 +34,8 @@ jobs:
 
       - name: Run link checker
         env:
-          MAX_CONCURRENCY: ${{ github.event.inputs.concurrency || '12' }}
-          TIMEOUT_MS: ${{ github.event.inputs.timeoutMs || '15000' }}
+          MAX_CONCURRENCY: ${{ github.event.inputs.concurrency || '8' }}
+          TIMEOUT_MS: ${{ github.event.inputs.timeoutMs || '12000' }}
           FAIL_ON: ${{ github.event.inputs.failOn || 'none' }}
         run: node scripts/check-links.mjs
 
