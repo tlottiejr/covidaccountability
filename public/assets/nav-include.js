@@ -1,6 +1,7 @@
-// Top nav: centered menu + persistent active underline + perf preconnect
+// Top nav: centered menu, persistent active underline, Turnstile preconnect,
+// and HARD removal of any "Complaint Portal" link (past or future inserts).
 (function () {
-  // Warm TLS for Turnstile (when used)
+  // --- Perf: warm TLS for Turnstile (when used) ---
   try {
     const head = document.head || document.getElementsByTagName('head')[0];
     if (head && !head.querySelector('link[rel="preconnect"][href="https://challenges.cloudflare.com"]')) {
@@ -14,7 +15,7 @@
 
   const root = document.getElementById('nav-root');
 
-  // Render our canonical nav (NO Complaint Portal)
+  // --- Render our canonical nav (NO Complaint Portal) ---
   if (root) {
     root.innerHTML = `
       <div class="top">
@@ -35,7 +36,7 @@
     `;
   }
 
-  // Helpers
+  // --- Helper: normalize paths so /about, /about/, /about.html all match ---
   const norm = (p) => {
     try {
       const u = new URL(p, location.origin);
@@ -49,6 +50,7 @@
     }
   };
 
+  // --- Mark the active page in our nav ---
   function setActiveUnderline() {
     try {
       const current = norm(location.pathname);
@@ -61,35 +63,45 @@
     } catch {}
   }
 
-  // Remove any "Complaint Portal" link from ANY nav (handles legacy partials, late inserts)
-  function sanitizeNavs() {
+  // --- Brutal remover for any Complaint Portal anchors in ANY nav ---
+  function isComplaintAnchor(a) {
+    const href = (a.getAttribute('href') || '').toLowerCase();
+    const txt  = (a.textContent || '').toLowerCase().replace(/\s+/g, '');
+    // catch common permutations: complaint-portal, complaintportal, /complaint..., complaint.html, etc.
+    const hrefHit =
+      href.includes('complaint-portal') ||
+      href.includes('complaintportal') ||
+      /\/complaint(\.html|\/|$)/.test(href);
+    const textHit = /complaintportal/.test(txt) || /complaint\s*portal/.test((a.textContent || '').toLowerCase());
+    return hrefHit || textHit;
+  }
+
+  function stripComplaintLinks(scope = document) {
     try {
-      const anchors = document.querySelectorAll('nav a');
-      anchors.forEach((a) => {
-        const href = (a.getAttribute('href') || '').toLowerCase();
-        const text = (a.textContent || '').toLowerCase().replace(/\s+/g, ' ').trim();
-        const textMatch = /complaint\s*-?\s*portal/i.test(text);
-        const hrefMatch = /(\/|^)complaint[-]?portal(\.html|\/)?$/i.test(href);
-        if (textMatch || hrefMatch) {
-          a.remove();
-        }
+      scope.querySelectorAll('nav a').forEach((a) => {
+        if (isComplaintAnchor(a)) a.remove();
       });
     } catch {}
   }
 
-  // Initial pass
-  sanitizeNavs();
+  // Initial pass + active underline
+  stripComplaintLinks();
   setActiveUnderline();
 
-  // Guard against late DOM mutations adding it back (legacy includes/scripts)
+  // --- Keep it gone even if something injects it later ---
   try {
-    const obs = new MutationObserver(() => {
-      sanitizeNavs();
+    const obs = new MutationObserver((muts) => {
+      for (const m of muts) {
+        if (m.addedNodes && m.addedNodes.length) {
+          m.addedNodes.forEach((n) => {
+            if (n.nodeType === 1) {
+              stripComplaintLinks(n);
+            }
+          });
+        }
+      }
       setActiveUnderline();
     });
-    obs.observe(document.documentElement || document.body, {
-      childList: true,
-      subtree: true
-    });
+    obs.observe(document.documentElement || document.body, { childList: true, subtree: true });
   } catch {}
 })();
