@@ -1,17 +1,18 @@
-/* 
-  X-Robots-Tag: noindex, nofollow, noarchive
+# -------- HTML: always revalidate so deploys show immediately
+/*
+  Cache-Control: public, max-age=0, must-revalidate
 
-/assets/app.js
-  Cache-Control: no-cache, must-revalidate
+# -------- JSON data: never cache (we fetch with no-store client-side too)
+/assets/*.json
+  Cache-Control: no-store
 
-/assets/state-links.json
-  Cache-Control: no-cache
+# -------- JS & CSS: modest cache with quick background refresh
+/assets/*.js
+  Cache-Control: public, max-age=86400, stale-while-revalidate=600
 
-/assets/board-index.json
-  Cache-Control: no-cache
+/assets/*.css
+  Cache-Control: public, max-age=86400, stale-while-revalidate=600
 
-/assets/references.json
-  Cache-Control: no-cache
-
-/assets/board-index.html
-  Cache-Control: no-cache
+# -------- Images & static media: longer cache; these rarely change
+/assets/img/*
+  Cache-Control: public, max-age=604800, immutable
