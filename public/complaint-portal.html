@@ -8,6 +8,7 @@
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" defer></script>
 </head>
 <body>
+  <!-- Top nav -->
   <div id="nav-root"></div>
   <script src="/assets/nav-include.js" defer></script>
 
@@ -22,24 +23,38 @@
         <label for="stateSelect">State</label>
         <select id="stateSelect" aria-label="State"></select>
 
-        <div style="margin-top: 16px;"><div class="small">Board</div><div id="stateName">—</div></div>
-        <div style="margin-top: 12px;"><div class="small">URL</div><div id="stateUrl"><span class="small">Not available yet</span></div></div>
-        <div style="margin-top: 12px;"><div class="small">Host</div><div id="stateHost">—</div></div>
-        <div style="margin-top: 12px;"><div class="small">Status</div><div id="stateStatus"><span class="badge">—</span></div></div>
+        <div style="margin-top:16px;">
+          <div class="small">Board</div>
+          <div id="boardName">—</div>
+        </div>
 
-        <div style="margin-top: 16px;">
+        <div style="margin-top:12px;">
+          <div class="small">URL</div>
+          <div id="boardUrl" class="small">Not available yet</div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <div class="small">Host</div>
+          <div id="boardHost">—</div>
+        </div>
+
+        <div style="margin-top:12px;">
+          <div class="small">Status</div>
+          <div id="status"><span class="badge">—</span></div>
+        </div>
+
+        <div style="margin-top:16px;">
           <button id="openBtn" class="btn" disabled>Open board page</button>
         </div>
 
-        <div style="margin-top: 16px;">
+        <!-- Turnstile (button uses this) -->
+        <div style="margin-top:16px;">
           <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8"></div>
         </div>
 
-        <hr style="margin:16px 0;border:none;border-top:1px solid #e6eefc"/>
-
-        <div id="directLinksWrap" style="display:none">
-          <div class="small" style="font-weight:600;">Direct links</div>
-          <ul id="directLinks" class="small" style="margin:6px 0; padding-left:18px;"></ul>
+        <div id="moreLinksWrap" style="margin-top:16px; display:none;">
+          <div class="small" style="font-weight:600;">More links</div>
+          <ul id="moreLinks" class="small" style="margin:6px 0; padding-left:18px;"></ul>
         </div>
       </section>
 
@@ -56,20 +71,24 @@
         <textarea id="detailsInput" rows="8" placeholder="Describe the issue..."></textarea>
 
         <div class="row" style="margin-top:8px;">
-          <label class="checkbox"><input id="saveJson" type="checkbox"/> Save a copy (PDF)</label>
+          <label class="checkbox"><input id="saveCopy" type="checkbox"/> Save a copy (PDF)</label>
           <button id="copyText" class="btn-outline" type="button">Copy text</button>
         </div>
 
-        <p class="small" style="margin-top:12px;">
-          We do not store your report content. Use the options above to keep a copy of your information locally, then file your report on the official state site.
-        </p>
+        <div class="small muted">We don’t store this. It stays on your device.</div>
       </section>
-
-      <footer><a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a></footer>
     </div>
   </main>
+
+  <!-- Inline JSON FALLBACK: paste the EXACT contents of public/assets/state-links.json below.
+       If the network fetch fails for any reason, the app uses this. -->
+  <script id="stateLinksJson" type="application/json">
+  [
+    // PASTE the full array from /assets/state-links.json here (keep valid JSON). 
+    // If you prefer not to inline, you can leave this empty; it’s only a safety net.
+  ]
+  </script>
 
   <script src="/assets/app.js" defer></script>
 </body>
 </html>
-
