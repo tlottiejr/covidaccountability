@@ -33,7 +33,8 @@
   function setBadge(text, danger = false) {
     if (els.stateStatus) els.stateStatus.innerHTML = `<span class="badge${danger ? ' danger' : ''}">${text}</span>`;
   }
-  function showSource(text) { if (els.dataSource) els.dataSource.textContent = text || ''; }
+  // HIDE the “data source” snippet by making this a no-op.
+  function showSource(_text) { /* intentionally blank */ }
 
   async function fetchText(url, timeout = 15000) {
     const ctrl = new AbortController();
@@ -85,26 +86,15 @@
   }
 
   async function tryStaticJSON() {
-    // 1) try with ?v=token  2) if that fails, try plain path (covers weird caches)
     const v = await getVersionToken('/assets/state-links.json');
     for (const p of STATIC_JSON_CANDIDATES) {
       for (const candidate of [`${p}?v=${encodeURIComponent(v)}`, p]) {
         try {
           const text = await fetchText(candidate);
-          if (/^\s*</.test(text)) { // HTML response (404 page, etc.)
-            console.warn('[portal] got HTML, not JSON:', candidate);
-            continue;
-          }
-          const raw = parseJsonStrict(text);
-          const norm = normalizeData(raw);
-          if (norm.length) {
-            console.info('[portal] loaded static JSON:', candidate, norm.length, 'states');
-            showSource(`Data source: ${candidate}`);
-            return norm;
-          }
-        } catch (e) {
-          console.warn('[portal] static JSON failed:', candidate, e?.message || e);
-        }
+          if (/^\s*</.test(text)) { console.warn('[portal] got HTML, not JSON:', candidate); continue; }
+          const norm = normalizeData(parseJsonStrict(text));
+          if (norm.length) { showSource(`Data source: ${candidate}`); return norm; }
+        } catch (e) { console.warn('[portal] static JSON failed:', candidate, e?.message || e); }
       }
     }
     return [];
@@ -149,10 +139,8 @@
     selectedLinkUrl = l?.url || '';
     selectedLinkBoard = l?.board || '';
     if (els.stateName) els.stateName.textContent = selectedLinkBoard || '—';
-    try {
-      const u = new URL(selectedLinkUrl);
-      if (els.stateHost) els.stateHost.textContent = u.hostname;
-    } catch { if (els.stateHost) els.stateHost.textContent = '—'; }
+    try { const u = new URL(selectedLinkUrl); if (els.stateHost) els.stateHost.textContent = u.hostname; }
+    catch { if (els.stateHost) els.stateHost.textContent = '—'; }
   }
 
   // SHOW ALL links by default (no toggle) — DOM-built for safety
@@ -275,12 +263,12 @@
   });
 
   els.reportBtn?.addEventListener('click', async () => {
-    if (!selected) { showSource('Choose a state first.'); return; }
-    if (!els.saveJson?.checked && !els.copyText?.checked) { showSource('Select Save or Copy.'); return; }
+    if (!selected) { setBadge('Choose a state first.', true); return; }
+    if (!els.saveJson?.checked && !els.copyText?.checked) { setBadge('Select Save or Copy.', true); return; }
     const r = buildReport(); const txt = toText(r);
     if (els.copyText?.checked) await navigator.clipboard.writeText(txt);
     if (els.saveJson?.checked) saveTxt(txt);
-    showSource('Report copied/saved locally.');
+    setBadge('Report copied/saved');
   });
 
   (async function init() {
@@ -289,7 +277,6 @@
     if (!STATES.length) {
       setBadge('No data', true);
       if (els.openBtn) els.openBtn.disabled = true;
-      showSource('No data loaded. Check /assets/state-links.json path/JSON.');
       return;
     }
     populateSelect(STATES);
