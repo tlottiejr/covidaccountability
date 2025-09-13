@@ -1,0 +1,43 @@
+name: References Link Health
+
+on:
+  schedule:
+    - cron: '35 9 * * 0'  # Sundays @ 09:35 UTC (adjust if you want)
+  workflow_dispatch:
+    inputs:
+      concurrency:
+        description: 'Max concurrent checks'
+        required: false
+        default: '8'
+      timeoutMs:
+        description: 'Timeout per request (ms)'
+        required: false
+        default: '12000'
+      failOn:
+        description: 'none|some|any'
+        required: false
+        default: 'none'
+
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Run references link checker
+        env:
+          MAX_CONCURRENCY: ${{ github.event.inputs.concurrency || '8' }}
+          TIMEOUT_MS: ${{ github.event.inputs.timeoutMs || '12000' }}
+          FAIL_ON: ${{ github.event.inputs.failOn || 'none' }}
+        run: node scripts/check-reference-links.mjs
+      - name: Upload reports
+        uses: actions/upload-artifact@v4
+        with:
+          name: references-link-health
+          path: |
+            reports/references-link-health.json
+            reports/references-link-health.csv
