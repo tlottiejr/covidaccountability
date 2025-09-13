@@ -1,0 +1,103 @@
+name: Uptime & Smoke
+
+on:
+  schedule:
+    - cron: "*/10 * * * *"    # every 10 minutes
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+    paths:
+      - 'public/**'
+      - '.github/workflows/uptime-smoke.yml'
+
+permissions:
+  contents: read
+  issues: write
+
+env:
+  BASE_URL: https://covidaccountability.pages.dev
+  INCIDENT_TITLE: "Uptime incident"
+  INCIDENT_LABEL: "uptime"
+
+jobs:
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Run smoke checks
+        id: run
+        shell: bash
+        run: |
+          set -euo pipefail
+
+          base="${BASE_URL%/}"
+
+          # url, expected_string
+          declare -a checks=(
+            "/|<main class=\"container\""
+            "/about.html|>About Us<"
+            "/references.html|>References<"
+            "/complaint-portal.html|id=\"stateSelect\""
+          )
+
+          failures=0
+          summary="### Uptime & Smoke report for ${base}\n\n"
+
+          for entry in "${checks[@]}"; do
+            url="${entry%%|*}"
+            expect="${entry#*|}"
+
+            # Fetch page (follow redirects); capture status & body
+            http_code=$(curl -sSL -o /tmp/page.html -w "%{http_code}" "${base}${url}" || echo "000")
+
+            ok_status=0
+            if [[ "$http_code" =~ ^2|3 ]]; then ok_status=1; fi
+
+            if [[ "$ok_status" -eq 1 ]] && grep -q "${expect}" /tmp/page.html; then
+              summary+="- ✅ ${url} (HTTP ${http_code})\n"
+            else
+              failures=$((failures+1))
+              head -n 1 /tmp/page.html >/dev/null 2>&1 || true
+              summary+="- ❌ ${url} (HTTP ${http_code}) — missing marker or bad status\n"
+            fi
+          done
+
+          echo -e "$summary" > $GITHUB_STEP_SUMMARY
+
+          echo "failures=$failures" >> "$GITHUB_OUTPUT"
+          if [ "$failures" -gt 0 ]; then
+            echo "::error::Smoke checks failed ($failures)."
+            exit 1
+          fi
+
+      - name: Open or update incident issue on failure
+        if: failure()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          # find existing open incident
+          num=$(gh issue list --label "${INCIDENT_LABEL}" --state open --search "${INCIDENT_TITLE}" --json number --jq '.[0].number' || echo "")
+          body="Automated uptime/smoke test detected failures.\n\nSee the latest run: ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+
+          if [ -z "$num" ]; then
+            gh issue create \
+              --title "${INCIDENT_TITLE}" \
+              --label "${INCIDENT_LABEL}" \
+              --body "$body"
+          else
+            gh issue comment "$num" --body "$body"
+          fi
+
+      - name: Resolve incident issue on recovery
+        if: success()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        shell: bash
+        run: |
+          set -euo pipefail
+          num=$(gh issue list --label "${INCIDENT_LABEL}" --state open --search "${INCIDENT_TITLE}" --json number --jq '.[0].number' || echo "")
+          if [ -n "$num" ]; then
+            gh issue comment "$num" --body "Automated smoke checks recovered. ✅"
+            gh issue close "$num"
+          fi
