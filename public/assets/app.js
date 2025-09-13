@@ -1,4 +1,4 @@
-// Complaint Portal logic — robust loader + a11y + safe open flow
+// Complaint Portal logic — robust loader + a11y + synchronous open
 const stateSelect = document.getElementById('stateSelect');
 const boardsEl    = document.getElementById('boards');
 const openBtn     = document.getElementById('openBtn');
@@ -35,40 +35,32 @@ const normState = (s) => {
   const name = s.name || s.title || s.stateName || '';
   let links = [];
 
-  // preferred array
   if (Array.isArray(s.links)) links = s.links.map(normLink).filter(Boolean);
-  // alternative key
   else if (Array.isArray(s.boards)) links = s.boards.map(normLink).filter(Boolean);
-  // single link
   else if (s.link || s.url) {
     const single = normLink({ board: s.board || name || 'Board', url: s.link || s.url, primary: true, unavailable: s.unavailable });
     if (single) links = [single];
   }
 
-  return {
-    code: up(code),
-    name: String(name || code || '').trim(),
-    links
-  };
+  return { code: up(code), name: String(name || code || '').trim(), links };
 };
 
 // -------------------- loader (multi-source, tolerant) --------------------
-async function loadFrom(url, expectJson=true) {
+async function loadFrom(url) {
   const res = await fetch(url + (url.includes('?') ? '' : `?v=${Date.now()}`), { cache: 'no-store' });
   if (!res.ok) throw new Error(`${url} ${res.status}`);
-  return expectJson ? res.json() : res.text();
+  return res.json();
 }
 
 async function loadStateLinks() {
-  // 1) canonical JSON
+  // 1) canonical file
   try {
     const data = await loadFrom('/assets/state-links.json');
-    const arr = Array.isArray(data) ? data : [];
-    const out = arr.map(normState).filter(Boolean);
+    const out = (Array.isArray(data) ? data : []).map(normState).filter(Boolean);
     if (out.length) return out;
   } catch {}
 
-  // 2) API (D1) possible shapes
+  // 2) optional API (D1)
   try {
     const data = await loadFrom('/api/states');
     const arr = Array.isArray(data) ? data : (Array.isArray(data?.states) ? data.states : []);
@@ -76,7 +68,7 @@ async function loadStateLinks() {
     if (out.length) return out;
   } catch {}
 
-  // 3) legacy JSON
+  // 3) legacy file
   try {
     const data = await loadFrom('/assets/states.json');
     const arr = Array.isArray(data) ? data : (Array.isArray(data?.states) ? data.states : []);
@@ -92,7 +84,7 @@ function renderStateOptions() {
   stateSelect.innerHTML = '<option value="">— Select your state —</option>';
   for (const s of STATE_LINKS) {
     const opt = document.createElement('option');
-    opt.value = s.code;              // code value (case-insensitive match)
+    opt.value = s.code;
     opt.textContent = s.name;
     stateSelect.appendChild(opt);
   }
@@ -103,7 +95,6 @@ function findStateByCodeOrName(value) {
   const code = up(value);
   let st = STATE_LINKS.find(s => up(s.code) === code);
   if (st) return st;
-  // fallback: by display text (name)
   st = STATE_LINKS.find(s => up(s.name) === up(stateSelect.options[stateSelect.selectedIndex]?.text || ''));
   return st || null;
 }
@@ -174,46 +165,42 @@ function renderBoardsFor(stateCodeValue) {
 function enableOpen() { openBtn.disabled = false; openBtn.setAttribute('aria-disabled', 'false'); }
 function disableOpen() { openBtn.disabled = true; openBtn.setAttribute('aria-disabled', 'true'); }
 
-// -------------------- turnstile (non-blocking) --------------------
-async function verifyTurnstileToken() {
-  const el = document.querySelector('input[name="cf-turnstile-response"]');
-  const token = el?.value || (window.turnstile?.getResponse ? window.turnstile.getResponse() : '');
-  if (!token) return { success: false, reason: 'no-token' };
+// -------------------- verification (fire-and-forget) --------------------
+function verifyTurnstileTokenAsync() {
   try {
-    const res = await fetch('/api/verify-turnstile', {
-      method: 'POST',
-      headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ token })
-    });
-    if (!res.ok) return { success: false, reason: `http-${res.status}` };
-    const data = await res.json();
-    return { success: !!data.success };
-  } catch (e) {
-    return { success: false, reason: e.message };
-  }
+    const el = document.querySelector('input[name="cf-turnstile-response"]');
+    const token = el?.value || (window.turnstile?.getResponse ? window.turnstile.getResponse() : '');
+    if (!token) return;
+
+    const payload = JSON.stringify({ token });
+    if (navigator.sendBeacon) {
+      const blob = new Blob([payload], { type: 'application/json' });
+      navigator.sendBeacon('/api/verify-turnstile', blob);
+    } else {
+      fetch('/api/verify-turnstile', {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: payload
+      }).catch(()=>{});
+    }
+  } catch {}
 }
 
-// -------------------- robust open flow (gesture preserved) --------------------
-openBtn.addEventListener('click', async () => {
+// -------------------- open flow (synchronous) --------------------
+openBtn.addEventListener('click', () => {
   const url = selected?.link?.url;
   if (!url) return;
 
-  // Pre-open to keep the user gesture
-  let win = null;
-  try { win = window.open('', '_blank'); } catch { win = null; }
-  if (win) { try { win.opener = null; } catch {} }
+  // Open immediately, so the browser treats it as a direct user action
+  const win = window.open(url, '_blank', 'noopener');
 
-  say('Verifying…');
-  const verify = await verifyTurnstileToken();
-
-  if (win && !win.closed) {
-    try { win.location.href = url; } catch {}
-    say(verify.success ? 'Verification passed. Opening board site.' : 'Verification unavailable. Opening board site.');
-    return;
+  // If popup blocked, fall back to same-tab
+  if (!win) {
+    try { location.assign(url); } catch { location.href = url; }
   }
 
-  // Popup blocked → same-tab fallback
-  try { location.assign(url); } catch { location.href = url; }
+  // Kick off verification in the background (doesn't block opening)
+  verifyTurnstileTokenAsync();
 });
 
 // -------------------- init --------------------
@@ -236,3 +223,4 @@ stateSelect.addEventListener('change', () => {
   const label = stateSelect.options[stateSelect.selectedIndex]?.text || '';
   say(`State ${label} selected.`);
 });
+
