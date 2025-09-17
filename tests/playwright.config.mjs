@@ -1,4 +1,4 @@
-// ESM config
+// tests/playwright.config.mjs  (ESM)
 import { devices } from '@playwright/test';
 
 const baseURL = process.env.SITE_BASE_URL || 'https://covidaccountability.pages.dev';
@@ -11,13 +11,13 @@ const config = {
     baseURL,
     trace: 'off',
     screenshot: 'off',
-    video: 'off',
+    video: 'off'
   },
   projects: [
     { name: 'desktop-chromium', use: { ...devices['Desktop Chrome'] } },
-    { name: 'mobile-chromium',  use: { ...devices['Pixel 5'] } },
+    { name: 'mobile-chromium',  use: { ...devices['Pixel 5'] } }
   ],
-  reporter: [['list']],
+  reporter: [['list']]
 };
 
 export default config;
