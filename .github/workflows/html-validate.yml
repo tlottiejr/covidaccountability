@@ -1,0 +1,29 @@
+name: HTML validation (W3C vnu, live)
+
+on:
+  schedule:
+    - cron: "35 7 * * *"   # daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  vnu:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Prepare URLs
+        run: echo "BASE=${{ secrets.SITE_BASE_URL }}" >> $GITHUB_ENV
+
+      - name: Fetch pages
+        run: |
+          mkdir -p site
+          for p in "" "about.html" "references.html" "complaint-portal.html"; do
+            echo "GET $BASE/$p"
+            curl -fsSL "$BASE/$p" -o "site/$(echo ${p:-index}.html)"
+          done
+
+      - name: Validate HTML with vnu.jar (Docker)
+        run: |
+          docker run --rm -v "$PWD/site:/site" ghcr.io/validator/validator:latest \
+            vnu --skip-non-html --errors-only --filterpattern "Attribute.*autocomplete.*not allowed" /site
