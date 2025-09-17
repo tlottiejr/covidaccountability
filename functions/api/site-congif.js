@@ -1,6 +1,4 @@
-// functions/api/site-config.js
 // Returns public site configuration (Turnstile site key).
-
 export async function onRequestGet({ env }) {
   const data = {
     turnstileSiteKey: env.TURNSTILE_SITE_KEY ? String(env.TURNSTILE_SITE_KEY) : ''
