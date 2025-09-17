@@ -1,0 +1,10 @@
+{
+  "name": "COVID Accountability Now",
+  "short_name": "CAN",
+  "start_url": "/",
+  "display": "browser",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "description": "Public-interest resources and complaint portal for state boards.",
+  "icons": []
+}
