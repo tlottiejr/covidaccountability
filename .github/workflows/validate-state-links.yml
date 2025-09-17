@@ -1,0 +1,26 @@
+name: Validate state-links.json
+
+on:
+  pull_request:
+    paths:
+      - "public/assets/state-links.json"
+      - "schema/state-links.schema.json"
+      - "scripts/validate-state-links.mjs"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Validate + check normalization (no write)
+        run: node scripts/validate-state-links.mjs
