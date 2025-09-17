@@ -17,9 +17,8 @@ jobs:
 
       - name: Install Playwright
         run: |
-          npm init -y >/dev/null 2>&1
-          npm i -D @playwright/test@1.47.x
-          npx playwright install --with-deps chromium
+          npx playwright test -c tests/playwright.config.mjs tests/visual/visual.spec.mjs
+
 
       - name: Compare against baselines
         env:
