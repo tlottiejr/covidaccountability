@@ -1,0 +1,33 @@
+name: E2E (Playwright, live)
+
+on:
+  schedule:
+    - cron: "30 7 * * *"   # daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Assert SITE_BASE_URL is set
+        run: |
+          if [ -z "${{ secrets.SITE_BASE_URL }}" ]; then
+            echo "SITE_BASE_URL secret is missing"; exit 1;
+          fi
+          echo "SITE_BASE_URL=${{ secrets.SITE_BASE_URL }}" >> $GITHUB_ENV
+
+      - name: Install Playwright
+        run: |
+          npm init -y >/dev/null 2>&1
+          npm i -D @playwright/test@1.47.x
+          npx playwright install --with-deps chromium
+
+      - name: Run E2E tests (desktop + mobile)
+        env:
+          SITE_BASE_URL: ${{ secrets.SITE_BASE_URL }}
+        run: npx playwright test -c tests/playwright.config.js tests/e2e/portal.spec.js
