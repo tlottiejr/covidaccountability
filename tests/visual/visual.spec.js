@@ -9,7 +9,7 @@ for (const route of routes) {
     await expect(page).toHaveScreenshot(`${route.replace(/\W+/g, '_')}.png`, {
       fullPage: true,
       animations: 'disabled',
-      maxDiffPixels: 100,
+      maxDiffPixels: 100
     });
   });
 }
