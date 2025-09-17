@@ -1,9 +1,5 @@
-// functions/api/event.js
-// Minimal, privacy-safe event sink for 'open_board'.
-// Stores daily aggregates in KV key: open_board:YYYY-MM-DD
-// GET /api/event?date=YYYY-MM-DD -> returns aggregate for date (or today if missing)
-// POST body: { type: 'open_board', stateCode, boardHost, date? }
-
+// Minimal, privacy-safe sink for 'open_board' analytics.
+// KV key format: open_board:YYYY-MM-DD
 export async function onRequestGet({ request, env }) {
   const url = new URL(request.url);
   const date = (url.searchParams.get('date') || new Date().toISOString().slice(0,10)).slice(0,10);
@@ -26,7 +22,6 @@ export async function onRequestPost({ request, env }) {
     let host = '';
     try { host = new URL(`https://${body.boardHost}`).host; } catch { host = ''; }
     if (!state || !host) {
-      // Accept but ignore malformed inputs
       return new Response(JSON.stringify({ ok: true }), { status: 202 });
     }
 
@@ -34,18 +29,19 @@ export async function onRequestPost({ request, env }) {
     const existing = await env.OPEN_BOARD_KV.get(key);
     const agg = existing ? JSON.parse(existing) : { date, totals: 0, byState: {}, byHost: {} };
 
-    // Update aggregates (best-effort; KV is not transactional, but fine for low volume)
     agg.totals = (agg.totals || 0) + 1;
     agg.byState[state] = (agg.byState[state] || 0) + 1;
     agg.byHost[host] = (agg.byHost[host] || 0) + 1;
 
-    await env.OPEN_BOARD_KV.put(key, JSON.stringify(agg), { expirationTtl: 60 * 60 * 24 * 45 }); // keep ~45 days
+    await env.OPEN_BOARD_KV.put(key, JSON.stringify(agg), { expirationTtl: 60 * 60 * 24 * 45 });
 
     return new Response(JSON.stringify({ ok: true }), {
       headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }
     });
   } catch {
-    // Non-fatal; never block the portal open flow
-    return new Response(JSON.stringify({ ok: false }), { status: 200, headers: { 'content-type': 'application/json' } });
+    return new Response(JSON.stringify({ ok: false }), {
+      status: 200,
+      headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }
+    });
   }
 }
