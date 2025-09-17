@@ -24,7 +24,7 @@ jobs:
           SITE_BASE_URL: ${{ secrets.SITE_BASE_URL }}
           UPDATE_SNAPSHOTS: 1
         run: |
-          npx playwright test -c tests/playwright.config.js tests/visual/visual.spec.js --update-snapshots
+          npx playwright test tests/visual/visual.spec.js --update-snapshots
 
 
 
