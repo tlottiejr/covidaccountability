@@ -17,7 +17,8 @@ jobs:
 
       - name: Install Playwright
         run: |
-          npx playwright test -c tests/playwright.config.js tests/visual/visual.spec.js
+          npx playwright test tests/visual/visual.spec.js
+
 
 
 
