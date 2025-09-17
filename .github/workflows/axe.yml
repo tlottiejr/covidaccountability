@@ -1,0 +1,37 @@
+name: axe-core a11y checks (live pages)
+
+on:
+  schedule:
+    - cron: "25 7 * * *"   # daily, after Lighthouse
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  axe:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Use SITE_BASE_URL
+        run: echo "SITE_BASE_URL=${{ secrets.SITE_BASE_URL }}" >> $GITHUB_ENV
+
+      - name: Install axe CLI (playwright engine)
+        run: |
+          npm i -g @axe-core/cli@4.x
+          npx playwright install chromium
+
+      - name: Run axe on key pages
+        run: |
+          set -e
+          PAGES="${SITE_BASE_URL}/ ${SITE_BASE_URL}/about.html ${SITE_BASE_URL}/references.html ${SITE_BASE_URL}/complaint-portal.html"
+          for U in $PAGES; do
+            echo "===== $U ====="
+            axe "$U" --browser chromium --exit 0 --tags wcag2a,wcag2aa --save ./axe-report-$(echo $U | sed 's@https\?://@@; s@/@@g').json
+          done
+
+      - name: Upload axe reports (artifact)
+        uses: actions/upload-artifact@v4
+        with:
+          name: axe-reports
+          path: axe-report-*.json
+          if-no-files-found: ignore
