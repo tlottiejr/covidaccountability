@@ -7,3 +7,8 @@ compatibility_date = "2025-01-01"
 binding        = "DB"                                   # <-- binding you'll use in commands
 database_name  = "medportal_db"
 database_id    = "84a3b4f0-70fe-4d09-8006-c35576e4e109" # from your screenshot
+
+[[kv_namespaces]]
+binding    = "OPEN_BOARD_KV"
+id         = "7c170dc902a84accbea22533d4fab918"
+preview_id = "588aee7fd81a492ab92fc0f1276791b6"
