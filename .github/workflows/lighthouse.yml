@@ -1,0 +1,31 @@
+name: Lighthouse CI (live pages)
+
+on:
+  schedule:
+    - cron: "20 7 * * *"   # daily
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  lhci:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Use SITE_BASE_URL
+        run: echo "SITE_BASE_URL=${{ secrets.SITE_BASE_URL }}" >> $GITHUB_ENV
+
+      - name: Install Lighthouse CI
+        run: npm i -g @lhci/cli@0.13.x
+
+      - name: Run Lighthouse on key pages (mobile)
+        run: |
+          PAGES="${SITE_BASE_URL}/ ${SITE_BASE_URL}/about.html ${SITE_BASE_URL}/references.html ${SITE_BASE_URL}/complaint-portal.html"
+          for U in $PAGES; do
+            echo "===== $U ====="
+            lhci collect --url="$U" --settings.preset=mobile --numberOfRuns=1
+            lhci assert --assert.preset=lighthouse:recommended \
+              --assert.assertions='categories:performance: ["warn", {"minScore": 0.70}]' \
+              --assert.assertions='categories:accessibility: ["warn", {"minScore": 0.90}]' \
+              --assert.assertions='categories:seo: ["warn", {"minScore": 0.90}]'
+          done
