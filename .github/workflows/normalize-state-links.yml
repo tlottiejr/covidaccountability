@@ -1,0 +1,45 @@
+name: Normalize state-links.json (manual)
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  normalize:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Use Node 20
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Normalize (writes file if needed)
+        id: norm
+        run: |
+          set -e
+          node scripts/validate-state-links.mjs --fix || true
+          echo "changed=$(git status --porcelain | grep -c 'public/assets/state-links.json' || true)" >> $GITHUB_OUTPUT
+
+      - name: Create PR if changed
+        if: steps.norm.outputs.changed != '0'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(data): normalize public/assets/state-links.json"
+          branch: chore/normalize-state-links
+          base: main
+          title: "chore(data): normalize state-links.json"
+          body: |
+            This PR applies canonical normalization to `public/assets/state-links.json`:
+            - trims/normalizes URLs (lowercase host, strip default port, strip trailing slash, strip fragments)
+            - merges duplicate URLs
+            - sorts links (primary first, then board name)
+            - ensures state codes are uppercase
+          add-paths: |
+            public/assets/state-links.json
+          labels: data, automation
+          delete-branch: true
