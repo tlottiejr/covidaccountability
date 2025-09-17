@@ -1,0 +1,43 @@
+name: Export Open Board Analytics
+
+on:
+  schedule:
+    - cron: "5 7 * * *"   # daily, after other health jobs
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  export:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Fetch yesterday and today aggregates
+        run: |
+          set -e
+          TODAY=$(date -u +%F)
+          YDAY=$(date -u -d 'yesterday' +%F 2>/dev/null || date -u -v-1d +%F)
+          mkdir -p public/assets/health/analytics
+          for D in "$YDAY" "$TODAY"; do
+            curl -sS "${{ secrets.SITE_BASE_URL }}/api/event?date=$D" -o "public/assets/health/analytics/open_board-$D.json"
+          done
+
+      - name: Create or update PR with artifacts (Option A)
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: |
+            chore(health): export open_board analytics snapshots
+
+            Files:
+            - public/assets/health/analytics/open_board-YYYY-MM-DD.json
+          branch: chore/health/analytics
+          base: main
+          labels: health, automation
+          add-paths: |
+            public/assets/health/analytics/open_board-*.json
+          delete-branch: true
+          draft: false
