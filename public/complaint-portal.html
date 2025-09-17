@@ -1,69 +1,60 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Complaint Portal — COVID Accountability Now</title>
-  <link rel="stylesheet" href="/assets/site.css"/>
-  <link rel="stylesheet" href="/assets/portal.css"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Complaint Portal • COVID Accountability Now</title>
+  <link rel="stylesheet" href="/assets/site.css?v=1" />
+  <!-- Turnstile API (allowed by CSP-RO) -->
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
 </head>
 <body>
-  <div id="nav-root"></div>
-  <script src="/assets/nav-include.js" defer></script>
+  <header>
+    <!-- existing header/nav -->
+  </header>
 
-  <main class="container" id="main">
+  <main id="main" tabindex="-1">
     <h1>Complaint Portal</h1>
-    <p class="small">
-      Select your state and the appropriate board. We’ll open the official site in a new tab.
-      Your report content is prepared locally and not stored by us.
-    </p>
 
-    <div id="sr-status" class="visually-hidden" role="status" aria-live="polite"></div>
+    <p class="sr-only" id="sr-status" aria-live="polite"></p>
 
-    <section class="card" aria-labelledby="stateLegend">
-      <fieldset class="stack">
-        <legend id="stateLegend" class="h4">Choose your state</legend>
-        <label for="stateSelect" class="visually-hidden">State</label>
-        <select id="stateSelect" name="state" autocomplete="address-level1" aria-describedby="stateHelp">
-          <option value="">— Select your state —</option>
-        </select>
-        <p id="stateHelp" class="small">
-          We maintain links to official complaint portals. After choosing a state, pick a board.
-        </p>
-      </fieldset>
-    </section>
+    <div class="control">
+      <label for="stateSelect">Select your state</label>
+      <select id="stateSelect" aria-describedby="stateHelp">
+        <option value="">Loading…</option>
+      </select>
+      <div id="stateHelp" class="small">We’ll show available boards and their official sites.</div>
+    </div>
 
-    <section class="card" aria-labelledby="boardsLegend">
-      <fieldset class="stack">
-        <legend id="boardsLegend" class="h4">Select a board in your state</legend>
-        <div id="boards" role="radiogroup" aria-labelledby="boardsLegend"></div>
-      </fieldset>
-    </section>
+    <div id="boards" class="boards" role="group" aria-label="Boards"></div>
 
-    <section class="card" aria-labelledby="openLegend">
-      <h2 id="openLegend" class="h4">Open board site</h2>
-      <div class="stack">
-        <div class="turnstile-box" aria-label="Human verification">
-          <div class="cf-turnstile" data-sitekey="" data-theme="light"></div>
-        </div>
+    <!-- Turnstile placeholder; JS will render using the site key from /api/site-config -->
+    <div class="cf-turnstile" data-theme="light" aria-label="Verification widget"></div>
 
-        <button id="openBtn" class="btn" type="button" disabled aria-disabled="true" aria-describedby="openHelp">
-          Open selected board page
-        </button>
-        <p id="openHelp" class="small">
-          We’ll open the selected board in a new tab. Verification is used when available; if it fails,
-          we still open the board (fallback).
-        </p>
+    <div class="actions">
+      <button id="openBtn" class="btn" disabled>Open Board Page</button>
+    </div>
+
+    <!-- Optional helpers: render if your template includes them -->
+    <div class="helper">
+      <textarea id="reportText" placeholder="(optional) draft your complaint text here…"></textarea>
+      <div class="helper-actions">
+        <button id="copyText" class="btn-link">Copy</button>
+        <button id="saveJson" class="btn-link">Save JSON</button>
+        <button id="reportBtn" class="btn-link" type="button">Guidance</button>
       </div>
-    </section>
+    </div>
   </main>
 
   <footer>
-    <a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a>
+    <!-- existing footer -->
   </footer>
 
-  <script src="/assets/app.js" type="module"></script>
+  <script>
+    // Provide commit SHA to app.js for cache-bust; CF Pages exposes it as an env at build time.
+    window.__COMMIT_SHA__ = (typeof CF_PAGES_COMMIT_SHA !== 'undefined' ? CF_PAGES_COMMIT_SHA : '');
+  </script>
+  <script src="/assets/app.js"></script>
 </body>
 </html>
 
