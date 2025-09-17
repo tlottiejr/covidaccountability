@@ -22,7 +22,7 @@ jobs:
           echo "SITE_BASE_URL=${{ secrets.SITE_BASE_URL }}" >> $GITHUB_ENV
 
       - name: Install Playwright
-        run: npx playwright test -c tests/playwright.config.mjs tests/e2e/portal.spec.mjs
+        run: npx playwright test -c tests/playwright.config.js tests/e2e/portal.spec.js
 
 
       - name: Run E2E tests (desktop + mobile)
