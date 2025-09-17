@@ -1,10 +1,10 @@
-// tests/playwright.config.js
-const { devices } = require('@playwright/test');
+// ESM config
+import { devices } from '@playwright/test';
 
 const baseURL = process.env.SITE_BASE_URL || 'https://covidaccountability.pages.dev';
 
 /** @type {import('@playwright/test').PlaywrightTestConfig} */
-module.exports = {
+const config = {
   timeout: 30_000,
   retries: 0,
   use: {
@@ -19,3 +19,5 @@ module.exports = {
   ],
   reporter: [['list']],
 };
+
+export default config;
