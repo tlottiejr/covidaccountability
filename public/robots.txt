@@ -1,2 +1,5 @@
+# robots.txt — COVID Accountability Now
 User-agent: *
-Disallow: /
+Allow: /
+
+Sitemap: https://covidaccountability.pages.dev/sitemap.xml
