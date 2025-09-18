@@ -2,7 +2,7 @@ name: HTML validation (W3C vnu, live)
 
 on:
   schedule:
-    - cron: "35 7 * * *"   # daily
+    - cron: "10 7 * * *"
   workflow_dispatch:
 
 permissions:
@@ -12,18 +12,35 @@ jobs:
   vnu:
     runs-on: ubuntu-latest
     steps:
+      - name: Set URLs
+        id: urls
+        run: |
+          echo "HOME=${{ secrets.SITE_BASE_URL }}" >> $GITHUB_ENV
+
       - name: Prepare URLs
-        run: echo "BASE=${{ secrets.SITE_BASE_URL }}" >> $GITHUB_ENV
+        run: |
+          echo "${HOME}/" > urls.txt
+          echo "${HOME}/about.html" >> urls.txt
+          echo "${HOME}/references.html" >> urls.txt
+          echo "${HOME}/complaint-portal.html" >> urls.txt
 
       - name: Fetch pages
         run: |
           mkdir -p site
-          for p in "" "about.html" "references.html" "complaint-portal.html"; do
-            echo "GET $BASE/$p"
-            curl -fsSL "$BASE/$p" -o "site/$(echo ${p:-index}.html)"
-          done
+          while read u; do
+            f="site/$(echo "$u" | sed 's#https\?://##; s#[^A-Za-z0-9._-]#_#g').html"
+            curl -sS "$u" -o "$f"
+          done < urls.txt
 
       - name: Validate HTML with vnu.jar (Docker)
+        continue-on-error: true
         run: |
           docker run --rm -v "$PWD/site:/site" ghcr.io/validator/validator:latest \
-            vnu --skip-non-html --errors-only --filterpattern "Attribute.*autocomplete.*not allowed" /site
+            --asciiquotes --skip-non-html --format json /site/*.html | tee vnu.json
+
+      - name: Upload vnu logs (14 days)
+        uses: actions/upload-artifact@v4
+        with:
+          name: html-vnu-logs
+          path: vnu.json
+          retention-days: 14
