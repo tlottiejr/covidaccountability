@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * Export from D1 -> public/assets/state-links.json
- * Primary source: boards; Fallback: legacy states.link/unavailable
- * Robustly parses wrangler --json output across versions.
+ * Primary: boards table; Fallback: legacy states.link/unavailable
+ * Robust to wrangler --json shapes (result.results | result[0].results | [0].results | result[]).
  */
 
 import fs from "node:fs/promises";
@@ -15,7 +15,7 @@ const ROOT = process.cwd();
 const OUT  = path.join(ROOT, "public", "assets", "state-links.json");
 const DB_NAME = "medportal_db";
 
-/** call wrangler d1 execute --json and return parsed payload */
+/** call wrangler and return parsed JSON (never throws on shape) */
 async function runJSON(sql) {
   const { stdout } = await pexec(
     "npx",
@@ -28,7 +28,7 @@ async function runJSON(sql) {
     console.error("Wrangler stdout (unparseable):\n", stdout);
     throw e;
   }
-  if (!payload || payload.success === false) {
+  if (payload && payload.success === false) {
     console.error("Wrangler JSON indicated failure:\n", JSON.stringify(payload,null,2));
     throw new Error("wrangler d1 execute failed");
   }
@@ -37,21 +37,27 @@ async function runJSON(sql) {
 
 /** extract rows array from any known wrangler JSON shape */
 function pickRows(payload) {
-  const r = payload?.result;
+  // Newest: { result: { results:[...] } }
+  if (payload?.result && Array.isArray(payload.result.results)) {
+    return payload.result.results;
+  }
+  // Common older: { result: [ { results:[...] } ] }
+  if (Array.isArray(payload?.result) && Array.isArray(payload.result[0]?.results)) {
+    return payload.result[0].results;
+  }
+  // Your runner: [ { results:[...] } ]
+  if (Array.isArray(payload) && Array.isArray(payload[0]?.results)) {
+    return payload[0].results;
+  }
+  // Sometimes: { result:[ ...rows... ] }
+  if (Array.isArray(payload?.result) && payload.result.length && !("results" in payload.result[0])) {
+    return payload.result;
+  }
+  // Sometimes: { results:[ ... ] }
+  if (Array.isArray(payload?.results)) {
+    return payload.results;
+  }
 
-  // Most recent: { result: { results:[{...},{...}] } }
-  if (r && Array.isArray(r.results)) return r.results;
-
-  // Older: { result: [ { results:[{...}] } ] }
-  if (Array.isArray(r) && r[0]?.results && Array.isArray(r[0].results)) return r[0].results;
-
-  // Sometimes: { result: [ { success:true, results:[...] } ] }
-  if (Array.isArray(r) && r[0]?.success && Array.isArray(r[0].results)) return r[0].results;
-
-  // Very old: { result: [...] } where the rows are directly in result
-  if (Array.isArray(r) && r.length && typeof r[0] === "object" && !("results" in r[0])) return r;
-
-  // Give a helpful dump if we can't detect
   console.error("Unknown wrangler JSON shape for rows:\n", JSON.stringify(payload,null,2));
   return [];
 }
@@ -96,10 +102,9 @@ async function main() {
     return { code: s.code, name: s.name, links: [] };
   });
 
-  await fs.mkdir(path.dirname(OUT), { recursive: true });
+  await fs.mkdir(path.dirname(OUT), { recursive:true });
   await fs.writeFile(OUT, JSON.stringify(out, null, 2) + "\n", "utf8");
   console.log(`Exported ${out.length} states -> ${OUT}`);
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
-
