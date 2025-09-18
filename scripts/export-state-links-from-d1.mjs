@@ -1,13 +1,7 @@
 #!/usr/bin/env node
 /**
- * Export authoritative state links from D1 to public/assets/state-links.json
+ * Export authoritative data from D1 → public/assets/state-links.json
  * Shape: [{ code, name, links:[{ board, url, primary? }] }]
- *
- * Usage:
- *   node scripts/export-state-links-from-d1.mjs
- *
- * Requires:
- *   CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN
  */
 
 import fs from "node:fs/promises";
@@ -19,44 +13,41 @@ const pexec = promisify(execFile);
 const ROOT = process.cwd();
 const OUT = path.join(ROOT, "public", "assets", "state-links.json");
 
-async function q(sql) {
-  const { stdout } = await pexec("npx", ["wrangler", "d1", "execute", "medportal_db", "--remote", "--command", sql], {
-    shell: false,
-    env: process.env,
-    maxBuffer: 10 * 1024 * 1024
-  });
+async function query(sql) {
+  const { stdout } = await pexec(
+    "npx",
+    ["wrangler", "d1", "execute", "medportal_db", "--remote", "--command", sql],
+    { shell: false, env: process.env, maxBuffer: 10 * 1024 * 1024 }
+  );
   const res = JSON.parse(stdout);
   return res?.result || [];
 }
 
-function toPrimaryProp(v) { return v ? { primary: true } : {}; }
+function primaryObj(flag) { return flag ? { primary: true } : {}; }
 
 async function main() {
-  const states = await q(
-    `SELECT code, name
-       FROM states
-      WHERE COALESCE(name,'') <> ''
-      ORDER BY code`
+  const states = await query(
+    `SELECT code, name FROM states WHERE COALESCE(name,'') <> '' ORDER BY code;`
   );
 
-  const boards = await q(
+  const boards = await query(
     `SELECT state_code, board, url, primary_flag
        FROM boards
       WHERE active = 1
-      ORDER BY state_code, primary_flag DESC, board`
+      ORDER BY state_code, primary_flag DESC, board;`
   );
 
-  const byState = new Map();
+  const by = new Map();
   for (const b of boards) {
-    const arr = byState.get(b.state_code) || [];
-    arr.push({ board: b.board, url: b.url, ...toPrimaryProp(b.primary_flag === 1) });
-    byState.set(b.state_code, arr);
+    const arr = by.get(b.state_code) || [];
+    arr.push({ board: b.board, url: b.url, ...primaryObj(b.primary_flag === 1) });
+    by.set(b.state_code, arr);
   }
 
   const out = states.map(s => ({
     code: s.code,
     name: s.name,
-    links: byState.get(s.code) || []
+    links: by.get(s.code) || []
   }));
 
   await fs.mkdir(path.dirname(OUT), { recursive: true });
@@ -64,4 +55,5 @@ async function main() {
   console.log(`Exported ${out.length} states -> ${OUT}`);
 }
 
-main().catch((e) => { console.error(e); process.exit(1); });
+main().catch(e => { console.error(e); process.exit(1); });
+
