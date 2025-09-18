@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /**
  * Export from D1 -> public/assets/state-links.json
- * Primary source: boards; Fallback: legacy states.link/unavailable
- * Pins to the DB by UUID to avoid name/account mismatches.
+ * Primary: boards table; Fallback: legacy states.link/unavailable.
+ * Logs counts and writes the exact shape used by the portal.
  */
 
 import fs from "node:fs/promises";
@@ -13,13 +13,11 @@ import { promisify } from "node:util";
 const pexec = promisify(execFile);
 const ROOT = process.cwd();
 const OUT  = path.join(ROOT, "public", "assets", "state-links.json");
-
 const DB_NAME = "medportal_db";
-const DB_ID   = process.env.D1_DATABASE_ID || "84a3b4f0-70fe-4d09-8006-c35576e4e109"; // <— YOUR UUID
 
 async function query(sql) {
   const { stdout } = await pexec("npx",
-    ["wrangler","d1","execute", DB_NAME, "--database-id", DB_ID, "--remote","--json","--command", sql],
+    ["wrangler","d1","execute", DB_NAME, "--remote","--json","--command", sql],
     { shell:false, env:process.env, maxBuffer: 10*1024*1024 }
   );
   const payload = JSON.parse(stdout);
