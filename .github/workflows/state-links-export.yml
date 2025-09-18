@@ -2,10 +2,9 @@ name: D1 → state-links.json (export)
 
 on:
   workflow_dispatch:
-  schedule:
-    - cron: "12 9 * * *"   # daily @ 09:12 UTC (pick your time)
-  push:
-    branches: ["main"]     # re-enable commits-on-merge
+  # Optional schedule when you want it to auto-refresh:
+  # schedule:
+  #   - cron: "12 9 * * *"   # daily @ 09:12 UTC
 
 permissions:
   contents: write
@@ -21,9 +20,10 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: 20 }
-      - run: npm i -g wrangler@4.37.1     # pin exact; avoids JSON shape drift
+      - run: npm i -g wrangler@4.37.1
       - run: sudo apt-get update && sudo apt-get install -y jq
 
+      # DEBUG – keep for future triage, but disabled by default
       # - name: DEBUG – whoami & d1 list
       #   run: |
       #     wrangler whoami
