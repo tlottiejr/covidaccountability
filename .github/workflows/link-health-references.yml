@@ -1,0 +1,114 @@
+name: Link Health — References (daily)
+
+on:
+  schedule:
+    - cron: "45 7 * * *"   # daily, adjust if you prefer
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+
+jobs:
+  links:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout (full depth for PR branch)
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Assert SITE_BASE_URL secret
+        run: |
+          if [ -z "${{ secrets.SITE_BASE_URL }}" ]; then
+            echo "SITE_BASE_URL secret missing"; exit 1;
+          fi
+          echo "SITE_BASE_URL=${{ secrets.SITE_BASE_URL }}" >> $GITHUB_ENV
+
+      # Use Lychee to check only the /references page (live)
+      - name: Link check (Lychee)
+        id: lychee
+        uses: lycheeverse/lychee-action@v1
+        with:
+          args: >
+            --no-progress
+            --max-concurrency 8
+            --scheme http,https
+            --accept 200,204,301,302,303,307,308,999
+            --exclude-mail
+            --exclude-loopback
+            --format json
+            ${{ env.SITE_BASE_URL }}/references.html
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        continue-on-error: true   # do not fail CI on broken/blocked links
+
+      - name: Save raw report to reports/
+        run: |
+          mkdir -p reports
+          TS=$(date -u +%Y%m%dT%H%M%SZ)
+          FILE="references-links-$TS.json"
+          # lychee-action writes a summary to ${{ steps.lychee.outputs.output }} OR stdout fallback
+          if [ -f "lychee/out.json" ]; then
+            cp lychee/out.json "reports/$FILE"
+          else
+            echo '${{ steps.lychee.outputs.output }}' > "reports/$FILE"
+          fi
+          echo "REPORT_FILE=reports/$FILE" >> $GITHUB_ENV
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: references-link-report
+          path: ${{ env.REPORT_FILE }}
+
+      - name: Summarize totals and update public/assets/health/references.json
+        id: summarize
+        run: |
+          node -e '
+          const fs=require("fs");
+          const p=process.env.REPORT_FILE;
+          let j={};
+          try{ j=JSON.parse(fs.readFileSync(p,"utf8")); }catch(e){}
+          // Lychee JSON shape compat: support either {stats:{...}} or array of links
+          let ok=0, failed=0, excluded=0;
+          if (j.stats) {
+            ok = (j.stats.ok || 0) + (j.stats.redirects || 0);
+            failed = (j.stats.errors || 0);
+            excluded = (j.stats.excludes || 0);
+          } else if (Array.isArray(j)) {
+            j.forEach(x=>{
+              if (x.status && String(x.status).startsWith("2")) ok++;
+              else if (x.status && String(x.status).startsWith("3")) ok++;
+              else if (x.status === "Excluded") excluded++;
+              else failed++;
+            });
+          }
+          const metaPath="public/assets/health/references.json";
+          let prev={};
+          try{ prev=JSON.parse(fs.readFileSync(metaPath,"utf8")); }catch(e){}
+          const out = {
+            last_checked: new Date().toISOString(),
+            totals: { ok, failed, excluded }
+          };
+          const changed = JSON.stringify(out) !== JSON.stringify(prev);
+          if (!fs.existsSync("public/assets/health")) fs.mkdirSync("public/assets/health",{recursive:true});
+          fs.writeFileSync(metaPath, JSON.stringify(out,null,2));
+          console.log("Totals:", out);
+          fs.writeFileSync("reports/LATEST.references.json", JSON.stringify(out,null,2));
+          fs.writeFileSync(process.env.GITHUB_OUTPUT, `changed=${changed}\n`);
+          '        
+
+      - name: Create PR (only when JSON changed)
+        if: steps.summarize.outputs.changed == 'true'
+        uses: peter-evans/create-pull-request@v6
+        with:
+          commit-message: "chore(references): update last-checked + totals"
+          branch: ops/references-health
+          title: "chore(references): update last-checked + totals"
+          body: |
+            Automated update of `public/assets/health/references.json` from daily link-health.
+          add-paths: |
+            public/assets/health/references.json
+          labels: ops, link-health
+          delete-branch: true
