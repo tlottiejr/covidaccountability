@@ -17,7 +17,22 @@
     <p class="small" id="refsMeta">
       Last checked: <span id="refsChecked">—</span>
     </p>
-
+    <!-- S12 fallback: render badge even if app.js didn't run -->
+    <script>
+    (function () {
+      var slot = document.getElementById('refsChecked');
+      if (!slot) return;
+      fetch('/assets/health/references.json?v=' + Date.now(), { cache: 'no-store' })
+        .then(function (r) { return r.ok ? r.json() : null; })
+        .then(function (j) {
+          if (!j || !j.last_checked) return;
+          var d = new Date(j.last_checked);
+          slot.textContent = isFinite(d) ? d.toISOString().replace('T',' ').replace(/\.\d+Z$/,' UTC') : String(j.last_checked);
+        })
+        .catch(function(){});
+    })();
+    </script>
+    
     <section id="refsStatus" role="status" aria-live="polite" class="card small">Loading…</section>
     <section id="refsList" class="grid grid-2"></section>
   </main>
