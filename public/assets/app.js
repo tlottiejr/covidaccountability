@@ -238,3 +238,22 @@
   })();
 })();
 
+/* === S12: references "Last checked" badge === */
+(function () {
+  try {
+    if (!/\/references\.html(?:$|\?)/.test(location.pathname)) return;
+    var slot = document.querySelector('#refsChecked');
+    if (!slot) return; // page doesn't expose the slot? no-op
+    var url = '/assets/health/references.json?v=' + Date.now();
+    fetch(url, { cache: 'no-store' })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (j) {
+        if (!j || !j.last_checked) return;
+        // Render as UTC to avoid tz surprises in screenshots/comparisons
+        var d = new Date(j.last_checked);
+        var s = isFinite(d) ? (d.toISOString().replace('T', ' ').replace(/\.\d+Z$/,' UTC')) : String(j.last_checked);
+        slot.textContent = s;
+      })
+      .catch(function () { /* silent */ });
+  } catch (_) { /* silent */ }
+})();
