@@ -26,10 +26,11 @@ jobs:
           SITE_BASE_URL: ${{ secrets.SITE_BASE_URL }}
         run: npx playwright test tests/visual/visual.spec.js
 
-      - name: Upload diffs
+            - name: Upload diffs
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: visual-diffs
           path: tests/visual/**/__screenshots__/**
           if-no-files-found: ignore
+          retention-days: 14
