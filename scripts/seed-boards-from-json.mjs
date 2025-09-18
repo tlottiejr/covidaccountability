@@ -4,7 +4,7 @@
  * Supports BOTH shapes:
  *  - Legacy: { code, name, link, unavailable? }
  *  - New:    { code, name, links:[{ board, url, primary? }] }
- * Pins to the DB by UUID to avoid account/name mismatches.
+ * Verifies counts after seeding; fails if boards remain 0.
  */
 
 import fs from "node:fs/promises";
@@ -16,8 +16,7 @@ const pexec = promisify(execFile);
 const ROOT = process.cwd();
 const JSON_PATH = path.join(ROOT, "public", "assets", "state-links.json");
 
-const DB_NAME = "medportal_db";
-const DB_ID   = process.env.D1_DATABASE_ID || "84a3b4f0-70fe-4d09-8006-c35576e4e109"; // <— YOUR UUID
+const DB_NAME = "medportal_db"; // must match your Cloudflare D1 database name
 
 function esc(v){ return String(v).replace(/'/g,"''"); }
 
@@ -33,7 +32,6 @@ async function runJSON(argv) {
 async function execSQL(sql) {
   return runJSON([
     "wrangler","d1","execute", DB_NAME,
-    "--database-id", DB_ID,
     "--remote","--json","--command", sql
   ]);
 }
@@ -55,16 +53,18 @@ async function main() {
   const data = JSON.parse(raw);
   if (!Array.isArray(data)) throw new Error("state-links.json must be an array");
 
+  // Start clean
   await execSQL("DELETE FROM boards;");
 
   let statesEnsured = 0, boardsInserted = 0;
+  const stmts = [];
 
   for (const s of data) {
     const code = String(s.code || "").toUpperCase();
     const name = String(s.name || "");
     if (!/^[A-Z]{2}$/.test(code) || !name) continue;
 
-    await execSQL(
+    stmts.push(
       `INSERT INTO states (code,name)
        VALUES ('${esc(code)}','${esc(name)}')
        ON CONFLICT(code) DO UPDATE SET name=excluded.name;`
@@ -73,7 +73,7 @@ async function main() {
 
     for (const l of normalizeLinks(s)) {
       const p = l.primary ? 1 : 0;
-      await execSQL(
+      stmts.push(
         `INSERT INTO boards (state_code,board,url,primary_flag,active)
          VALUES ('${esc(code)}','${esc(l.board)}','${esc(l.url)}',${p},1);`
       );
@@ -81,7 +81,12 @@ async function main() {
     }
   }
 
-  // verify authoritative counts from this DB (by UUID)
+  // Batch apply to speed things up
+  if (stmts.length) {
+    await execSQL(stmts.join("\n"));
+  }
+
+  // Verify from D1
   const sC = await execSQL("SELECT COUNT(*) AS c FROM states;");
   const bC = await execSQL("SELECT COUNT(*) AS c FROM boards;");
   const states = (sC.result?.[0]?.c ?? sC.result?.results?.[0]?.c) ?? 0;
