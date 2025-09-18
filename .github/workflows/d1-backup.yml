@@ -2,7 +2,7 @@ name: D1 backup (SQL dump)
 
 on:
   schedule:
-    - cron: "42 3 * * *"   # daily @ 03:42 UTC
+    - cron: "42 3 * * *"   # daily @ 03:42 UTC – adjust as you like
   workflow_dispatch:
 
 jobs:
