@@ -4,7 +4,7 @@
  * Supports BOTH shapes:
  *  - Legacy: { code, name, link, unavailable? }
  *  - New:    { code, name, links:[{ board, url, primary? }] }
- * Verifies counts after seeding; fails if boards remain 0.
+ * Verifies counts after seeding (robust JSON parse across wrangler versions).
  */
 
 import fs from "node:fs/promises";
@@ -15,17 +15,25 @@ import { promisify } from "node:util";
 const pexec = promisify(execFile);
 const ROOT = process.cwd();
 const JSON_PATH = path.join(ROOT, "public", "assets", "state-links.json");
-
-const DB_NAME = "medportal_db"; // must match your Cloudflare D1 database name
+const DB_NAME = "medportal_db"; // must match your D1 name
 
 function esc(v){ return String(v).replace(/'/g,"''"); }
 
+/** Run wrangler and return parsed JSON (throws on failure). */
 async function runJSON(argv) {
   const { stdout } = await pexec("npx", argv, {
     shell: false, env: process.env, maxBuffer: 10 * 1024 * 1024
   });
-  const payload = JSON.parse(stdout);
-  if (!payload || payload.success === false) throw new Error(stdout);
+  let payload;
+  try { payload = JSON.parse(stdout); }
+  catch (e) {
+    console.error("Wrangler stdout (unparseable):\n", stdout);
+    throw e;
+  }
+  if (!payload || payload.success === false) {
+    console.error("Wrangler JSON indicated failure:\n", stdout);
+    throw new Error("wrangler d1 execute failed");
+  }
   return payload;
 }
 
@@ -36,12 +44,35 @@ async function execSQL(sql) {
   ]);
 }
 
+/** Extract COUNT(*) AS c from any known wrangler JSON shape. */
+function pickCount(payload) {
+  const r = payload?.result;
+  // Newer: { result: { results:[{c:..}], ... } }
+  if (r && Array.isArray(r.results) && r.results[0]?.c != null) return Number(r.results[0].c);
+  if (r && typeof r.c !== "undefined") return Number(r.c);
+
+  // Older: { result: [ { results:[{c:..}] } ] }
+  if (Array.isArray(r) && r[0]?.results && r[0].results[0]?.c != null) return Number(r[0].results[0].c);
+  // Some versions: { result: [ { c: .. } ] }
+  if (Array.isArray(r) && r[0]?.c != null) return Number(r[0].c);
+
+  // Fallback: try to find a top-level number somewhere sane
+  try {
+    const text = JSON.stringify(payload);
+    const m = text.match(/"c"\s*:\s*(\d+)/);
+    if (m) return Number(m[1]);
+  } catch {}
+  return 0;
+}
+
 function normalizeLinks(state) {
+  // New shape
   if (Array.isArray(state.links) && state.links.length) {
     return state.links
       .filter(l => l && l.board && l.url && /^https?:\/\//i.test(l.url))
       .map(l => ({ board: String(l.board), url: String(l.url), primary: !!l.primary }));
   }
+  // Legacy fallback
   if (state.link && /^https?:\/\//i.test(state.link) && !state.unavailable) {
     return [{ board: "Official board site", url: String(state.link), primary: true }];
   }
@@ -53,7 +84,7 @@ async function main() {
   const data = JSON.parse(raw);
   if (!Array.isArray(data)) throw new Error("state-links.json must be an array");
 
-  // Start clean
+  // Clean slate for boards
   await execSQL("DELETE FROM boards;");
 
   let statesEnsured = 0, boardsInserted = 0;
@@ -81,22 +112,17 @@ async function main() {
     }
   }
 
-  // Batch apply to speed things up
-  if (stmts.length) {
-    await execSQL(stmts.join("\n"));
-  }
+  if (stmts.length) await execSQL(stmts.join("\n"));
 
-  // Verify from D1
-  const sC = await execSQL("SELECT COUNT(*) AS c FROM states;");
-  const bC = await execSQL("SELECT COUNT(*) AS c FROM boards;");
-  const states = (sC.result?.[0]?.c ?? sC.result?.results?.[0]?.c) ?? 0;
-  const boards = (bC.result?.[0]?.c ?? bC.result?.results?.[0]?.c) ?? 0;
+  // Authoritative counts from D1 (robust parse)
+  const sC = pickCount(await execSQL("SELECT COUNT(*) AS c FROM states;"));
+  const bC = pickCount(await execSQL("SELECT COUNT(*) AS c FROM boards;"));
 
   console.log(`Seed planned: states=${statesEnsured}, boards=${boardsInserted}`);
-  console.log(`D1 now has:  states=${states}, boards=${boards}`);
+  console.log(`D1 now has:  states=${sC}, boards=${bC}`);
 
-  if (states < 50) { console.error("Seeding error: states table suspiciously small."); process.exit(1); }
-  if (boards === 0) { console.error("Seeding error: no rows in boards after seeding."); process.exit(1); }
+  if (sC < 50) { console.error("Seeding error: states table suspiciously small."); process.exit(1); }
+  if (bC === 0) { console.error("Seeding error: no rows in boards after seeding."); process.exit(1); }
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
