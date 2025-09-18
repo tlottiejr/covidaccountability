@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 /**
- * Validates public/assets/state-links.json shape
- * Minimal validation to catch obvious issues without adding dependencies.
+ * Validates public/assets/state-links.json shape.
+ * (Lightweight; no extra deps.)
  */
 
 import fs from "node:fs/promises";
