@@ -26,10 +26,9 @@ jobs:
         run: npm i -g wrangler
 
       # Apply our migrations explicitly (repo keeps them in db/migrations/)
-      - name: Apply migrations (001, 002)
-        run: |
-          wrangler d1 execute medportal_db --remote --file db/migrations/001_harden_states.sql
-          wrangler d1 execute medportal_db --remote --file db/migrations/002_boards.sql
+      - name: Apply migrations (D1)
+        run: wrangler d1 migrations apply medportal_db --remote
+
 
       # (First run only) Seed 'boards' from the current JSON file checked into the repo
       # You can leave this step enabled; it simply replaces boards each push based on your JSON.
