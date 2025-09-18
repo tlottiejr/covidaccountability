@@ -1,6 +1,7 @@
 name = "covidaccountability"
 pages_build_output_dir = "public"
 compatibility_date = "2025-01-01"
+migrations_dir = "db/migrations"
 
 # Bind D1 once, name must match the code: DB
 [[d1_databases]]
