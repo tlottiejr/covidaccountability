@@ -14,12 +14,12 @@ jobs:
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
-      D1_DATABASE_ID:        84a3b4f0-70fe-4d09-8006-c35576e4e109   # <— YOUR UUID
 
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with: { node-version: 20 }
+        with:
+          node-version: 20
       - run: npm i -g wrangler@^4.37.1
       - run: sudo apt-get update && sudo apt-get install -y jq
 
