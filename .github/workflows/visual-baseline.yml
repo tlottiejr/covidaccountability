@@ -25,8 +25,7 @@ jobs:
       - name: Capture baselines
         env:
           SITE_BASE_URL: ${{ secrets.SITE_BASE_URL }}
-        run: |
-          npx playwright test tests/visual/visual.spec.js --update-snapshots
+        run: npx playwright test tests/visual/visual.spec.js --update-snapshots
 
       - name: Show git status (debug)
         id: diff
@@ -45,7 +44,7 @@ jobs:
           base: main
           title: "test(visual): update visual baselines"
           body: |
-            This PR adds/updates Playwright baseline screenshots captured from ${{ secrets.SITE_BASE_URL }}.
+            Baselines captured from ${{ secrets.SITE_BASE_URL }}.
           add-paths: |
             tests/visual/**
           labels: tests, visual
