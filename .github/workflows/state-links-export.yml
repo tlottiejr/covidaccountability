@@ -1,9 +1,9 @@
 name: D1 → state-links.json (export)
 
 on:
-  workflow_dispatch:
-  #push:
-    #branches: ["main"]
+  workflow_dispatch:        # manual only for now; re-enable push once stable
+  # push:
+  #   branches: ["main"]
 
 permissions:
   contents: write
@@ -27,20 +27,36 @@ jobs:
       - name: Install wrangler
         run: npm i -g wrangler@^4.37.1
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
+      # ---- DB migrations
       - name: Apply migrations (D1)
         run: wrangler d1 migrations apply medportal_db --remote
 
-      # Keep this enabled — it re-syncs normalized boards from the JSON you commit.
-      # If you want the DB to be exclusive source, you can later disable this step.
+      # ---- Seed DB from current repo JSON (supports legacy + new shapes)
       - name: Seed boards from JSON
         run: node scripts/seed-boards-from-json.mjs
 
+      # ---- Export DB -> JSON used by the portal (boards with legacy fallback)
       - name: Export D1 → public/assets/state-links.json
         run: node scripts/export-state-links-from-d1.mjs
 
+      # ---- Schema-level validation (shape/URLs/etc.)
       - name: Validate exported JSON
         run: node scripts/validate-state-links.mjs
 
+      # ---- Safety guard: refuse to commit if suspiciously small
+      - name: Sanity guard (min states)
+        run: |
+          COUNT=$(jq 'length' public/assets/state-links.json)
+          echo "states in export: $COUNT"
+          if [ "$COUNT" -lt 50 ]; then
+            echo "Refusing to commit: export has fewer than 50 states."
+            exit 1
+          fi
+
+      # ---- Commit only if file actually changed
       - name: Commit exported JSON (if changed)
         run: |
           if [[ -n "$(git status --porcelain)" ]]; then
