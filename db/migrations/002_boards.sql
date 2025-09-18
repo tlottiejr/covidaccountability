@@ -1,7 +1,13 @@
 -- db/migrations/002_boards.sql
--- Normalized 'boards' table for multi-link per state.
+-- Recreate boards with the intended schema (handles any prior partial table).
 
-CREATE TABLE IF NOT EXISTS boards (
+-- Remove any prior indexes/table to avoid column-mismatch errors.
+DROP INDEX IF EXISTS idx_boards_state;
+DROP INDEX IF EXISTS idx_boards_primary;
+DROP TABLE IF EXISTS boards;
+
+-- Create clean schema.
+CREATE TABLE boards (
   id            INTEGER PRIMARY KEY,
   state_code    TEXT NOT NULL REFERENCES states(code) ON DELETE CASCADE,
   board         TEXT NOT NULL,
@@ -12,5 +18,5 @@ CREATE TABLE IF NOT EXISTS boards (
   updated_at    TEXT NOT NULL DEFAULT (strftime('%Y-%m-%dT%H:%M:%fZ','now'))
 );
 
-CREATE INDEX IF NOT EXISTS idx_boards_state   ON boards(state_code);
-CREATE INDEX IF NOT EXISTS idx_boards_primary ON boards(primary_flag);
+CREATE INDEX idx_boards_state   ON boards(state_code);
+CREATE INDEX idx_boards_primary ON boards(primary_flag);
