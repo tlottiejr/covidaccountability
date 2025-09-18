@@ -7,7 +7,7 @@ const baseURL = process.env.SITE_BASE_URL || 'https://covidaccountability.pages.
 const config = {
   timeout: 30_000,
   retries: 0,
-  testDir: 'tests',                 // look under ./tests
+  testDir: 'tests',
   use: {
     baseURL,
     trace: 'off',
