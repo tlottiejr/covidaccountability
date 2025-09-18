@@ -16,19 +16,22 @@ jobs:
       CLOUDFLARE_API_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      - uses: actions/setup-node@v4
+      - name: Setup Node
+        uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Install wrangler
-        run: npm i -g wrangler
+        run: npm i -g wrangler@^4.37.1
 
       - name: Apply migrations (D1)
         run: wrangler d1 migrations apply medportal_db --remote
 
-      # First-time or anytime you want DB to reflect current repo JSON
+      # Keep this enabled — it re-syncs normalized boards from the JSON you commit.
+      # If you want the DB to be exclusive source, you can later disable this step.
       - name: Seed boards from JSON
         run: node scripts/seed-boards-from-json.mjs
 
