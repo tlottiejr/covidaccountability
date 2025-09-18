@@ -1,0 +1,120 @@
+{
+  "info": {
+    "name": "CAN Admin API",
+    "_postman_id": "f7f1b3cc-d8b1-4b0a-8fbb-a9f0f1c0e8aa",
+    "description": "Admin API for COVID Accountability Now — manage boards and run rollback.\nUse variables: {{base}} and {{token}}.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "0) Health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": "{{base}}/admin/health"
+      }
+    },
+    {
+      "name": "1) List boards (by state)",
+      "request": {
+        "method": "GET",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "{{base}}/admin/boards?state={{state}}",
+          "host": [ "{{base}}/admin/boards" ],
+          "query": [ { "key": "state", "value": "{{state}}" } ]
+        }
+      }
+    },
+    {
+      "name": "2) Create board (non-primary)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"state_code\": \"MI\",\n  \"board\": \"Michigan LARA — Test\",\n  \"url\": \"https://example.org/complaints\",\n  \"primary\": false\n}"
+        },
+        "url": "{{base}}/admin/boards"
+      }
+    },
+    {
+      "name": "3) Create board (primary)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"state_code\": \"MI\",\n  \"board\": \"Michigan LARA — Primary Test\",\n  \"url\": \"https://example.org/complaints\",\n  \"primary\": true\n}"
+        },
+        "url": "{{base}}/admin/boards"
+      }
+    },
+    {
+      "name": "4) Make board primary (by id)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+        ],
+        "url": "{{base}}/admin/boards/{{id}}/primary"
+      }
+    },
+    {
+      "name": "5) Update board URL (by id)",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" },
+          { "key": "Content-Type", "value": "application/json", "type": "text" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"url\": \"https://example.org/new-url\"\n}"
+        },
+        "url": "{{base}}/admin/boards/{{id}}"
+      }
+    },
+    {
+      "name": "6) Soft delete board (by id)",
+      "request": {
+        "method": "DELETE",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+        ],
+        "url": "{{base}}/admin/boards/{{id}}"
+      }
+    },
+    {
+      "name": "7) Rollback board by event (restore prev snapshot)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Authorization", "value": "Bearer {{token}}", "type": "text" }
+        ],
+        "url": {
+          "raw": "{{base}}/admin/boards/{{id}}/restore?event={{event}}",
+          "host": [ "{{base}}/admin/boards/{{id}}/restore" ],
+          "query": [
+            { "key": "event", "value": "{{event}}" }
+          ]
+        }
+      }
+    }
+  ],
+  "variable": [
+    { "key": "base", "value": "https://covidaccountability.pages.dev" },
+    { "key": "token", "value": "PASTE_YOUR_TOKEN" },
+    { "key": "state", "value": "MI" },
+    { "key": "id", "value": "123" },
+    { "key": "event", "value": "1" }
+  ]
+}
