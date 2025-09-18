@@ -1,5 +1,5 @@
 -- db/migrations/002_boards.sql
--- Normalized boards table to support multiple links per state.
+-- Normalized 'boards' table for multi-link per state.
 
 CREATE TABLE IF NOT EXISTS boards (
   id            INTEGER PRIMARY KEY,
