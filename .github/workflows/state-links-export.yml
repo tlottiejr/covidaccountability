@@ -3,7 +3,7 @@ name: D1 → state-links.json (export)
 on:
   workflow_dispatch:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
 
 permissions:
   contents: write
@@ -25,25 +25,19 @@ jobs:
       - name: Install wrangler
         run: npm i -g wrangler
 
-      # Apply our migrations explicitly (repo keeps them in db/migrations/)
       - name: Apply migrations (D1)
         run: wrangler d1 migrations apply medportal_db --remote
 
-
-      # (First run only) Seed 'boards' from the current JSON file checked into the repo
-      # You can leave this step enabled; it simply replaces boards each push based on your JSON.
+      # First-time or anytime you want DB to reflect current repo JSON
       - name: Seed boards from JSON
         run: node scripts/seed-boards-from-json.mjs
 
-      # Export D1 → JSON (authoritative)
       - name: Export D1 → public/assets/state-links.json
         run: node scripts/export-state-links-from-d1.mjs
 
-      # Validate JSON shape
       - name: Validate exported JSON
         run: node scripts/validate-state-links.mjs
 
-      # Commit only if the exported file changed
       - name: Commit exported JSON (if changed)
         run: |
           if [[ -n "$(git status --porcelain)" ]]; then
