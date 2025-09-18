@@ -1,0 +1,24 @@
+name: D1 backup (SQL dump)
+
+on:
+  schedule:
+    - cron: "42 3 * * *"   # daily @ 03:42 UTC
+  workflow_dispatch:
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+      CLOUDFLARE_API_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - run: npm i -g wrangler@4.37.1
+      - name: Export D1 SQL
+        run: wrangler d1 export medportal_db --remote --output d1-backup.sql
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: d1-backup-sql
+          path: d1-backup.sql
+          retention-days: 14
