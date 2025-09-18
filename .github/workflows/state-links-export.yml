@@ -1,7 +1,7 @@
 name: D1 → state-links.json (export)
 
 on:
-  workflow_dispatch:        # manual only for now; re-enable push once stable
+  workflow_dispatch:
   # push:
   #   branches: ["main"]
 
@@ -14,39 +14,33 @@ jobs:
     env:
       CLOUDFLARE_ACCOUNT_ID: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
       CLOUDFLARE_API_TOKEN:  ${{ secrets.CLOUDFLARE_API_TOKEN }}
+      D1_DATABASE_ID:        84a3b4f0-70fe-4d09-8006-c35576e4e109   # <— YOUR UUID
 
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 20 }
+      - run: npm i -g wrangler@^4.37.1
+      - run: sudo apt-get update && sudo apt-get install -y jq
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
+      # Debug: confirm account + DBs Wrangler sees
+      - name: DEBUG – whoami & d1 list
+        run: |
+          wrangler whoami
+          wrangler d1 list --json | jq -r '.[] | "\(.name)  \(.uuid)"'
 
-      - name: Install wrangler
-        run: npm i -g wrangler@^4.37.1
-
-      - name: Install jq
-        run: sudo apt-get update && sudo apt-get install -y jq
-
-      # ---- DB migrations
       - name: Apply migrations (D1)
         run: wrangler d1 migrations apply medportal_db --remote
 
-      # ---- Seed DB from current repo JSON (supports legacy + new shapes)
       - name: Seed boards from JSON
         run: node scripts/seed-boards-from-json.mjs
 
-      # ---- Export DB -> JSON used by the portal (boards with legacy fallback)
       - name: Export D1 → public/assets/state-links.json
         run: node scripts/export-state-links-from-d1.mjs
 
-      # ---- Schema-level validation (shape/URLs/etc.)
       - name: Validate exported JSON
         run: node scripts/validate-state-links.mjs
 
-      # ---- Safety guard: refuse to commit if suspiciously small
       - name: Sanity guard (min states)
         run: |
           COUNT=$(jq 'length' public/assets/state-links.json)
@@ -56,7 +50,6 @@ jobs:
             exit 1
           fi
 
-      # ---- Commit only if file actually changed
       - name: Commit exported JSON (if changed)
         run: |
           if [[ -n "$(git status --porcelain)" ]]; then
