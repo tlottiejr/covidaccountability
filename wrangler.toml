@@ -4,6 +4,9 @@ name = "covidaccountability"
 pages_build_output_dir = "public"
 compatibility_date = "2025-01-01"
 
+[vars]
+ADMIN_API_TOKEN = "exsKHD8TravLBLeCpAFkUCCj"
+
 # D1 binding (name must match the DB you use in commands)
 [[d1_databases]]
 binding        = "DB"                 # used by Functions as env.DB
