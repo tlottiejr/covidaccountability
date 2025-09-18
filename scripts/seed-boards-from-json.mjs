@@ -1,10 +1,9 @@
 #!/usr/bin/env node
 /**
- * Seed D1 boards from public/assets/state-links.json
- * - Ensures (code,name) exist in 'states' without altering legacy single-link fields.
- * - Replaces all rows in 'boards' with normalized links from JSON.
+ * Seeds D1 'boards' from public/assets/state-links.json.
+ * Ensures states(code,name) exist; does NOT touch legacy 'link'/'unavailable'.
  *
- * Requires repo secrets or local env:
+ * Requires env (local or GitHub Actions):
  *   CLOUDFLARE_ACCOUNT_ID, CLOUDFLARE_API_TOKEN
  */
 
@@ -17,7 +16,7 @@ const pexec = promisify(execFile);
 const ROOT = process.cwd();
 const JSON_PATH = path.join(ROOT, "public", "assets", "state-links.json");
 
-function qstr(v) { return `'${String(v).replace(/'/g, "''")}'`; }
+function q(v) { return `'${String(v).replace(/'/g, "''")}'`; }
 
 async function run(sql) {
   const { stdout } = await pexec(
@@ -40,10 +39,10 @@ async function main() {
     const name = String(s.name || "");
     if (!/^[A-Z]{2}$/.test(code) || !name) continue;
 
-    // Ensure state exists; do not modify legacy 'link'/'unavailable' here
+    // Ensure state exists; do not modify legacy 'link'/'unavailable'
     stmts.push(
       `INSERT INTO states (code, name)
-       VALUES (${qstr(code)}, ${qstr(name)})
+       VALUES (${q(code)}, ${q(name)})
        ON CONFLICT(code) DO UPDATE SET name=excluded.name;`
     );
 
@@ -55,7 +54,7 @@ async function main() {
       const primary = l.primary ? 1 : 0;
       stmts.push(
         `INSERT INTO boards (state_code, board, url, primary_flag, active)
-         VALUES (${qstr(code)}, ${qstr(board)}, ${qstr(url)}, ${primary}, 1);`
+         VALUES (${q(code)}, ${q(board)}, ${q(url)}, ${primary}, 1);`
       );
     }
   }
@@ -65,4 +64,3 @@ async function main() {
 }
 
 main().catch(e => { console.error(e); process.exit(1); });
-
