@@ -14,3 +14,20 @@
 ## Notes
 - All jobs are **warn-only**; deploys never block.
 - To run any job on-demand: Actions → select workflow → **Run workflow**.
+
+### D1 → state-links runbook
+- To refresh JSON:
+  - GitHub Actions → “D1 → state-links.json (export)” → Run workflow.
+- If the job **fails** at the guard (states < 50):
+  - Check D1 counts in Cloudflare Studio:
+    - `SELECT COUNT(*) FROM states;` (expect 56)
+    - `SELECT COUNT(*) FROM boards;` (expect > 0)
+  - If D1 is correct, check exporter logs (“Unknown wrangler JSON shape”). Update parser (scripts/export-state-links-from-d1.mjs).
+- If the site breaks (dropdown empty):
+  - Revert `public/assets/state-links.json` to last good commit.
+  - Re-run the export workflow.
+
+### Routine checks (monthly)
+- Verify Pages deploys show “no changes” when nothing updated.
+- Spot-check 2–3 states with multiple boards.
+- Verify nightly backup artifacts exist (Actions → d1-backup).
