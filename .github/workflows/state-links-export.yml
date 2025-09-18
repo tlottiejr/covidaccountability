@@ -2,8 +2,10 @@ name: D1 → state-links.json (export)
 
 on:
   workflow_dispatch:
-  # push:
-  #   branches: ["main"]
+  schedule:
+    - cron: "12 9 * * *"   # daily @ 09:12 UTC (pick your time)
+  push:
+    branches: ["main"]     # re-enable commits-on-merge
 
 permissions:
   contents: write
@@ -18,16 +20,14 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-      - run: npm i -g wrangler@^4.37.1
+        with: { node-version: 20 }
+      - run: npm i -g wrangler@4.37.1     # pin exact; avoids JSON shape drift
       - run: sudo apt-get update && sudo apt-get install -y jq
 
-      # Debug: confirm account + DBs Wrangler sees
-      - name: DEBUG – whoami & d1 list
-        run: |
-          wrangler whoami
-          wrangler d1 list --json | jq -r '.[] | "\(.name)  \(.uuid)"'
+      # - name: DEBUG – whoami & d1 list
+      #   run: |
+      #     wrangler whoami
+      #     wrangler d1 list --json | jq -r '.[] | "\(.name)  \(.uuid)"'
 
       - name: Apply migrations (D1)
         run: wrangler d1 migrations apply medportal_db --remote
