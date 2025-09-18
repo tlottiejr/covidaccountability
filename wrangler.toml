@@ -1,15 +1,19 @@
+# wrangler.toml — Cloudflare Pages project + D1 for Sprint A
+# NOTE: This keeps your existing project name, output dir, and KV binding.
+
 name = "covidaccountability"
 pages_build_output_dir = "public"
 compatibility_date = "2025-01-01"
-migrations_dir = "db/migrations"
 
-# Bind D1 once, name must match the code: DB
+# Bind D1 once; the name must match what we use in commands (medportal_db)
 [[d1_databases]]
-binding        = "DB"                                   # <-- binding you'll use in commands
+binding        = "DB"                 # used in Functions as env.DB (kept as in your repo)
 database_name  = "medportal_db"
-database_id    = "84a3b4f0-70fe-4d09-8006-c35576e4e109" # from your screenshot
+database_id    = "84a3b4f0-70fe-4d09-8006-c35576e4e109"
+migrations_dir = "db/migrations"      # IMPORTANT: must be INSIDE this block
 
+# Your existing KV binding (kept intact)
 [[kv_namespaces]]
-binding    = "OPEN_BOARD_KV"
-id         = "7c170dc902a84accbea22533d4fab918"
-preview_id = "588aee7fd81a492ab92fc0f1276791b6"
+binding = "OPEN_BOARD_KV"
+id = "7c170dc902a84accbea22533d4fab918"
+preview_id = "588aee7fd81a492ab92fc0f12f6791b6"
