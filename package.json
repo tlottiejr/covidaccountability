@@ -1,8 +1,14 @@
 {
   "name": "covidaccountability-tools",
+  "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": { "node": ">=20" },
   "scripts": {
+    "d1:migrate": "wrangler d1 migrations apply medportal_db --remote",
+    "d1:seed:boards": "node scripts/seed-boards-from-json.mjs",
+    "export:state-links": "node scripts/export-state-links-from-d1.mjs",
+    "validate:state-links": "node scripts/validate-state-links.mjs",
     "audit:states": "node scripts/audit-states.mjs",
     "audit:refs": "node scripts/audit-refs.mjs",
     "audit:all": "npm run audit:states && npm run audit:refs",
@@ -11,11 +17,7 @@
     "discover:all": "npm run discover:states && npm run discover:refs",
     "apply:states": "node scripts/apply-states.mjs",
     "apply:refs": "node scripts/apply-refs.mjs",
-    "apply:all": "npm run apply:states && npm run apply:refs",
-    "d1:migrate:001": "wrangler d1 execute medportal_db --remote --file db/migrations/001_harden_states.sql",
-    "d1:migrate:002": "wrangler d1 execute medportal_db --remote --file db/migrations/002_boards.sql",
-    "d1:seed:boards": "node scripts/seed-boards-from-json.mjs",
-    "export:state-links": "node scripts/export-state-links-from-d1.mjs",
-    "validate:state-links": "node scripts/validate-state-links.mjs"
-  }
+    "apply:all": "npm run apply:states && npm run apply:refs"
+  },
+  "devDependencies": {}
 }
