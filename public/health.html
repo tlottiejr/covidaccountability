@@ -1,127 +1,67 @@
 <!doctype html>
 <html lang="en">
-<script src="/assets/js/ux-accessibility.js" defer></script>
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Site Health — COVID Accountability Now</title>
-  <link rel="stylesheet" href="/assets/site.css"/>
-  <style>
-    .grid { display:grid; gap:14px; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); }
-    .badge { display:inline-block; padding:2px 8px; border-radius:999px; font-size:12px; border:1px solid rgba(0,0,0,.08) }
-    .ok { background: rgba(16,185,129,.12); color:#065f46; border-color: rgba(16,185,129,.25); }
-    .warn { background: rgba(234,179,8,.14); color:#854d0e; border-color: rgba(234,179,8,.28); }
-    .err { background: rgba(239,68,68,.12); color:#991b1b; border-color: rgba(239,68,68,.28); }
-    table { width:100%; border-collapse: collapse; }
-    th, td { padding:8px 10px; border-bottom: 1px solid rgba(0,0,0,.06); text-align:left; }
-    .small { color: var(--muted); }
-    .mono { font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
-  </style>
+  <meta charset="utf-8" />
+  <title>Site Health • COVID Accountability</title>
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <!-- Fallback CSP for local preview; production CSP is delivered via _headers -->
+  <meta http-equiv="Content-Security-Policy"
+        content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+
+  <link rel="stylesheet" href="/assets/css/site.css" />
 </head>
 <body>
-  <div id="nav-root"></div>
-  <script src="/assets/nav-include.js" defer></script>
 
-  <main class="container">
+  <header class="site-header">
+    <div class="nav">
+      <a href="/" class="brand">COVID Accountability Now</a>
+      <nav aria-label="Main">
+        <ul class="nav__list">
+          <li><a href="/index.html">Home</a></li>
+          <li><a href="/about.html">About Us</a></li>
+          <li><a href="/our-story.html">Our Story</a></li>
+          <li><a href="/why-report.html">Why Report</a></li>
+          <li><a href="/who-can-report.html">Who Can Report</a></li>
+          <li><a href="/references.html">References</a></li>
+          <li><a href="/donate.html">Donate</a></li>
+          <li aria-current="page"><a href="/health.html">Health</a></li>
+        </ul>
+      </nav>
+    </div>
+  </header>
+
+  <main class="container" style="max-width:1100px">
     <h1>Site Health</h1>
-    <p class="small">Static dashboard reading JSON snapshots produced by link-health workflows (Option A). If files are missing, it just shows “no data yet”.</p>
+    <p class="text-muted">Lightweight status checks to confirm the site is healthy after deploys.</p>
 
-    <section class="grid" id="cards"></section>
-
-    <section class="card">
-      <h2 class="h4">References — Details</h2>
-      <div id="refsTable" class="small">Loading…</div>
+    <section class="card p-4" id="env">
+      <h2 class="h4 mb-2">Environment</h2>
+      <div id="env_body" class="mono text-sm"></div>
     </section>
 
-    <section class="card">
-      <h2 class="h4">State Boards — Details</h2>
-      <div id="boardsTable" class="small">Loading…</div>
+    <section class="card p-4 mt-4">
+      <h2 class="h4 mb-2">Probes</h2>
+      <div id="probes" class="ref-board"
+           style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px;"></div>
+    </section>
+
+    <section class="card p-4 mt-4">
+      <h2 class="h4 mb-2">Security Hints</h2>
+      <ul class="list">
+        <li><span id="csp_check">Checking CSP…</span></li>
+        <li><span id="https_check">Checking HTTPS…</span></li>
+      </ul>
     </section>
   </main>
 
-  <footer>
-    <a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a>
+  <footer class="site-footer mt-8">
+    <div class="footer-links">
+      <a href="/privacy.html">Privacy</a>
+      <span>·</span>
+      <a href="/disclaimer.html">Disclaimer</a>
+    </div>
   </footer>
 
-  <script>
-    const loadJson = async (p) => {
-      try {
-        const r = await fetch(p, { cache: 'no-store' });
-        if (!r.ok) throw new Error(`${p} ${r.status}`);
-        return await r.json();
-      } catch { return null; }
-    };
-
-    (async () => {
-      const base = '/assets/health';
-      const [index, refs, boards] = await Promise.all([
-        loadJson(`${base}/index.json`),
-        loadJson(`${base}/refs-health.json`),
-        loadJson(`${base}/state-health.json`),
-      ]);
-
-      const cards = document.getElementById('cards');
-
-      const fmtCard = (title, ok, warn, err, ts) => `
-        <div class="card">
-          <div class="stack">
-            <div class="h4">${title}</div>
-            <div>
-              <span class="badge ok">OK ${ok||0}</span>
-              <span class="badge warn">Redirected ${warn||0}</span>
-              <span class="badge err">Broken ${err||0}</span>
-            </div>
-            <div class="small">Updated: <span class="mono">${ts || '—'}</span></div>
-          </div>
-        </div>
-      `;
-
-      // summary cards
-      if (index && index.summary) {
-        const s = index.summary;
-        cards.innerHTML = [
-          fmtCard('References', s.references?.ok, s.references?.redirects, s.references?.errors, s.references?.updatedAt),
-          fmtCard('Boards', s.boards?.ok, s.boards?.redirects, s.boards?.errors, s.boards?.updatedAt),
-        ].join('');
-      } else {
-        cards.innerHTML = `<div class="card"><div class="small">No summary data yet.</div></div>`;
-      }
-
-      // details tables (best-effort)
-      const toTable = (rows, head) => {
-        if (!rows?.length) return '<div class="small">No data yet.</div>';
-        const th = `<tr>${head.map(h=>`<th>${h}</th>`).join('')}</tr>`;
-        const body = rows.map(r => `<tr>${r.map(c=>`<td>${c}</td>`).join('')}</tr>`).join('');
-        return `<div class="table-wrap"><table>${th}${body}</table></div>`;
-      };
-
-      const refsEl = document.getElementById('refsTable');
-      if (refs?.items) {
-        const rows = refs.items.slice(0,200).map(x => [
-          `<a href="${x.url}" rel="noreferrer noopener" target="_blank">${x.title||x.url}</a>`,
-          x.status || '—',
-          x.finalUrl ? `<span class="small">${x.finalUrl}</span>` : '—',
-          x.checkedAt || '—'
-        ]);
-        refsEl.innerHTML = toTable(rows, ['Reference', 'Status', 'Final URL', 'Checked At']);
-      } else {
-        refsEl.textContent = 'No data yet.';
-      }
-
-      const boardsEl = document.getElementById('boardsTable');
-      if (boards?.items) {
-        const rows = boards.items.slice(0,200).map(x => [
-          `${x.state || '—'}${x.board ? ' — ' + x.board : ''}`,
-          x.url ? `<a href="${x.url}" rel="noreferrer noopener" target="_blank">${x.url}</a>` : '—',
-          x.status || '—',
-          x.finalUrl ? `<span class="small">${x.finalUrl}</span>` : '—',
-          x.checkedAt || '—'
-        ]);
-        boardsEl.innerHTML = toTable(rows, ['Board', 'URL', 'Status', 'Final URL', 'Checked At']);
-      } else {
-        boardsEl.textContent = 'No data yet.';
-      }
-    })();
-  </script>
+  <script type="module" src="/assets/js/health.js"></script>
 </body>
 </html>
