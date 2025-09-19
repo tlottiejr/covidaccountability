@@ -28,12 +28,11 @@
     const legalH  = h(document.querySelector(SEL.legal));
     const gap     = parseInt(getComputedStyle(board).gap || '24', 10);
 
-    // We have 5 cards in a 2-col grid -> THREE rows total, all same height.
+    // Three equal rows (top row 2 cards, middle row 2 cards, bottom row 1 card SAME HEIGHT)
     const available = Math.max(600, Math.min(1100, window.innerHeight - headerH - legalH - 24));
     const rowH = Math.floor((available - (gap * 2)) / 3);
     const boardH = (rowH * 3) + (gap * 2);
 
-    // body locked; cards scroll internally
     document.body.style.overflow = 'hidden';
     board.style.height = px(boardH);
 
