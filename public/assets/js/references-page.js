@@ -1,11 +1,45 @@
 // public/assets/js/references-page.js
-// Externalized from the old inline module so CSP can stay enforced.
+// Runs on references page; robust to existing markup (no HTML changes needed).
 
-const qs = (sel) => document.querySelector(sel);
+const $ = (s) => document.querySelector(s);
 
-function setText(el, text) {
-  if (!el) return;
-  el.textContent = text;
+function pickStatusEl() {
+  return (
+    $("[data-ref-status]") ||
+    $(".status") ||
+    $("#status") ||
+    // fallback: first element that currently shows "Loading..."
+    Array.from(document.querySelectorAll("div, p, span")).find(
+      (n) => (n.textContent || "").trim().toLowerCase() === "loading..."
+    ) ||
+    null
+  );
+}
+
+function pickListEl() {
+  return (
+    $("[data-ref-list]") ||
+    $("#references-list") ||
+    $("#refList") ||
+    // fallback: an empty container after the status
+    (pickStatusEl() && pickStatusEl().nextElementSibling) ||
+    null
+  );
+}
+
+function pickLastCheckedEl() {
+  return (
+    $("[data-ref-lastchecked]") ||
+    $("#last-checked") ||
+    document.querySelector('time[datetime][data-role="last-checked"]') ||
+    null
+  );
+}
+
+async function getJSON(url) {
+  const r = await fetch(url, { cache: "no-store" });
+  if (!r.ok) throw new Error(`${url} -> ${r.status}`);
+  return r.json();
 }
 
 function el(tag, attrs = {}, children = []) {
@@ -15,46 +49,39 @@ function el(tag, attrs = {}, children = []) {
     else if (k === "html") n.innerHTML = v;
     else n.setAttribute(k, v);
   }
-  for (const c of [].concat(children)) {
-    if (c == null) continue;
-    n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
-  }
+  ([]).concat(children).forEach((c) =>
+    n.appendChild(typeof c === "string" ? document.createTextNode(c) : c)
+  );
   return n;
 }
 
-async function fetchJSON(url) {
-  const res = await fetch(url, { cache: "no-store" });
-  if (!res.ok) throw new Error(`${url} -> ${res.status}`);
-  return res.json();
-}
-
 async function render() {
-  const status = qs('[data-ref-status]');
-  const list = qs('[data-ref-list]');
-  if (!status || !list) return;
+  const statusEl = pickStatusEl();
+  const listEl = pickListEl();
+  const lastCheckedEl = pickLastCheckedEl();
 
-  // Last-checked badge (best-effort)
+  if (!statusEl || !listEl) return; // graceful no-op
+
+  // Last-checked badge (best effort)
   try {
-    const health = await fetchJSON("/assets/health/references.json");
+    const health = await getJSON("/assets/health/references.json");
     const ts = health?.lastChecked || health?.generated_at || health?.generatedAt || null;
-    setText(qs('[data-ref-lastchecked]'), ts ? new Date(ts).toLocaleString() : "—");
+    if (lastCheckedEl) lastCheckedEl.textContent = ts ? new Date(ts).toLocaleString() : "—";
   } catch {
-    setText(qs('[data-ref-lastchecked]'), "—");
+    if (lastCheckedEl) lastCheckedEl.textContent = "—";
   }
 
-  // Load references
   try {
-    const items = await fetchJSON("/assets/references.json");
-
+    const items = await getJSON("/assets/references.json");
     // Clear “Loading…”
-    status.remove();
+    statusEl.remove();
 
     if (!Array.isArray(items) || items.length === 0) {
-      list.appendChild(el("p", { class: "muted" }, "No references available."));
+      listEl.appendChild(el("p", { class: "muted" }, "No references available."));
       return;
     }
 
-    // Build accessible list
+    // Build list that inherits your existing page styles
     const ul = el("ul", { class: "ref-list", role: "list" });
     items.forEach((r) => {
       const title = r.title || r.name || r.url || "Untitled";
@@ -63,19 +90,18 @@ async function render() {
       if (r.source) metaBits.push(r.source);
       if (r.date) metaBits.push(r.date);
       const meta = metaBits.join(" · ");
-
-      const card = el("li", { class: "ref-card" }, [
+      const li = el("li", { class: "ref-card" }, [
         el("a", { href: url, target: "_blank", rel: "noopener nofollow" }, title),
         meta ? el("div", { class: "ref-meta" }, meta) : null,
         r.description ? el("p", { class: "ref-desc" }, r.description) : null,
       ]);
-      ul.appendChild(card);
+      ul.appendChild(li);
     });
-
-    list.appendChild(ul);
+    listEl.appendChild(ul);
   } catch (err) {
-    setText(status, "Failed to load references. Please try again later.");
-    console.error(err);
+    statusEl.textContent = "Failed to load references. Please try again later.";
+    // Keep one console line for diagnostics; does not affect users.
+    console.error("[references] fetch error:", err);
   }
 }
 
