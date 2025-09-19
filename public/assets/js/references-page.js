@@ -1,5 +1,6 @@
 // public/assets/js/references-page.js
-// Four scrollable panels sized to fit within the first fold.
+// Four scrollable panels sized to fit inside the first gradient.
+// Adds a viewport clamp to remove any residual page overhang.
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -115,34 +116,69 @@ function groupByCategory(items) {
 }
 
 /* ------------------------ dynamic sizing -------------------------- */
-function sizePanels() {
-  const board = document.querySelector(".ref-board");
-  if (!board) return;
-
+function baseTargetHeight(board) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
   // Distance from viewport top to the start of the grid
   const topOffset = board.getBoundingClientRect().top;
 
-  // Reserve extra room for the gradient transition and footer breathing space.
-  // (Bump this up if you still see a sliver of scroll.)
-  const RESERVE = 200;
+  // Reserve space for gradient + footer breathing room
+  const RESERVE = 240;
 
   let target = Math.floor(vh - topOffset - RESERVE);
 
   // Sane clamps
-  const MIN = 200;   // ~12.5rem
-  const MAX = 380;   // ~23.75rem
+  const MIN = 190;   // ~11.9rem
+  const MAX = 360;   // ~22.5rem
   target = Math.max(MIN, Math.min(MAX, target));
 
   // Nudge per width
-  if (vw > 1400) target = Math.min(MAX, target + 20);
-  if (vw < 1100) target = Math.max(MIN, target - 20);
+  if (vw > 1400) target = Math.min(MAX, target + 10);
+  if (vw < 1100) target = Math.max(MIN, target - 10);
 
+  return target;
+}
+
+function applyHeights(px) {
   document.querySelectorAll(".ref-panel__scroll").forEach(sc => {
-    sc.style.maxHeight = `${target}px`;
+    sc.style.maxHeight = `${px}px`;
   });
+}
+
+function clampToViewport() {
+  // If content still overflows, shrink evenly across panels until it doesn’t.
+  const root = document.scrollingElement;
+  let diff = root.scrollHeight - window.innerHeight;
+
+  if (diff <= 0) return; // already within viewport
+
+  const panels = [...document.querySelectorAll(".ref-panel__scroll")];
+  if (!panels.length) return;
+
+  // current height from first panel
+  const current = parseInt(getComputedStyle(panels[0]).maxHeight || "0", 10) || 300;
+
+  // shrink by the deficit spread across panels + a small buffer
+  const delta = Math.ceil(diff / panels.length) + 8;
+  const next = Math.max(160, current - delta); // don’t go below 160px
+
+  applyHeights(next);
+
+  // If still overflowing, try one more small pass.
+  const after = root.scrollHeight - window.innerHeight;
+  if (after > 0 && next > 160) {
+    applyHeights(Math.max(160, next - 8));
+  }
+}
+
+function sizePanels() {
+  const board = document.querySelector(".ref-board");
+  if (!board) return;
+  const target = baseTargetHeight(board);
+  applyHeights(target);
+  // Clamp after heights applied
+  requestAnimationFrame(clampToViewport);
 }
 
 function onResizeThrottled() {
@@ -216,3 +252,4 @@ if (document.readyState === "loading") {
 } else {
   render();
 }
+
