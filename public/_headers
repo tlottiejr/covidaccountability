@@ -8,11 +8,10 @@
   X-Frame-Options: SAMEORIGIN
   Cross-Origin-Resource-Policy: same-origin
 
-  # CSP ENFORCED (Turnstile + inline module on /references.html allowed via hash)
-  # If you change the inline <script type="module"> in references.html,
-  # recompute its SHA-256 and update the 'script-src' hash below.
+  # CSP ENFORCED — allow Turnstile + inline module on /references.html
+  # (We keep the specific hash AND add 'unsafe-inline' to prevent drift from breaking the page.)
   Content-Security-Policy: default-src 'self'; \
-    script-src 'self' https://challenges.cloudflare.com 'sha256-mRsv7qkIiBZX3eMaUi6/qQltYGWDg+BczitKVnzKq6s='; \
+    script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com 'sha256-mRsv7qkIiBZX3eMaUi6/qQltYGWDg+BczitKVnzKq6s='; \
     style-src 'self' 'unsafe-inline'; \
     img-src 'self' data:; \
     font-src 'self'; \
@@ -21,7 +20,7 @@
     object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'; \
     upgrade-insecure-requests
 
-  # Optional: keep collecting reports even with CSP enforced
+  # Optional: keep collecting violations even with CSP enforced
   # report-uri /api/csp-report
 */
 
