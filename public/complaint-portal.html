@@ -4,100 +4,64 @@
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Complaint Portal • COVID Accountability</title>
+  <title>Complaint Portal — COVID Accountability Now</title>
   <link rel="stylesheet" href="/assets/site.css"/>
-  <link rel="icon" href="/assets/img/favicon.ico"/>
+  <link rel="stylesheet" href="/assets/portal.css"/>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script src="/assets/js/portal-deeplink.js" defer></script>
 </head>
 <body>
   <div id="nav-root"></div>
   <script src="/assets/nav-include.js" defer></script>
 
-  <main id="main" class="container" role="main" aria-label="Complaint Portal">
-    <h1 class="page-title">Complaint Portal</h1>
-    <p class="page-subtitle">
+  <main class="container" id="main">
+    <h1>Complaint Portal</h1>
+    <p class="small">
       Select your state and the appropriate board. We’ll open the official site in a new tab.
       Your report content is prepared locally and not stored by us.
     </p>
 
-    <div class="cp-grid">
+    <div id="sr-status" class="visually-hidden" role="status" aria-live="polite"></div>
 
-      <fieldset class="cp-section">
-        <legend>Choose your state</legend>
-        <label for="stateSelect">State</label>
-        <select id="stateSelect" name="state" style="min-width:220px">
-          <option value="">Select a state…</option>
+    <section class="card" aria-labelledby="stateLegend">
+      <fieldset class="stack">
+        <legend id="stateLegend" class="h4">Choose your state</legend>
+        <label for="stateSelect" class="visually-hidden">State</label>
+        <select id="stateSelect" name="state" autocomplete="address-level1" aria-describedby="stateHelp">
+          <option value="">— Select your state —</option>
         </select>
-        <p class="cp-row"><span>We maintain links to official complaint portals. After choosing a state, pick a board.</span></p>
-      </fieldset>
-
-      <fieldset class="cp-section">
-        <legend>Select a board in your state</legend>
-        <div id="boardsContainer" class="cp-boards" role="radiogroup" aria-label="Boards"></div>
-      </fieldset>
-
-      <section class="cp-section">
-        <h3>Open board site</h3>
-        <div class="cp-row">
-          <span class="cp-badge" id="statusBadge">✅ Success!</span>
-        </div>
-        <p>
-          <button id="open-board" class="btn btn-primary" type="button">Open selected board page</button>
+        <p id="stateHelp" class="small">
+          We maintain links to official complaint portals. After choosing a state, pick a board.
         </p>
-      </section>
+      </fieldset>
+    </section>
 
-    </div>
+    <section class="card" aria-labelledby="boardsLegend">
+      <fieldset class="stack">
+        <legend id="boardsLegend" class="h4">Select a board in your state</legend>
+        <div id="boards" role="radiogroup" aria-labelledby="boardsLegend"></div>
+      </fieldset>
+    </section>
 
-    <p class="page-legal"><a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a></p>
+    <section class="card" aria-labelledby="openLegend">
+      <h2 id="openLegend" class="h4">Open board site</h2>
+      <div class="stack">
+        <div class="turnstile-box" aria-label="Human verification">
+          <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8" data-theme="light"></div>
+        </div>
+
+        <button id="openBtn" class="btn" type="button" disabled aria-disabled="true" aria-describedby="openHelp">
+          Open selected board page
+        </button>
+      </div>
+    </section>
   </main>
 
-  <script>
-    // Minimal client logic to populate states/boards and open the selected board.
-    // If you already have /assets/js/portal.js with data/hooks, this is compatible:
-    // it uses #stateSelect, #boardsContainer, and #open-board.
+  <footer>
+    <a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a>
+  </footer>
 
-    const STATE_DATA = (window.STATE_DATA || {
-      "Louisiana":[
-        {"name":"Louisiana State Board of Medical Examiners","url":"https://www.lsbme.la.gov"}
-      ]
-      // Add more states as needed or leave to your existing JS to overwrite.
-    });
-
-    const stateSelect = document.getElementById('stateSelect');
-    const boardsContainer = document.getElementById('boardsContainer');
-    const openBtn = document.getElementById('open-board');
-    let selectedUrl = "";
-
-    function renderStates(){
-      const keys = Object.keys(STATE_DATA).sort();
-      for (const k of keys){
-        const opt = document.createElement('option');
-        opt.value = k; opt.textContent = k;
-        stateSelect.appendChild(opt);
-      }
-    }
-
-    function renderBoards(st){
-      boardsContainer.innerHTML = '';
-      selectedUrl = '';
-      const boards = STATE_DATA[st] || [];
-      boards.forEach((b, idx) => {
-        const id = `board-${idx}`;
-        const label = document.createElement('label');
-        label.innerHTML = `<input type="radio" name="board" id="${id}" value="${b.url}"> <span>${b.name} ${b.url}</span>`;
-        boardsContainer.appendChild(label);
-      });
-      boardsContainer.addEventListener('change', (e)=>{
-        if (e.target && e.target.name === 'board') selectedUrl = e.target.value;
-      }, {once:true});
-    }
-
-    stateSelect.addEventListener('change', e => renderBoards(e.target.value));
-    openBtn.addEventListener('click', () => {
-      if (!selectedUrl){ alert('Please select a board.'); return; }
-      window.open(selectedUrl, '_blank', 'noopener');
-    });
-
-    renderStates();
-  </script>
+  <script src="/assets/app.js" type="module"></script>
 </body>
 </html>
+
