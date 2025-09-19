@@ -1,71 +1,53 @@
 // public/assets/js/references-page.js
-// Robust references renderer that works with the existing markup & styling.
-// No HTML changes needed.
+// Render inside the existing card that shows "Loading…", so we inherit page styles.
 
-const $ = (s, root = document) => root.querySelector(s);
+const $ = (s, r = document) => r.querySelector(s);
 
-// ---- pickers are generous so we don't depend on specific IDs/classes ----
-function pickStatusEl() {
-  // preferred hooks if present
-  const hook =
+function findStatusAndMount() {
+  // Find the "Loading..." node
+  let status =
     $("[data-ref-status]") ||
     $("#references-status") ||
     $(".references-status") ||
     $(".status");
-  if (hook) return hook;
 
-  // fallback: the first element whose text contains "loading"
-  const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT);
-  while (walker.nextNode()) {
-    const n = walker.currentNode;
-    const t = (n.textContent || "").toLowerCase();
-    if (t.includes("loading")) return n;
-  }
-  return null;
-}
-
-function pickLastCheckedEl() {
-  return (
-    $("[data-ref-lastchecked]") ||
-    $("#last-checked") ||
-    $("time[datetime][data-role='last-checked']") ||
-    // fallback: a span immediately after text "Last checked:"
-    (() => {
-      const walker = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
-      while (walker.nextNode()) {
-        if ((walker.currentNode.nodeValue || "").trim().toLowerCase().startsWith("last checked")) {
-          const el = walker.currentNode.parentElement;
-          if (el) {
-            // look for a following span/time in the same parent
-            const cands = el.querySelectorAll("span, time");
-            if (cands.length) return cands[cands.length - 1];
-          }
-        }
+  if (!status) {
+    const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT);
+    while (tw.nextNode()) {
+      const t = (tw.currentNode.textContent || "").trim().toLowerCase();
+      if (t === "loading..." || t === "loading…") {
+        status = tw.currentNode;
+        break;
       }
-      return null;
-    })()
-  );
-}
-
-function pickListMount(statusEl) {
-  // preferred hook
-  const hook = $("[data-ref-list]") || $("#references-list") || $("#refList");
-  if (hook) return hook;
-
-  // fallback: an empty div right after status element, else the status' parent
-  if (statusEl && statusEl.nextElementSibling && statusEl.nextElementSibling.children.length === 0) {
-    return statusEl.nextElementSibling;
+    }
   }
-  return statusEl ? statusEl.parentElement : document.body;
+
+  // Mount = the card that CONTROLS layout on this page (parent .card if present)
+  let mount = null;
+  if (status) {
+    // prefer a nearby empty sibling as mount (common pattern: <div class="card"><div class="status">Loading…</div><div></div></div>)
+    if (status.nextElementSibling && status.nextElementSibling.children.length === 0) {
+      mount = status.nextElementSibling;
+    } else {
+      // else, render inside the same parent (keeps card padding/border/shadow)
+      mount = status.parentElement;
+    }
+  }
+
+  return { status, mount };
 }
 
-async function getJSONwithFallback(urls) {
+async function getJSON(url) {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`${url} -> ${res.status}`);
+  return res.json();
+}
+
+async function fetchWithFallback(candidates) {
   let lastErr;
-  for (const u of urls) {
+  for (const u of candidates) {
     try {
-      const r = await fetch(u, { cache: "no-store" });
-      if (!r.ok) throw new Error(`${u} -> ${r.status}`);
-      return await r.json();
+      return await getJSON(u);
     } catch (e) {
       lastErr = e;
     }
@@ -80,64 +62,79 @@ function el(tag, attrs = {}, kids = []) {
     else if (k === "html") n.innerHTML = v;
     else n.setAttribute(k, v);
   }
-  for (const c of [].concat(kids)) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+  for (const c of [].concat(kids)) {
+    n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
+  }
   return n;
 }
 
 async function render() {
-  const statusEl = pickStatusEl();
-  const listMount = pickListMount(statusEl);
-  const lastCheckedEl = pickLastCheckedEl();
+  const { status, mount } = findStatusAndMount();
+  if (!mount) return; // graceful no-op if markup changes again
 
-  // Update "Last checked" from any of the known artifact shapes
+  // Update "Last checked"
   try {
-    const health = await getJSONwithFallback([
+    const health = await fetchWithFallback([
       "/assets/health/references.json",
       "/assets/health/references/index.json",
-      "/assets/health/references/latest.json"
+      "/assets/health/references/latest.json",
     ]);
-    const ts = health?.lastChecked || health?.generated_at || health?.generatedAt || health?.date || null;
-    if (lastCheckedEl) lastCheckedEl.textContent = ts ? new Date(ts).toLocaleString() : "—";
+    const last =
+      health?.lastChecked ||
+      health?.generated_at ||
+      health?.generatedAt ||
+      health?.date ||
+      null;
+    const lc =
+      $("[data-ref-lastchecked]") ||
+      $("#last-checked") ||
+      document.querySelector('time[datetime][data-role="last-checked"]');
+    if (lc) lc.textContent = last ? new Date(last).toLocaleString() : "—";
   } catch {
-    if (lastCheckedEl) lastCheckedEl.textContent = "—";
+    const lc =
+      $("[data-ref-lastchecked]") ||
+      $("#last-checked") ||
+      document.querySelector('time[datetime][data-role="last-checked"]');
+    if (lc) lc.textContent = "—";
   }
 
+  // Load references and render INSIDE the existing card
   try {
-    // Try the canonical file first, then common alternates
-    const items = await getJSONwithFallback([
+    const items = await fetchWithFallback([
       "/assets/references.json",
       "/assets/data/references.json",
-      "/assets/references/index.json"
+      "/assets/references/index.json",
     ]);
 
-    // Remove the "Loading..." node if we found one
-    if (statusEl && statusEl.parentElement) statusEl.remove();
+    // Remove just the status line; keep the card container and its padding/shadow
+    if (status && status.parentElement) status.remove();
 
     if (!Array.isArray(items) || items.length === 0) {
-      listMount.appendChild(el("p", { class: "muted" }, "No references available."));
+      mount.appendChild(el("p", { class: "muted" }, "No references available."));
       return;
     }
 
-    // Build a UL that inherits your page styles (no new CSS needed)
-    const ul = el("ul", { class: "ref-list", role: "list" });
+    // Build list that relies on your page's existing typography and spacing
+    const ul = el("ul", { role: "list" });
     for (const r of items) {
       const title = r.title || r.name || r.url || "Untitled";
       const url = r.url || "#";
-      const metaBits = [];
-      if (r.source) metaBits.push(r.source);
-      if (r.date) metaBits.push(r.date);
-      const meta = metaBits.join(" · ");
+      const metaParts = [];
+      if (r.source) metaParts.push(r.source);
+      if (r.date) metaParts.push(r.date);
+      const meta = metaParts.join(" · ");
 
-      const li = el("li", { class: "ref-card" }, [
+      const li = el("li", {}, [
         el("a", { href: url, target: "_blank", rel: "noopener nofollow" }, title),
-        meta ? el("div", { class: "ref-meta" }, meta) : null,
-        r.description ? el("p", { class: "ref-desc" }, r.description) : null
+        meta ? el("div", { class: "muted" }, meta) : null,
+        r.description ? el("p", {}, r.description) : null,
       ]);
       ul.appendChild(li);
     }
-    listMount.appendChild(ul);
+
+    mount.appendChild(ul);
   } catch (err) {
-    if (statusEl) statusEl.textContent = "Failed to load references. Please try again later.";
+    if (status) status.textContent = "Failed to load references. Please try again later.";
     console.error("[references] fetch error:", err);
   }
 }
