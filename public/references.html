@@ -3,41 +3,76 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>References · COVID Accountability</title>
+  <title>References • COVID Accountability</title>
 
+  <!-- Site CSS (keep your existing path and version param) -->
   <link rel="stylesheet" href="/assets/site.css?v=12" />
-  <!-- If you have a page-specific CSS, keep it; otherwise site.css covers it -->
+  <!-- (Optional) Favicon -->
+  <link rel="icon" href="/assets/img/favicon.ico" />
+
+  <!-- For a11y skip link -->
+  <style>
+    .skip-link {
+      position: absolute; left: -9999px; top: auto; width: 1px; height: 1px; overflow: hidden;
+    }
+    .skip-link:focus { position: static; width:auto; height:auto; padding:8px; }
+  </style>
 </head>
 <body class="page page--references">
-  <!-- header/nav include -->
-  <header id="site-header">
-    <!-- your existing header markup -->
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- Top Nav (same structure as other pages) -->
+  <header class="site-header" role="banner">
+    <div class="wrap nav-wrap">
+      <div class="brand">
+        <a href="/" class="brand__link">COVID Accountability</a>
+      </div>
+      <nav class="nav" aria-label="Primary">
+        <ul class="nav__list">
+          <li><a href="/index.html">Home</a></li>
+          <li><a href="/about.html">About Us</a></li>
+          <li><a href="/our-story.html">Our Story</a></li>
+          <li><a href="/why-report.html">Why Report</a></li>
+          <li><a href="/who-can-report.html">Who Can Report</a></li>
+          <li class="is-active"><a href="/references.html" aria-current="page">References</a></li>
+          <li><a href="/donate.html">Donate</a></li>
+        </ul>
+      </nav>
+    </div>
   </header>
 
-  <main id="content" class="container container--lg">
+  <!-- Main -->
+  <main id="main" class="wrap ref-wrap" role="main" aria-label="References">
     <h1 class="page-title">References</h1>
     <p class="page-subtitle">Curated materials that support reporting and accountability.</p>
 
-    <section class="ref-board" aria-label="Reference categories">
-      <!-- Panel 1 -->
-      <article class="ref-panel">
-        <h2 class="ref-panel__title">General References</h2>
-        <div class="ref-panel__body">
+    <!-- the 4-card board -->
+    <section class="ref-board" aria-label="References board">
+      <!-- General References -->
+      <article class="ref-panel" aria-labelledby="ref-head-a">
+        <h2 class="ref-panel__title" id="ref-head-a">General References</h2>
+        <div class="ref-panel__scroll">
           <ul class="ref-list">
             <li>
-              <a href="https://www.firstaidteam.com/..." target="_blank" rel="noopener">First Aid for the USMLE Step 1 — Public Health Sciences: Epidemiology &amp; Biostatistics (p. 260)</a>
-              <div class="ref-meta">McGraw Hill / First Aid · 2022 · 2022</div>
+              <a href="https://www.amazon.com/dp/126428530X" target="_blank" rel="noopener">
+                First Aid for the USMLE Step 1 — Public Health Sciences: Epidemiology &amp; Biostatistics (p. 260)
+              </a>
+              <div class="ref-meta">McGraw Hill / First Aid · 2022 - 2022</div>
               <p class="ref-note">Board-review overview of epidemiology and biostatistics concepts used in evidence appraisal.</p>
             </li>
 
             <li>
-              <a href="https://doi.org/..." target="_blank" rel="noopener">Relative risk reduction: misinformative measure in clinical trials and COVID-19 vaccine efficacy</a>
+              <a href="https://dx.doi.org/10.1057/s41271-021-00313-8" target="_blank" rel="noopener">
+                Relative risk reduction: misinformative measure in clinical trials and COVID-19 vaccine efficacy
+              </a>
               <div class="ref-meta">Dialogues in Health · 2022</div>
               <p class="ref-note">Methodology commentary highlighting limitations of relative risk reduction versus absolute measures.</p>
             </li>
 
             <li>
-              <a href="https://www.thelancet.com/..." target="_blank" rel="noopener">Misleading Use of Risk Ratios</a>
+              <a href="https://www.thelancet.com/journals/lancet/article/PIIS0140-6736(05)17708-0/fulltext" target="_blank" rel="noopener">
+                Misleading Use of Risk Ratios
+              </a>
               <div class="ref-meta">The Lancet · 2005</div>
               <p class="ref-note">Letter discussing common pitfalls when interpreting risk ratios in medical research.</p>
             </li>
@@ -45,55 +80,78 @@
         </div>
       </article>
 
-      <!-- Panel 2 -->
-      <article class="ref-panel">
-        <h2 class="ref-panel__title">Government &amp; Legal</h2>
-        <div class="ref-panel__body">
+      <!-- Government & Legal -->
+      <article class="ref-panel" aria-labelledby="ref-head-b">
+        <h2 class="ref-panel__title" id="ref-head-b">Government &amp; Legal</h2>
+        <div class="ref-panel__scroll">
           <ul class="ref-list">
             <li>
-              <a href="https://www.fda.gov/..." target="_blank" rel="noopener">Communicating Risks &amp; Benefits — Absolute risk, relative risk, and NNT</a>
+              <a href="https://www.fda.gov/media/81506/download" target="_blank" rel="noopener">
+                Communicating Risks &amp; Benefits — Absolute risk, relative risk, and NNT
+              </a>
               <div class="ref-meta">FDA (Evidence-Based User’s Guide) · 2011</div>
+              <p class="ref-note">Practical guide on presenting quantitative risk information to patients, including NNT/NNH.</p>
             </li>
+
             <li>
-              <a href="https://www.supremecourt.gov/..." target="_blank" rel="noopener">NFIB v. OSHA (2022) — Supreme Court Opinion</a>
+              <a href="https://www.supremecourt.gov/opinions/21pdf/21a244_hgci.pdf" target="_blank" rel="noopener">
+                NFIB v. OSHA (2022) — Supreme Court Opinion
+              </a>
               <div class="ref-meta">Supreme Court of the United States · 2022</div>
+              <p class="ref-note">SCOTUS opinion addressing OSHA’s COVID-19 vaccination/testing ETS.</p>
             </li>
+
             <li>
-              <a href="https://www.whitehouse.gov/..." target="_blank" rel="noopener">Fact Sheet: Actions Taken after Public Health Emergency Transition</a>
+              <a href="https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/09/fact-sheet-actions-taken-after-public-health-emergency-transition/" target="_blank" rel="noopener">
+                Fact Sheet: Actions Taken after Public Health Emergency Transition
+              </a>
               <div class="ref-meta">The White House · 2023-05-09</div>
+              <p class="ref-note">Summary of federal actions to maintain protections and readiness after the PHE transition.</p>
             </li>
           </ul>
         </div>
       </article>
 
-      <!-- Panel 3 -->
-      <article class="ref-panel">
-        <h2 class="ref-panel__title">Medical Education &amp; Ethics</h2>
-        <div class="ref-panel__body">
+      <!-- Medical Education & Ethics -->
+      <article class="ref-panel" aria-labelledby="ref-head-c">
+        <h2 class="ref-panel__title" id="ref-head-c">Medical Education &amp; Ethics</h2>
+        <div class="ref-panel__scroll">
           <ul class="ref-list">
             <li>
-              <a href="https://www.usmle.org/..." target="_blank" rel="noopener">USMLE® Content Outline — Biostatistics, Epidemiology/Population Health, &amp; Interpretation of the Medical Literature (p. 37)</a>
+              <a href="https://www.usmle.org/sites/default/files/2024-02/Step1_2024.pdf#page=37" target="_blank" rel="noopener">
+                USMLE® Content Outline — Biostatistics, Epidemiology/ Population Health, &amp; Interpretation of the Medical Literature (p. 37)
+              </a>
               <div class="ref-meta">USMLE / FSMB &amp; NBME · 2024</div>
+              <p class="ref-note">Official outline describing tested competencies in statistics, population health, and interpreting the medical literature.</p>
             </li>
+
             <li>
-              <a href="https://www.usmle.org/..." target="_blank" rel="noopener">USMLE® Content Outline — Social Sciences (p. 39)</a>
+              <a href="https://www.usmle.org/sites/default/files/2024-02/Step1_2024.pdf#page=39" target="_blank" rel="noopener">
+                USMLE® Content Outline — Social Sciences (p. 39)
+              </a>
               <div class="ref-meta">USMLE / FSMB &amp; NBME · 2024</div>
+              <p class="ref-note">Defines examined social science domains for medical practice, including communication and ethics.</p>
             </li>
+
             <li>
-              <a href="https://www.firstaidteam.com/..." target="_blank" rel="noopener">First Aid for the USMLE Step 1 — Public Health Sciences: Ethics (pp. 268–269)</a>
-              <div class="ref-meta">McGraw Hill / First Aid · 2022 · 2022</div>
+              <a href="https://www.amazon.com/dp/126428530X" target="_blank" rel="noopener">
+                First Aid for the USMLE Step 1 — Public Health Sciences: Ethics (pp. 268–269)
+              </a>
+              <div class="ref-meta">McGraw Hill / First Aid · 2022 - 2022</div>
             </li>
           </ul>
         </div>
       </article>
 
-      <!-- Panel 4 -->
-      <article class="ref-panel">
-        <h2 class="ref-panel__title">Peer-reviewed Literature</h2>
-        <div class="ref-panel__body">
+      <!-- Peer-reviewed Literature -->
+      <article class="ref-panel" aria-labelledby="ref-head-d">
+        <h2 class="ref-panel__title" id="ref-head-d">Peer-reviewed Literature</h2>
+        <div class="ref-panel__scroll">
           <ul class="ref-list">
             <li>
-              <a href="https://www.nejm.org/..." target="_blank" rel="noopener">Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine</a>
+              <a href="https://www.nejm.org/doi/full/10.1056/NEJMoa2034577" target="_blank" rel="noopener">
+                Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine
+              </a>
               <div class="ref-meta">New England Journal of Medicine · 2020</div>
               <p class="ref-note">Pivotal randomized trial reporting early efficacy and safety outcomes for BNT162b2 (Pfizer-BioNTech).</p>
             </li>
@@ -101,36 +159,40 @@
         </div>
       </article>
 
-      <!-- Panel 5 (bottom-left) -->
-      <article class="ref-panel">
-        <h2 class="ref-panel__title">Preprints &amp; Working Papers</h2>
-        <div class="ref-panel__body">
+      <!-- Preprints & Working Papers -->
+      <article class="ref-panel" aria-labelledby="ref-head-e">
+        <h2 class="ref-panel__title" id="ref-head-e">Preprints &amp; Working Papers</h2>
+        <div class="ref-panel__scroll">
           <ul class="ref-list">
             <li>
-              <a href="https://www.researchgate.net/..." target="_blank" rel="noopener">COVID-19 vaccine-associated mortality in the Southern Hemisphere</a>
+              <a href="https://www.researchgate.net/publication/373118169" target="_blank" rel="noopener">
+                COVID-19 vaccine-associated mortality in the Southern Hemisphere
+              </a>
               <div class="ref-meta">ResearchGate (preprint/working paper) · 2023</div>
+              <p class="ref-note">Working paper exploring associations between vaccination and mortality in Southern Hemisphere data.</p>
             </li>
+
             <li>
-              <a href="https://www.researchgate.net/..." target="_blank" rel="noopener">Worldwide Bayesian Causal Impact Analysis of Vaccine Administration (145 Countries)</a>
+              <a href="https://www.researchgate.net/publication/357998680" target="_blank" rel="noopener">
+                Worldwide Bayesian Causal Impact Analysis of Vaccine Administration (145 Countries)
+              </a>
               <div class="ref-meta">ResearchGate (preprint/working paper) · 2021</div>
+              <p class="ref-note">Large-scale causal impact analysis exploring relationships between vaccination, cases, and deaths.</p>
             </li>
           </ul>
         </div>
       </article>
     </section>
 
-    <!-- Centered legal links, identical look to other pages -->
-    <div class="legal-links" role="contentinfo">
+    <!-- footer links in the gradient, centered -->
+    <div class="ref-footerlinks" aria-label="Legal links">
       <a href="/privacy.html">Privacy</a>
-      <span> · </span>
+      <span aria-hidden="true"> · </span>
       <a href="/disclaimer.html">Disclaimer</a>
     </div>
   </main>
 
-  <!-- footer include (if you render a global footer, keep it after the main gradient) -->
-  <footer id="site-footer"></footer>
-
-  <!-- tiny helper to fit the panels so the page itself doesn’t scroll -->
+  <!-- JS that sizes the internal scroll areas and prevents page scroll -->
   <script type="module" src="/assets/js/references-page.js?v=3"></script>
 </body>
 </html>
