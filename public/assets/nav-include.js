@@ -14,13 +14,21 @@
     ['/donate.html', 'Donate'],
   ];
 
-  const norm = (p) => p.replace(/index\.html$/, '');
-  const path = norm(location.pathname);
+  const nameOf = (p) => {
+    try {
+      const u = new URL(p, location.origin);
+      let n = u.pathname;
+      if (n.endsWith('/')) n += 'index.html';
+      const parts = n.split('/');
+      return parts[parts.length - 1];
+    } catch { return p; }
+  };
+  const current = nameOf(location.pathname || '/');
 
   const navInner = `
     <ul class="nav__list">
       ${links.map(([href, label]) => {
-        const active = path === norm(href);
+        const active = nameOf(href) === current;
         return `<li class="nav__item${active ? ' is-active' : ''}">
           <a href="${href}" ${active ? 'aria-current="page"' : ''}>${label}</a>
         </li>`;
