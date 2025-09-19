@@ -4,32 +4,36 @@ on:
   push:
     branches: [ main ]
 
+permissions:
+  contents: write  # allow pushing tags and creating releases
+
 jobs:
   tag:
     runs-on: ubuntu-latest
-    permissions:
-      contents: write
+
     steps:
       - uses: actions/checkout@v4
-        with: { fetch-depth: 0 }
 
       - name: Build tag name
-        id: meta
+        id: build_tag
         run: |
-          DATE=$(date -u +'%Y.%m.%d-%H%M')
-          SHORT=${GITHUB_SHA::7}
-          echo "tag=v${DATE}-${SHORT}" >> $GITHUB_OUTPUT
+          TS=$(date -u +"%Y.%m.%d-%H%M")
+          echo "tag=v${TS}" >> "$GITHUB_OUTPUT"
+
+      - name: Configure git identity
+        run: |
+          git config --global user.name "${GITHUB_ACTOR}"
+          git config --global user.email "${GITHUB_ACTOR}@users.noreply.github.com"
 
       - name: Create annotated tag
         run: |
-          git tag -a "${{ steps.meta.outputs.tag }}" -m "Automated release tag"
-          git push origin "${{ steps.meta.outputs.tag }}"
+          TAG="${{ steps.build_tag.outputs.tag }}"
+          git tag -a "$TAG" -m "Automated release tag"
+          git push origin "$TAG"
 
-      - name: Create GitHub Release
+      - name: Create GitHub Release (optional)
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.meta.outputs.tag }}
-          name: Release ${{ steps.meta.outputs.tag }}
-          body: |
-            Automated release tag for commit ${{ github.sha }}.
-            See CI artifacts for health, link checks, E2E, and budgets.
+          tag_name: ${{ steps.build_tag.outputs.tag }}
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
