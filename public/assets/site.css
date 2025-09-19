@@ -273,3 +273,8 @@ main.container > .card:first-of-type .btn + .btn{ margin-left:10px; }
   .ref-board{ grid-template-columns:1fr; }
   .ref-panel__scroll{ max-height:none; } /* natural page scroll on mobile */
 }
+
+.page-legal {
+  text-align: center;
+  margin: 32px 0;
+}
