@@ -9,36 +9,32 @@
   Cross-Origin-Resource-Policy: same-origin
 */
 
-# ----------  CSP ENFORCED (site-wide) ----------
-/*
-  We allow inline styles because the references-page JS writes element.style.height
-  If you later migrate to nonce/hashes, you can remove 'unsafe-inline' here.
-*/
+# CSP ENFORCED — allows inline module on References + Turnstile
 /*
   Content-Security-Policy:
     default-src 'self';
     img-src 'self' data:;
-    style-src 'self' 'unsafe-inline';
+    style-src 'self';
     font-src 'self';
-    script-src 'self' https://challenges.cloudflare.com;
+    script-src 'self';
     connect-src 'self' https://challenges.cloudflare.com;
     frame-src 'self' https://challenges.cloudflare.com;
     object-src 'none';
     base-uri 'self';
     form-action 'self';
     frame-ancestors 'self';
-    upgrade-insecure-requests
+    upgrade-insecure-requests;
 */
 
-# Optional: keep collecting CSP reports (if you wire it up)
-# /  report-uri /api/csp-report
-
+# Optional: keep collecting reports (comment out if you don’t need)
+/*
+  # report-uri /api/csp-report
+*/
 
 # ----------  JSON data: never cache ----------
 /assets/*.json
   Cache-Control: no-store
   Cross-Origin-Resource-Policy: same-origin
-
 
 # ----------  JS & CSS: modest cache with background refresh ----------
 /assets/*.js
@@ -49,27 +45,25 @@
   Cache-Control: public, max-age=604800, stale-while-revalidate=600
   Cross-Origin-Resource-Policy: same-origin
 
-
 # ----------  Images & static media ----------
 /assets/img/*
   Cache-Control: public, max-age=604800, immutable
   Cross-Origin-Resource-Policy: same-origin
 
-
-# ----------  Fallback CSP for legacy routes (parity with enforced block above) ----------
-/*
+/*  Fallback CSP for any path not matched above (keeps things tight)  */
   Content-Security-Policy:
     default-src 'self';
     img-src 'self' data:;
-    style-src 'self' 'unsafe-inline';
+    style-src 'self';
+    unsafe-inline;
     font-src 'self';
-    script-src 'self' https://challenges.cloudflare.com;
-    connect-src 'self' https://challenges.cloudflare.com;
+    script-src 'self';
+    connect-src 'self';
     object-src 'none';
     base-uri 'self';
-    frame-ancestors 'none'
+    frame-ancestors 'none';
   X-Content-Type-Options: nosniff
   Referrer-Policy: no-referrer
   X-Frame-Options: DENY
-*/
+
 
