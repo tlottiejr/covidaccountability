@@ -1,33 +1,38 @@
 // public/assets/nav-include.js
+// Safe nav include: ONLY renders when #nav-root exists. It will NOT touch pages that
+// already have their own header/nav markup.
 (function () {
-  const el = document.getElementById('nav-root');
-  if (!el) return;
+  const root = document.getElementById('nav-root');
+  if (!root) return; // <-- key change: do nothing unless page opted in
 
   const links = [
-    { href: '/', label: 'Home', key: '/' },
-    { href: '/about.html', label: 'About Us', key: '/about' },
-    { href: '/our-story.html', label: 'Our Story', key: '/our-story' },
-    { href: '/why-report.html', label: 'Why Report', key: '/why-report' },
-    { href: '/who-can-report.html', label: 'Who Can Report', key: '/who-can-report' },
-    { href: '/references.html', label: 'References', key: '/references' },
-    { href: '/donate.html', label: 'Donate', key: '/donate' }
+    ['/', 'Home'],
+    ['/about.html', 'About Us'],
+    ['/our-story.html', 'Our Story'],
+    ['/why-report.html', 'Why Report'],
+    ['/who-can-report.html', 'Who Can Report'],
+    ['/references.html', 'References'],
+    ['/donate.html', 'Donate'],
   ];
 
-  const path = location.pathname.replace(/index\.html$/, '');
-  const nav = `
-  <header class="top">
-    <div class="wrap">
-      <nav aria-label="Primary">
-        <ul class="nav__list">
-          ${links.map(l => {
-            const active = path === l.key;
-            return `<li class="nav__item${active ? ' is-active' : ''}">
-              <a href="${l.href}" ${active ? 'aria-current="page"' : ''}>${l.label}</a>
-            </li>`;
-          }).join('')}
-        </ul>
-      </nav>
-    </div>
-  </header>`;
-  el.innerHTML = nav;
+  const norm = (p) => p.replace(/index\.html$/, '');
+
+  const navInner = `
+    <ul class="nav__list">
+      ${links.map(([href, label]) => {
+        const active = norm(location.pathname) === norm(href);
+        return `<li class="nav__item${active ? ' is-active' : ''}">
+          <a href="${href}" ${active ? 'aria-current="page"' : ''}>${label}</a>
+        </li>`;
+      }).join('')}
+    </ul>
+  `;
+
+  root.innerHTML = `
+    <header class="top">
+      <div class="wrap">
+        <nav aria-label="Primary">${navInner}</nav>
+      </div>
+    </header>
+  `;
 })();
