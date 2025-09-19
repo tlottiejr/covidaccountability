@@ -1,0 +1,35 @@
+name: release-tag
+
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+
+      - name: Build tag name
+        id: meta
+        run: |
+          DATE=$(date -u +'%Y.%m.%d-%H%M')
+          SHORT=${GITHUB_SHA::7}
+          echo "tag=v${DATE}-${SHORT}" >> $GITHUB_OUTPUT
+
+      - name: Create annotated tag
+        run: |
+          git tag -a "${{ steps.meta.outputs.tag }}" -m "Automated release tag"
+          git push origin "${{ steps.meta.outputs.tag }}"
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.meta.outputs.tag }}
+          name: Release ${{ steps.meta.outputs.tag }}
+          body: |
+            Automated release tag for commit ${{ github.sha }}.
+            See CI artifacts for health, link checks, E2E, and budgets.
