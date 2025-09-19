@@ -1,10 +1,4 @@
-/* public/assets/js/references-page.js
-   - Loads /assets/references.json
-   - Groups into 5 categories
-   - Alphabetizes each category by title
-   - Desktop: 3 equal rows, internal scroll within cards
-   - Mobile: natural page scroll
-*/
+/* public/assets/js/references-page.js */
 (function(){
   const lists = {
     general:  document.getElementById('ref-list-general'),
@@ -27,22 +21,17 @@
     const t = (item.title||'').toLowerCase();
     const host = (()=>{ try { return new URL(item.url).host.toLowerCase(); } catch(_) { return ''; } })();
 
-    // Government & Legal
     if (/whitehouse\.gov|supremecourt\.gov|hhs\.gov|aspr\.hhs\.gov|federalregister\.gov|ag\.ks\.gov|attorneygeneral|texasattorneygeneral/.test(host)) return CATEGORY.GOV;
-    if (/fact sheet|supreme court|complaint|report on lessons|prep act|questions & answers|misinformation policy|disinformation policy/.test(t)) return CATEGORY.GOV;
+    if (/fact sheet|supreme court|complaint|prep act|questions & answers|misinformation|disinformation|final report/.test(t)) return CATEGORY.GOV;
 
-    // Medical Education & Ethics
-    if (/usmle|first aid|mksap|ethics manual|ama code|shared decision|nic[e] guidelines/i.test(t)) return CATEGORY.EDU;
+    if (/usmle|first aid|mksap|ethics manual|ama code|shared decision/.test(t)) return CATEGORY.EDU;
     if (/acpjournals\.org|ama-assn\.org|aafp\.org|usmle\.org/.test(host)) return CATEGORY.EDU;
 
-    // Peer-reviewed
-    if (/nejm|lancet|vaccine|jamanetwork|dialogues in health|g med sci/i.test(t)) return CATEGORY.PEER;
-    if (/nejm\.org|thelancet\.com|jamanetwork|sciencedirect\.com|doi\.org|thegms\.co|thegms\.org/.test(host)) return CATEGORY.PEER;
+    if (/nejm|lancet|vaccine|jamanet|dialogues in health|g med sci/.test(t)) return CATEGORY.PEER;
+    if (/nejm\.org|thelancet\.com|jamanetwork|sciencedirect\.com|doi\.org|thegms\./.test(host)) return CATEGORY.PEER;
 
-    // Preprints & Working Papers
     if (/researchgate|correlation-canada/.test(host)) return CATEGORY.PREPRINT;
 
-    // General
     return CATEGORY.GENERAL;
   }
 
@@ -52,16 +41,25 @@
     if (item.year)   metaBits.push(item.year);
     const meta = metaBits.length ? `<br/><span class="ref-meta">${metaBits.join(' · ')}</span>` : '';
     const note = item.description ? `<p class="ref-note">${item.description}</p>` : '';
-    return `<li>
-      <a href="${item.url}" target="_blank" rel="noopener">${item.title}</a>${meta}${note}
-    </li>`;
+    return `<li><a href="${item.url}" target="_blank" rel="noopener">${item.title}</a>${meta}${note}</li>`;
   }
 
   function sortAlpha(a,b){ return a.title.localeCompare(b.title, undefined, {sensitivity:'base'}); }
 
-  async function load(){
-    const resp = await fetch('/assets/references.json', {cache:'no-store'});
-    const all = await resp.json();
+  async function loadData(){
+    if (Array.isArray(window.REFERENCES_DATA) && window.REFERENCES_DATA.length) return window.REFERENCES_DATA;
+    try{
+      const resp = await fetch('/assets/references.json', {cache:'no-store'});
+      if (!resp.ok) throw new Error('fetch failed');
+      return await resp.json();
+    }catch(e){
+      console.warn('References data not found.', e);
+      return [];
+    }
+  }
+
+  async function init(){
+    const all = await loadData();
 
     const buckets = {
       [CATEGORY.GENERAL]: [],
@@ -76,10 +74,8 @@
       buckets[c].push(it);
     });
 
-    // Alphabetize per bucket
     Object.keys(buckets).forEach(k => buckets[k].sort(sortAlpha));
 
-    // Render
     const map = {
       [CATEGORY.GENERAL]: lists.general,
       [CATEGORY.GOV]: lists.gov,
@@ -90,9 +86,11 @@
     Object.keys(map).forEach(k => {
       map[k].innerHTML = buckets[k].map(renderItem).join('');
     });
+
+    size();
   }
 
-  // --- sizing logic (3 equal rows on desktop) ---
+  // sizing (3 equal rows on desktop)
   const DESKTOP_MIN = 981;
   const isDesktop = () => window.innerWidth >= DESKTOP_MIN;
   const px = n => `${Math.max(0, Math.floor(n))}px`;
@@ -102,13 +100,12 @@
     const board = document.querySelector('.ref-board');
     if (!board) return;
 
-    // reset
     document.body.style.overflow='';
     board.style.height='';
     board.querySelectorAll('.ref-panel').forEach(p=>p.style.height='');
     board.querySelectorAll('.ref-panel__scroll').forEach(s=>s.style.maxHeight='');
 
-    if (!isDesktop()) return; // mobile: natural flow
+    if (!isDesktop()) return;
 
     const header = document.querySelector('header.top, .site-header, header');
     const footer = document.querySelector('.page-legal, .legal-links, .ref-footerlinks');
@@ -117,7 +114,7 @@
     const gap     = parseInt(getComputedStyle(board).gap || '24', 10);
 
     const available = Math.max(600, Math.min(1100, window.innerHeight - headerH - footerH - 24));
-    const rowH = Math.floor((available - (gap * 2)) / 3); // 3 rows
+    const rowH = Math.floor((available - (gap * 2)) / 3);
     const boardH = (rowH * 3) + (gap * 2);
 
     document.body.style.overflow = 'hidden';
@@ -137,12 +134,10 @@
 
   let raf=0; const onResize=()=>{cancelAnimationFrame(raf); raf=requestAnimationFrame(size);};
 
-  document.addEventListener('DOMContentLoaded', async ()=>{
-    await load();
-    size();
+  document.addEventListener('DOMContentLoaded', ()=>{
+    init();
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(onResize).catch(()=>{});
   });
 })();
-
