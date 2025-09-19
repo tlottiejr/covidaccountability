@@ -1,91 +1,40 @@
 <!doctype html>
 <html lang="en">
-<script src="/assets/js/ux-accessibility.js" defer></script>
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>References — COVIDAccountabilityNow</title>
-  <link rel="stylesheet" href="/assets/site.css"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>References • COVID Accountability Now</title>
+
+  <!-- Global styles (cache-busted) -->
+  <link rel="stylesheet" href="/assets/site.css?v=2" />
+  <!-- Your nav/partials + a11y helpers -->
+  <script src="/assets/nav-include.js" defer></script>
+  <script src="/assets/js/ux-accessibility.js" defer></script>
 </head>
 <body>
-  <div id="nav-root"></div>
-  <script src="/assets/nav-include.js" defer></script>
+  <a class="skip-to-content" href="#main">Skip to content</a>
 
-  <main class="container">
+  <!-- Header is populated by nav-include.js -->
+  <header></header>
+
+  <main id="main" class="container">
     <h1>References</h1>
     <p class="small">Curated materials that support reporting and accountability.</p>
-    <!-- S12: last-checked badge (non-intrusive, inherits existing styles) -->
-    <p class="small" id="refsMeta">
-      Last checked: <span id="refsChecked">—</span>
-    </p>
-    <!-- S12 fallback: render badge even if app.js didn't run -->
-    <script>
-    (function () {
-      var slot = document.getElementById('refsChecked');
-      if (!slot) return;
-      fetch('/assets/health/references.json?v=' + Date.now(), { cache: 'no-store' })
-        .then(function (r) { return r.ok ? r.json() : null; })
-        .then(function (j) {
-          if (!j || !j.last_checked) return;
-          var d = new Date(j.last_checked);
-          slot.textContent = isFinite(d) ? d.toISOString().replace('T',' ').replace(/\.\d+Z$/,' UTC') : String(j.last_checked);
-        })
-        .catch(function(){});
-    })();
-    </script>
-    
-    <section id="refsStatus" role="status" aria-live="polite" class="card small">Loading…</section>
-    <section id="refsList" class="grid grid-2"></section>
+
+    <!-- Card wrapper: JS renders panels inside this.
+         Keep a visible status line the JS can detect and replace. -->
+    <div class="card">
+      <p data-ref-status>Loading...</p>
+      <div></div>
+    </div>
   </main>
 
   <footer>
-    <a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a>
+    <a href="/privacy.html">Privacy</a> ·
+    <a href="/disclaimer.html">Disclaimer</a>
   </footer>
 
-  <!-- Self-contained renderer (no external references*.js) -->
-  <script type="module" src="/assets/js/references-page.js">
-    const statusEl = document.getElementById('refsStatus');
-    const listEl = document.getElementById('refsList');
-
-    const esc = (s='') => s.toString()
-      .replace(/&/g,'&amp;').replace(/</g,'&lt;')
-      .replace(/>/g,'&gt;').replace(/"/g,'&quot;').replace(/'/g,'&#39;');
-
-    async function loadReferences() {
-      const res = await fetch('/assets/references.json?v=' + Date.now(), { cache: 'no-store' });
-      if (!res.ok) throw new Error('HTTP ' + res.status);
-      return res.json();
-    }
-
-    function render(items = []) {
-      listEl.innerHTML = '';
-      for (const r of items) {
-        const card = document.createElement('article');
-        card.setAttribute('role', 'listitem');
-        card.className = 'card';
-        card.innerHTML = `
-          <h3 class="h4">
-            <a href="${esc(r.url)}" target="_blank" rel="noopener">${esc(r.title || r.url)}</a>
-          </h3>
-          <p class="small">
-            ${esc(r.source || '')}${r.date ? ' · ' + esc(r.date) : ''}
-          </p>
-          ${r.description ? `<p>${esc(r.description)}</p>` : ''}
-        `;
-        listEl.appendChild(card);
-      }
-    }
-
-    (async () => {
-      try {
-        const data = await loadReferences();
-        render(Array.isArray(data) ? data : []);
-        statusEl.remove(); // remove status/blip when done
-      } catch (e) {
-        statusEl.textContent = 'Could not load references.';
-        console.error('references load error:', e);
-      }
-    })();
-  </script>
+  <!-- Sprint 11 renderer (cache-busted). Must be type="module". -->
+  <script type="module" src="/assets/js/references-page.js?v=2"></script>
 </body>
 </html>
