@@ -1,10 +1,12 @@
 // public/assets/js/references-page.js
-// Render inside the existing card that shows "Loading…", so we inherit page styles.
+// Renders inside the existing "Loading..." card. Keeps your layout/styles intact.
+// Adds: robust "Last checked" + category grouping (uses item.category or inference).
 
 const $ = (s, r = document) => r.querySelector(s);
 
+/* ---------- helpers to find the right nodes already on your page ---------- */
 function findStatusAndMount() {
-  // Find the "Loading..." node
+  // Find the "Loading..." element
   let status =
     $("[data-ref-status]") ||
     $("#references-status") ||
@@ -22,39 +24,115 @@ function findStatusAndMount() {
     }
   }
 
-  // Mount = the card that CONTROLS layout on this page (parent .card if present)
+  // Mount point = the card that controls centering/padding/shadow
   let mount = null;
   if (status) {
-    // prefer a nearby empty sibling as mount (common pattern: <div class="card"><div class="status">Loading…</div><div></div></div>)
     if (status.nextElementSibling && status.nextElementSibling.children.length === 0) {
-      mount = status.nextElementSibling;
+      mount = status.nextElementSibling; // empty sibling after status
     } else {
-      // else, render inside the same parent (keeps card padding/border/shadow)
-      mount = status.parentElement;
+      mount = status.parentElement;      // render in same card
     }
   }
-
   return { status, mount };
 }
 
-async function getJSON(url) {
-  const res = await fetch(url, { cache: "no-store" });
+const lastCheckedNode = () =>
+  $("[data-ref-lastchecked]") ||
+  $("#last-checked") ||
+  document.querySelector('time[datetime][data-role="last-checked"]');
+
+/* -------------------------- fetch utilities -------------------------- */
+async function getJSON(url, noStore = true) {
+  const res = await fetch(url, noStore ? { cache: "no-store" } : undefined);
   if (!res.ok) throw new Error(`${url} -> ${res.status}`);
   return res.json();
 }
-
-async function fetchWithFallback(candidates) {
+async function head(url) {
+  const res = await fetch(url, { method: "HEAD" });
+  if (!res.ok) throw new Error(`${url} -> ${res.status}`);
+  return res.headers;
+}
+async function firstJSON(urls) {
   let lastErr;
-  for (const u of candidates) {
-    try {
-      return await getJSON(u);
-    } catch (e) {
-      lastErr = e;
-    }
+  for (const u of urls) {
+    try { return await getJSON(u); } catch (e) { lastErr = e; }
   }
-  throw lastErr || new Error("all URLs failed");
+  throw lastErr || new Error("all candidates failed");
 }
 
+/* --------------------- Last-checked resolution ---------------------- */
+async function resolveLastChecked() {
+  // 1) Try health artifact(s) with several common field names
+  try {
+    const health = await firstJSON([
+      "/assets/health/references.json",
+      "/assets/health/references/index.json",
+      "/assets/health/references/latest.json"
+    ]);
+    const candidate =
+      health.lastChecked ||
+      health.generated_at ||
+      health.generatedAt ||
+      health.updated ||
+      health.date ||
+      null;
+    if (candidate) return new Date(candidate);
+  } catch {/* ignore and fall through */}
+
+  // 2) Fall back to Last-Modified of the health artifact or references.json
+  const headFirst = async (cands) => {
+    for (const u of cands) {
+      try {
+        const h = await head(u);
+        const lm = h.get("last-modified");
+        if (lm) return new Date(lm);
+      } catch {}
+    }
+    return null;
+  };
+  return (
+    (await headFirst([
+      "/assets/health/references.json",
+      "/assets/health/references/index.json",
+      "/assets/references.json"
+    ])) || null
+  );
+}
+
+/* ------------------------ Category grouping ------------------------ */
+function inferCategory(item) {
+  if (item.category) return item.category; // explicit wins
+
+  const title = (item.title || item.name || "").toLowerCase();
+  const source = (item.source || "").toLowerCase();
+  const host = (() => {
+    try { return new URL(item.url).hostname.toLowerCase(); } catch { return ""; }
+  })();
+
+  // very light heuristics; tweak as needed
+  if (host.includes("nejm") || host.includes("jama") || host.includes("thelancet") || host.includes("nature"))
+    return "Peer-reviewed Literature";
+  if (host.includes("fda") || host.includes("cdc") || host.includes("who") || host.includes("whitehouse") || host.includes("supremecourt"))
+    return "Government & Legal";
+  if (host.includes("nbme") || host.includes("usmle") || title.includes("ethics"))
+    return "Medical Education & Ethics";
+  if (host.includes("researchgate") || source.includes("preprint"))
+    return "Preprints & Working Papers";
+  return "General References";
+}
+
+function groupByCategory(items) {
+  const map = new Map();
+  for (const it of items) {
+    const c = inferCategory(it);
+    if (!map.has(c)) map.set(c, []);
+    map.get(c).push(it);
+  }
+  // sort categories alphabetically, and within each, keep existing order
+  return [...map.entries()].sort((a, b) => a[0].localeCompare(b[0]));
+}
+
+/* ---------------------------- Render ------------------------------- */
 function el(tag, attrs = {}, kids = []) {
   const n = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
@@ -62,51 +140,32 @@ function el(tag, attrs = {}, kids = []) {
     else if (k === "html") n.innerHTML = v;
     else n.setAttribute(k, v);
   }
-  for (const c of [].concat(kids)) {
-    n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
-  }
+  for (const c of [].concat(kids)) n.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
   return n;
 }
 
 async function render() {
   const { status, mount } = findStatusAndMount();
-  if (!mount) return; // graceful no-op if markup changes again
+  if (!mount) return; // nothing to do if page structure changes
 
-  // Update "Last checked"
+  // Last checked
   try {
-    const health = await fetchWithFallback([
-      "/assets/health/references.json",
-      "/assets/health/references/index.json",
-      "/assets/health/references/latest.json",
-    ]);
-    const last =
-      health?.lastChecked ||
-      health?.generated_at ||
-      health?.generatedAt ||
-      health?.date ||
-      null;
-    const lc =
-      $("[data-ref-lastchecked]") ||
-      $("#last-checked") ||
-      document.querySelector('time[datetime][data-role="last-checked"]');
-    if (lc) lc.textContent = last ? new Date(last).toLocaleString() : "—";
+    const d = await resolveLastChecked();
+    const node = lastCheckedNode();
+    if (node) node.textContent = d ? d.toLocaleString() : "—";
   } catch {
-    const lc =
-      $("[data-ref-lastchecked]") ||
-      $("#last-checked") ||
-      document.querySelector('time[datetime][data-role="last-checked"]');
-    if (lc) lc.textContent = "—";
+    const node = lastCheckedNode();
+    if (node) node.textContent = "—";
   }
 
-  // Load references and render INSIDE the existing card
+  // Load references
   try {
-    const items = await fetchWithFallback([
+    const items = await firstJSON([
       "/assets/references.json",
       "/assets/data/references.json",
-      "/assets/references/index.json",
+      "/assets/references/index.json"
     ]);
 
-    // Remove just the status line; keep the card container and its padding/shadow
     if (status && status.parentElement) status.remove();
 
     if (!Array.isArray(items) || items.length === 0) {
@@ -114,25 +173,29 @@ async function render() {
       return;
     }
 
-    // Build list that relies on your page's existing typography and spacing
-    const ul = el("ul", { role: "list" });
-    for (const r of items) {
-      const title = r.title || r.name || r.url || "Untitled";
-      const url = r.url || "#";
-      const metaParts = [];
-      if (r.source) metaParts.push(r.source);
-      if (r.date) metaParts.push(r.date);
-      const meta = metaParts.join(" · ");
+    // Group by category → render each as a heading + UL (inherits your styles)
+    const groups = groupByCategory(items);
+    for (const [cat, arr] of groups) {
+      mount.appendChild(el("h2", {}, cat));
 
-      const li = el("li", {}, [
-        el("a", { href: url, target: "_blank", rel: "noopener nofollow" }, title),
-        meta ? el("div", { class: "muted" }, meta) : null,
-        r.description ? el("p", {}, r.description) : null,
-      ]);
-      ul.appendChild(li);
+      const ul = el("ul", { role: "list" });
+      for (const r of arr) {
+        const title = r.title || r.name || r.url || "Untitled";
+        const url = r.url || "#";
+        const metaBits = [];
+        if (r.source) metaBits.push(r.source);
+        if (r.date) metaBits.push(r.date);
+        const meta = metaBits.join(" · ");
+
+        const li = el("li", {}, [
+          el("a", { href: url, target: "_blank", rel: "noopener nofollow" }, title),
+          meta ? el("div", { class: "muted" }, meta) : null,
+          r.description ? el("p", {}, r.description) : null
+        ]);
+        ul.appendChild(li);
+      }
+      mount.appendChild(ul);
     }
-
-    mount.appendChild(ul);
   } catch (err) {
     if (status) status.textContent = "Failed to load references. Please try again later.";
     console.error("[references] fetch error:", err);
@@ -144,3 +207,4 @@ if (document.readyState === "loading") {
 } else {
   render();
 }
+
