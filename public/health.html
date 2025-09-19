@@ -6,51 +6,35 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <!-- Fallback CSP for local preview; production CSP is delivered via _headers -->
   <meta http-equiv="Content-Security-Policy"
-        content="default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; font-src 'self'; script-src 'self'; connect-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
+        content="default-src 'self'; img-src 'self' data:; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; script-src 'self'; object-src 'none'; base-uri 'self'; frame-ancestors 'none'">
 
-  <link rel="stylesheet" href="/assets/css/site.css" />
+  <link rel="stylesheet" href="/assets/site.css" />
 </head>
 <body>
 
   <header class="site-header">
     <div class="nav">
-      <a href="/" class="brand">COVID Accountability Now</a>
-      <nav aria-label="Main">
-        <ul class="nav__list">
-          <li><a href="/index.html">Home</a></li>
-          <li><a href="/about.html">About Us</a></li>
-          <li><a href="/our-story.html">Our Story</a></li>
-          <li><a href="/why-report.html">Why Report</a></li>
-          <li><a href="/who-can-report.html">Who Can Report</a></li>
-          <li><a href="/references.html">References</a></li>
-          <li><a href="/donate.html">Donate</a></li>
-          <li aria-current="page"><a href="/health.html">Health</a></li>
-        </ul>
-      </nav>
+      <div id="nav-root"></div>
+      <script src="/assets/nav-include.js" defer></script>
     </div>
   </header>
 
-  <main class="container" style="max-width:1100px">
+  <main class="container" id="main" style="max-width:1100px;margin:0 auto;padding:18px;">
     <h1>Site Health</h1>
-    <p class="text-muted">Lightweight status checks to confirm the site is healthy after deploys.</p>
+    <p class="small">Internal checks we publish for transparency.</p>
 
-    <section class="card p-4" id="env">
-      <h2 class="h4 mb-2">Environment</h2>
-      <div id="env_body" class="mono text-sm"></div>
+    <section class="card">
+      <h2 class="h4">Automated Status</h2>
+      <div id="healthStatus" class="grid grid-2">
+        <!-- populated by /assets/js/health.js -->
+      </div>
     </section>
 
-    <section class="card p-4 mt-4">
-      <h2 class="h4 mb-2">Probes</h2>
-      <div id="probes" class="ref-board"
-           style="display:grid; grid-template-columns:repeat(auto-fill,minmax(280px,1fr)); gap:16px;"></div>
-    </section>
-
-    <section class="card p-4 mt-4">
-      <h2 class="h4 mb-2">Security Hints</h2>
-      <ul class="list">
-        <li><span id="csp_check">Checking CSP…</span></li>
-        <li><span id="https_check">Checking HTTPS…</span></li>
-      </ul>
+    <section class="card">
+      <h2 class="h4">References Sync</h2>
+      <div id="refStatus" class="grid grid-2">
+        <!-- populated by /assets/js/health.js -->
+      </div>
     </section>
   </main>
 
