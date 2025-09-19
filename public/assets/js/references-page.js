@@ -1,6 +1,5 @@
 // public/assets/js/references-page.js
 // Four scrollable panels sized to fit within the first fold.
-// Renders inside the existing card and keeps your styling.
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -123,23 +122,29 @@ function sizePanels() {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
-  // distance from top of viewport to start of board
+  // Distance from viewport top to the start of the grid
   const topOffset = board.getBoundingClientRect().top;
-  const reserve = 120;               // room for footer/gradient breathing space
-  let target = Math.floor(vh - topOffset - reserve);
 
-  // sane clamps
-  const MIN = 220;                   // ~14rem
-  const MAX = 420;                   // ~26rem
+  // Reserve extra room for the gradient transition and footer breathing space.
+  // (Bump this up if you still see a sliver of scroll.)
+  const RESERVE = 200;
+
+  let target = Math.floor(vh - topOffset - RESERVE);
+
+  // Sane clamps
+  const MIN = 200;   // ~12.5rem
+  const MAX = 380;   // ~23.75rem
   target = Math.max(MIN, Math.min(MAX, target));
 
-  if (vw > 1400) target = Math.min(MAX, target + 40);
+  // Nudge per width
+  if (vw > 1400) target = Math.min(MAX, target + 20);
   if (vw < 1100) target = Math.max(MIN, target - 20);
 
   document.querySelectorAll(".ref-panel__scroll").forEach(sc => {
     sc.style.maxHeight = `${target}px`;
   });
 }
+
 function onResizeThrottled() {
   let raf = null;
   return () => {
