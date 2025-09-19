@@ -1,6 +1,7 @@
 // public/assets/js/references-page.js
-// Renders inside the existing "Loading..." card. Keeps layout/styles intact.
-// Hides the "Last checked" line and shows references in two columns per category.
+// Renders inside the existing card; no layout changes outside this page.
+// Sections: clear header, list *under* header in two columns.
+// Hides the "Last checked" line completely.
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -37,13 +38,26 @@ function findStatusAndMount() {
 }
 
 function hideLastChecked() {
-  const node =
-    $("[data-ref-lastchecked]") ||
-    $("#last-checked") ||
-    document.querySelector('time[datetime][data-role="last-checked"]');
-  if (node) {
-    const parent = node.closest("p, div, span") || node;
-    parent.style.display = "none";
+  // Kill any "Last checked:" line regardless of markup
+  const tryNodes = [
+    $("[data-ref-lastchecked]"),
+    $("#last-checked"),
+    document.querySelector('time[datetime][data-role="last-checked"]')
+  ].filter(Boolean);
+
+  if (tryNodes.length) {
+    tryNodes.forEach(n => (n.closest("p,div,span") || n).style.display = "none");
+    return;
+  }
+
+  const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
+  while (tw.nextNode()) {
+    const s = (tw.currentNode.nodeValue || "").trim().toLowerCase();
+    if (s.startsWith("last checked")) {
+      const el = tw.currentNode.parentElement;
+      if (el) (el.closest("p,div,span") || el).style.display = "none";
+      break;
+    }
   }
 }
 
@@ -112,7 +126,6 @@ async function render() {
   const { status, mount } = findStatusAndMount();
   if (!mount) return;
 
-  // Hide the "Last checked" line entirely
   hideLastChecked();
 
   try {
@@ -122,7 +135,7 @@ async function render() {
       "/assets/references/index.json"
     ]);
 
-    // Remove just the status line; keep the card container and its padding/shadow
+    // Remove just the status line; keep the card container
     if (status && status.parentElement) status.remove();
 
     if (!Array.isArray(items) || items.length === 0) {
@@ -133,12 +146,14 @@ async function render() {
     const groups = groupByCategory(items);
 
     for (const [cat, arr] of groups) {
-      // Category header (inherits your h2 styles)
-      mount.appendChild(el("h2", { class: "ref-cat" }, cat));
+      // Section wrapper ensures header is on its own row; content is below it
+      const section = el("section", { class: "ref-section" });
 
-      // Two-column layout using CSS grid; each column is a <ul>
+      // Header
+      section.appendChild(el("h2", { class: "ref-cat" }, cat));
+
+      // Two-column grid under the header
       const grid = el("div", { class: "ref-grid" });
-
       splitIntoColumns(arr, 2).forEach((bucket) => {
         const ul = el("ul", { class: "ref-col", role: "list" });
         bucket.forEach((r) => {
@@ -159,7 +174,8 @@ async function render() {
         grid.appendChild(ul);
       });
 
-      mount.appendChild(grid);
+      section.appendChild(grid);
+      mount.appendChild(section);
     }
   } catch (err) {
     if (status) status.textContent = "Failed to load references. Please try again later.";
