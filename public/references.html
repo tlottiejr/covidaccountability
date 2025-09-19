@@ -1,165 +1,73 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>References • COVID Accountability Now</title>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-  <link rel="stylesheet" href="/assets/css/site.css" />
-  <link rel="stylesheet" href="/assets/css/portal.css" />
-  <meta name="description" content="Curated materials that support reporting and accountability." />
+
+  <!-- Global CSS -->
+  <link rel="stylesheet" href="/assets/site.css?v=8" />
+
+  <!-- Shared JS -->
+  <script src="/assets/js/ux-accessibility.js" defer></script>
+
+  <!-- Page-scoped tweaks (only for this page) -->
+  <style>
+    /* Keep page fixed height on desktop — panels scroll internally */
+    @media (min-width: 980px){
+      html, body { overflow: hidden; height: 100%; }
+    }
+
+    /* Ensure exactly one legal row is centered and consistent */
+    .legal.center { text-align: center; margin: 24px 0 0; }
+    .legal.center a { font: inherit; }  /* inherit size from site defaults (same as other pages) */
+
+    /* If a stray, old legal row remains in deployed HTML, hide it as a guardrail */
+    #references-card + p.small,
+    #references-card + p.legal { display: none !important; }
+  </style>
 </head>
+<body class="references-page">
+  <a class="skip-to-content" href="#main">Skip to content</a>
 
-<body>
-  <!-- Global skip link (hidden visually) -->
-  <a href="#main" class="visually-hidden-focusable">Skip to content</a>
-
-  <!-- Site Nav -->
-  <header class="site-header">
-    <nav class="site-nav container" aria-label="Primary">
-      <ul class="nav-list">
-        <li><a href="/index.html">Home</a></li>
-        <li><a href="/about.html">About Us</a></li>
-        <li><a href="/our-story.html">Our Story</a></li>
-        <li><a href="/why-report.html">Why Report</a></li>
-        <li><a href="/who-can-report.html">Who Can Report</a></li>
-        <li class="active"><a href="/references.html" aria-current="page">References</a></li>
-        <li><a href="/donate.html">Donate</a></li>
-      </ul>
-    </nav>
+  <!-- Header (brand hidden on this page per your request) -->
+  <header class="top">
+    <div class="inner">
+      <div class="brand" aria-hidden="true" style="display:none"></div>
+      <nav aria-label="Main">
+        <a href="/index.html">Home</a>
+        <a href="/about.html">About Us</a>
+        <a href="/our-story.html">Our Story</a>
+        <a href="/why-report.html">Why Report</a>
+        <a href="/who-can-report.html">Who Can Report</a>
+        <a href="/references.html" aria-current="page">References</a>
+        <a href="/donate.html">Donate</a>
+      </nav>
+      <div></div>
+    </div>
   </header>
 
-  <!-- Gradient backdrop -->
-  <div class="page-backdrop">
-    <main id="main" class="container" style="max-width: 1120px;">
-      <h1 class="page-title">References</h1>
-      <p class="page-subtitle">Curated materials that support reporting and accountability.</p>
+  <main id="main" class="container">
+    <h1>References</h1>
+    <p class="small">Curated materials that support reporting and accountability.</p>
 
-      <!-- Four panels (scrollable cards) -->
-      <section class="ref-board" aria-label="Reference panels">
-        <!-- General References -->
-        <article class="ref-panel ref-panel__scroll" aria-labelledby="ref-gen-title">
-          <h2 id="ref-gen-title" class="ref-panel__title">General References</h2>
-          <ul class="ref-list">
-            <li>
-              <a href="https://www.usmle.org/sites/default/files/2024-01/USMLE-Content-Outline.pdf#page=37" target="_blank" rel="noopener">First Aid for the USMLE Step 1 — Public Health Sciences: Epidemiology &amp; Biostatistics (p. 260)</a><br />
-              McGraw Hill / First Aid 2022 · 2022
-              <p>Board-review overview of epidemiology and biostatistics concepts used in evidence appraisal.</p>
-            </li>
+    <!-- Panels container: the JS builds the 4 scrollable columns here -->
+    <div class="card" id="references-card">
+      <p data-ref-status>Loading...</p>
+      <div></div>
+    </div>
 
-            <li>
-              <a href="https://www.sciencedirect.com/science/article/pii/S2949784222000048" target="_blank" rel="noopener">Relative risk reduction: misinformative measure in clinical trials and COVID-19 vaccine efficacy</a><br />
-              Dialogues in Health · 2022
-              <p>Methodology commentary highlighting limitations of relative risk reduction versus absolute measures.</p>
-            </li>
+    <!-- Single, centered legal row (same markup used across other pages) -->
+    <p class="legal center">
+      <a href="/privacy.html">Privacy</a>
+      &nbsp;·&nbsp;
+      <a href="/disclaimer.html">Disclaimer</a>
+    </p>
+  </main>
 
-            <!-- …your remaining General References items… -->
-          </ul>
-        </article>
+  <footer style="height:0; padding:0; margin:0; overflow:hidden;"></footer>
 
-        <!-- Government & Legal -->
-        <article class="ref-panel ref-panel__scroll" aria-labelledby="ref-gov-title">
-          <h2 id="ref-gov-title" class="ref-panel__title">Government &amp; Legal</h2>
-          <ul class="ref-list">
-            <li>
-              <a href="https://www.fda.gov/media/112307/download" target="_blank" rel="noopener">Communicating Risks &amp; Benefits — Absolute risk, relative risk, and NNT</a><br />
-              FDA (Evidence-Based User’s Guide) · 2011
-              <p>Practical guide on presenting quantitative risk information to patients, including NNT/NNH.</p>
-            </li>
-            <li>
-              <a href="https://www.supremecourt.gov/opinions/21pdf/21a244_hgci.pdf" target="_blank" rel="noopener">NFIB v. OSHA (2022) — Supreme Court Opinion</a><br />
-              Supreme Court of the United States · 2022
-            </li>
-            <li>
-              <a href="https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/11/fact-sheet-actions-taken-after-public-health-emergency-transition/" target="_blank" rel="noopener">Fact Sheet: Actions Taken after Public Health Emergency Transition</a><br />
-              The White House · 2023-05-09
-            </li>
-          </ul>
-        </article>
-
-        <!-- Medical Education & Ethics -->
-        <article class="ref-panel ref-panel__scroll" aria-labelledby="ref-edu-title">
-          <h2 id="ref-edu-title" class="ref-panel__title">Medical Education &amp; Ethics</h2>
-          <ul class="ref-list">
-            <li>
-              <a href="https://www.usmle.org/sites/default/files/2024-01/USMLE-Content-Outline.pdf#page=37" target="_blank" rel="noopener">USMLE® Content Outline — Biostatistics, Epidemiology/Population Health, &amp; Interpretation of the Medical Literature (p. 37)</a><br />
-              USMLE / FSMB &amp; NBME · 2024
-              <p>Official outline describing tested competencies in statistics, population health, and interpreting the medical literature.</p>
-            </li>
-            <li>
-              <a href="https://www.usmle.org/sites/default/files/2024-01/USMLE-Content-Outline.pdf#page=39" target="_blank" rel="noopener">USMLE® Content Outline — Social Sciences (p. 39)</a><br />
-              USMLE / FSMB &amp; NBME · 2024
-              <p>Defines examined social science domains for medical practice, including communication and ethics.</p>
-            </li>
-            <li>
-              <a href="https://www.mhebooklibrary.com/doi/book/10.1036/9781264286439" target="_blank" rel="noopener">First Aid for the USMLE Step 1 — Public Health Sciences: Ethics (pp. 268–269)</a><br />
-              McGraw Hill / First Aid 2022 · 2022
-            </li>
-            <li>
-              <a href="https://www.acponline.org/clinical-information/ethics-and-professionalism/acp-ethics-manual-seventh-edition" target="_blank" rel="noopener">ACP Ethics Manual — Seventh Edition</a><br />
-              Annals of Internal Medicine · 2019
-            </li>
-            <li>
-              <a href="https://code-medical-ethics.ama-assn.org/ethics-opinions/informed-consent" target="_blank" rel="noopener">AMA Code of Medical Ethics — Opinion 2.1.1: Informed Consent</a><br />
-              American Medical Association · Current
-            </li>
-          </ul>
-        </article>
-
-        <!-- Peer-reviewed Literature -->
-        <article class="ref-panel ref-panel__scroll" aria-labelledby="ref-lit-title">
-          <h2 id="ref-lit-title" class="ref-panel__title">Peer-reviewed Literature</h2>
-          <ul class="ref-list">
-            <li>
-              <a href="https://www.nejm.org/doi/full/10.1056/NEJMoa2034577" target="_blank" rel="noopener">Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine</a><br />
-              New England Journal of Medicine · 2020
-              <p>Pivotal randomized trial reporting early efficacy and safety outcomes for BNT162b2 (Pfizer-BioNTech).</p>
-            </li>
-          </ul>
-        </article>
-
-        <!-- Preprints & Working Papers -->
-        <article class="ref-panel ref-panel__scroll" aria-labelledby="ref-pre-title">
-          <h2 id="ref-pre-title" class="ref-panel__title">Preprints &amp; Working Papers</h2>
-          <ul class="ref-list">
-            <li>
-              <a href="https://www.researchgate.net/publication/371316078_COVID-19_vaccine-associated_mortality_in_the_Southern_Hemisphere" target="_blank" rel="noopener">COVID-19 vaccine-associated mortality in the Southern Hemisphere</a><br />
-              ResearchGate (preprint/working paper) · 2023
-            </li>
-            <li>
-              <a href="https://www.researchgate.net/publication/356398051_Worldwide_Bayesian_Causal_Impact_Analysis_of_Vaccine_Administration_145_Countries" target="_blank" rel="noopener">Worldwide Bayesian Causal Impact Analysis of Vaccine Administration (145 Countries)</a><br />
-              ResearchGate (preprint/working paper) · 2021
-            </li>
-          </ul>
-        </article>
-      </section>
-
-      <!-- ********  CENTERED LEGAL LINKS (same size as other pages)  ******** -->
-      <footer class="page-legal" aria-label="Legal links">
-        <a href="/privacy.html">Privacy</a>
-        <span aria-hidden="true">·</span>
-        <a href="/disclaimer.html">Disclaimer</a>
-      </footer>
-      <!-- ***************************************************************** -->
-    </main>
-  </div>
-
-  <!-- References page JS (4-panel) -->
-  <script type="module" src="/assets/js/references-page.js?v=2"></script>
-
-  <!-- Page-local helper to ensure identical centering without touching global CSS -->
-  <style>
-    /* Same treatment every other page uses */
-    .page-legal{
-      display:flex;
-      justify-content:center;
-      align-items:center;
-      gap:.75rem;
-      margin:28px 0 56px;
-      font-size:1rem;            /* matches other pages */
-      line-height:1.6;
-    }
-    .page-legal a{ text-underline-offset: 2px; }
-  </style>
+  <!-- Build the panels -->
+  <script type="module" src="/assets/js/references-page.js?v=8"></script>
 </body>
 </html>
