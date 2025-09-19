@@ -28,9 +28,19 @@ body{
   color:var(--text);
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
+
+  /* Smoother, taller gradient for long pages + subtle radial highlight.
+     Fixed attachment on the radial avoids visible “band” while scrolling. */
   background:
-    radial-gradient(1200px 600px at 70% -10%, rgba(37,99,235,.08), transparent 65%),
-    linear-gradient(180deg, #ffffff 0%, #eaf3ff 60%, #e1f4ff 100%);
+    radial-gradient(1200px 600px at 70% -10%, rgba(37,99,235,.06), transparent 65%),
+    linear-gradient(180deg,
+      #ffffff 0%,
+      #f6faff 35%,
+      #edf4ff 65%,
+      #e8f2ff 85%,
+      #e6f3ff 100%
+    );
+  background-attachment: fixed, scroll;
 }
 
 img{max-width:100%; height:auto}
@@ -163,7 +173,19 @@ footer, .site-footer{
   padding:28px 12px 40px;
   color:var(--muted);
 }
-.footer-links{display:flex; gap:12px; align-items:center}
+
+/* Increased spacing between Privacy / Disclaimer */
+.footer-links{
+  display:flex; align-items:center;
+  gap:18px;                          /* was 12px */
+}
+.footer-links a{
+  padding:2px 4px;                   /* slightly bigger click target */
+}
+.footer-links span{
+  margin:0 2px;                      /* spacing around the dot */
+  opacity:.6;
+}
 
 /* ---------- Accessibility helpers ---------- */
 .visually-hidden{
@@ -201,3 +223,4 @@ footer, .site-footer{
   text-align: center;
   margin: 32px 0;
 }
+
