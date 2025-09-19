@@ -1,53 +1,61 @@
-// Minimal nav include: render canonical links (NO "Complaint Portal") and set active underline.
-(function () {
-  const root = document.getElementById('nav-root');
+// public/assets/nav-include.js
+// Injects the shared nav and normalizes footer links sitewide.
 
-  const links = [
-    ['/', 'Home'],
-    ['/about.html', 'About Us'],
-    ['/our-story.html', 'Our Story'],
-    ['/why-report.html', 'Why Report'],
-    ['/who-can-report.html', 'Who Can Report'],
-    ['/references.html', 'References'],
-    ['/donate.html', 'Donate'],
-  ];
-
-  const norm = (p) => {
-    try {
-      const u = new URL(p, location.origin);
-      let path = u.pathname.toLowerCase();
-      path = path.replace(/\/index\.html?$/i, '/'); // index → /
-      path = path.replace(/\/$/i, '');              // trim trailing slash
-      path = path.replace(/\.html$/i, '');          // trim .html
-      return path || '/';
-    } catch { return p; }
-  };
-
-  const current = norm(location.pathname);
-  const navInner = links.map(([href, label]) => {
-    const active = norm(href) === current ? ' aria-current="page"' : '';
-    return `<a href="${href}"${active}>${label}</a>`;
-  }).join('');
-
-  const bar = `
-    <div class="top">
-      <div class="inner">
-        <div></div>
-        <nav aria-label="Primary">${navInner}</nav>
-        <div></div>
-      </div>
-    </div>
-  `;
-
-  // Preferred: render into #nav-root
-  if (root) {
-    root.innerHTML = bar;
-    return;
+(async function () {
+  // Mount top nav from partial
+  try {
+    const mount = document.getElementById('nav-root');
+    if (mount) {
+      const res = await fetch('/partials/nav.html', { cache: 'no-store' });
+      if (res.ok) {
+        mount.innerHTML = await res.text();
+        // Highlight active link
+        const path = location.pathname.replace(/\/+$/, '') || '/';
+        document.querySelectorAll('.top .inner a[href]').forEach(a => {
+          try {
+            const href = new URL(a.getAttribute('href'), location.origin).pathname.replace(/\/+$/, '') || '/';
+            if (href === path) a.setAttribute('aria-current', 'page');
+          } catch {}
+        });
+      }
+    }
+  } catch (e) {
+    // silent fail – nav is non-critical
+    console.warn('nav include failed', e);
   }
 
-  // Fallback: replace any existing top nav content
-  const existing = document.querySelector('.top nav') || document.querySelector('nav[aria-label="Primary"]');
-  if (existing) {
-    existing.innerHTML = navInner;
-  }
+  // Normalize footer links: turn "Privacy:Disclaimer" into "Privacy · Disclaimer"
+  document.addEventListener('DOMContentLoaded', () => {
+    const fl = document.querySelector('.footer-links');
+    if (!fl) return;
+
+    const links = fl.querySelectorAll('a');
+
+    // Case 1: one combined link like "Privacy:Disclaimer"
+    if (links.length === 1) {
+      fl.innerHTML = '';
+      const a1 = document.createElement('a');
+      a1.href = '/privacy.html';
+      a1.textContent = 'Privacy';
+
+      const dot = document.createElement('span');
+      dot.textContent = '·';
+      dot.setAttribute('aria-hidden', 'true');
+
+      const a2 = document.createElement('a');
+      a2.href = '/disclaimer.html';
+      a2.textContent = 'Disclaimer';
+
+      fl.append(a1, dot, a2);
+      return;
+    }
+
+    // Case 2: already two links but missing the dot separator
+    if (links.length === 2 && !fl.querySelector('span')) {
+      const dot = document.createElement('span');
+      dot.textContent = '·';
+      dot.setAttribute('aria-hidden', 'true');
+      links[0].after(dot);
+    }
+  });
 })();
