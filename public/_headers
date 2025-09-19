@@ -1,61 +1,75 @@
-/* ------------- HTML: always revalidate ------------- */
-Cache-Control: public, max-age=0, must-revalidate
-Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
-X-Content-Type-Options: nosniff
-Referrer-Policy: strict-origin-when-cross-origin
-Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
-X-Frame-Options: SAMEORIGIN
-Cross-Origin-Resource-Policy: same-origin
+# ----------  HTML: always revalidate ----------
+/*
+  Cache-Control: public, max-age=0, must-revalidate
+  Strict-Transport-Security: max-age=31536000; includeSubDomains; preload
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: camera=(), microphone=(), geolocation=(), payment=()
+  X-Frame-Options: SAMEORIGIN
+  Cross-Origin-Resource-Policy: same-origin
+*/
 
-/* ------------- CSP ENFORCED (site-wide) -------------
-   Note: we allow 'unsafe-inline' in styles so the references page
-   can equalize panel heights via inline style assignments. */
-Content-Security-Policy: default-src 'self'; \
-  img-src 'self' data:; \
-  style-src 'self' 'unsafe-inline'; \
-  font-src 'self'; \
-  script-src 'self'; \
-  connect-src 'self' https://challenges.cloudflare.com; \
-  frame-src 'self' https://challenges.cloudflare.com; \
-  object-src 'none'; \
-  base-uri 'self'; \
-  form-action 'self'; \
-  frame-ancestors 'self'; \
-  upgrade-insecure-requests
+# ----------  CSP ENFORCED (site-wide) ----------
+/*
+  We allow inline styles because the references-page JS writes element.style.height
+  If you later migrate to nonce/hashes, you can remove 'unsafe-inline' here.
+*/
+/*
+  Content-Security-Policy:
+    default-src 'self';
+    img-src 'self' data:;
+    style-src 'self' 'unsafe-inline';
+    font-src 'self';
+    script-src 'self' https://challenges.cloudflare.com;
+    connect-src 'self' https://challenges.cloudflare.com;
+    frame-src 'self' https://challenges.cloudflare.com;
+    object-src 'none';
+    base-uri 'self';
+    form-action 'self';
+    frame-ancestors 'self';
+    upgrade-insecure-requests
+*/
 
-/* ------------- Optional: keep CSP reports, if used ------------- */
-/* report-uri /api/csp-report */
+# Optional: keep collecting CSP reports (if you wire it up)
+# /  report-uri /api/csp-report
 
-/* ------------- JSON data: never cache ------------- */
- /assets/*.json
-Cache-Control: no-store
-Cross-Origin-Resource-Policy: same-origin
 
-/* ------------- JS & CSS: modest cache with background refresh ------------- */
- /assets/*.js
-Cache-Control: public, max-age=604800, stale-while-revalidate=600
-Cross-Origin-Resource-Policy: same-origin
+# ----------  JSON data: never cache ----------
+/assets/*.json
+  Cache-Control: no-store
+  Cross-Origin-Resource-Policy: same-origin
 
- /assets/*.css
-Cache-Control: public, max-age=604800, stale-while-revalidate=600
-Cross-Origin-Resource-Policy: same-origin
 
-/* ------------- Images & static media (immutable) ------------- */
- /assets/img/*
-Cache-Control: public, max-age=604800, immutable
-Cross-Origin-Resource-Policy: same-origin
+# ----------  JS & CSS: modest cache with background refresh ----------
+/assets/*.js
+  Cache-Control: public, max-age=604800, stale-while-revalidate=600
+  Cross-Origin-Resource-Policy: same-origin
 
-/* ------------- Fallback CSP (paranoia mode) -------------
-   Mirrors the enforced policy above so behavior matches in all paths. */
-Content-Security-Policy: default-src 'self'; \
-  img-src 'self' data:; \
-  style-src 'self' 'unsafe-inline'; \
-  font-src 'self'; \
-  script-src 'self'; \
-  connect-src 'self' https://challenges.cloudflare.com; \
-  frame-src 'self' https://challenges.cloudflare.com; \
-  object-src 'none'; \
-  base-uri 'self'; \
-  frame-ancestors 'none'
-X-Content-Type-Options: nosniff
-Referrer-Policy: no-referrer
+/assets/*.css
+  Cache-Control: public, max-age=604800, stale-while-revalidate=600
+  Cross-Origin-Resource-Policy: same-origin
+
+
+# ----------  Images & static media ----------
+/assets/img/*
+  Cache-Control: public, max-age=604800, immutable
+  Cross-Origin-Resource-Policy: same-origin
+
+
+# ----------  Fallback CSP for legacy routes (parity with enforced block above) ----------
+/*
+  Content-Security-Policy:
+    default-src 'self';
+    img-src 'self' data:;
+    style-src 'self' 'unsafe-inline';
+    font-src 'self';
+    script-src 'self' https://challenges.cloudflare.com;
+    connect-src 'self' https://challenges.cloudflare.com;
+    object-src 'none';
+    base-uri 'self';
+    frame-ancestors 'none'
+  X-Content-Type-Options: nosniff
+  Referrer-Policy: no-referrer
+  X-Frame-Options: DENY
+*/
+
