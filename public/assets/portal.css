@@ -24,11 +24,3 @@ button:focus {
 /* Turnstile box spacing (only if it renders) */
 .turnstile-box { min-height: 0; }
 .turnstile-box:empty { display:none; }
-
-/* public/assets/portal.css */
-/* Portal-only tweaks; does not override global theme */
-.cp-section{background:#fff;border:1px solid rgba(19,36,63,.08);border-radius:12px;box-shadow:0 10px 22px rgba(19,36,63,.08),0 2px 6px rgba(19,36,63,.06);padding:14px 16px;margin:12px 0}
-.cp-row{display:flex;align-items:center;gap:10px;margin:8px 0}
-.cp-badge{display:inline-block;border:1px solid rgba(19,36,63,.15);border-radius:20px;padding:2px 10px;font-size:12px}
-.cp-btn{appearance:none;background:linear-gradient(180deg,#3b82f6 0%,#1d4ed8 100%);border:0;border-radius:10px;color:#fff;padding:10px 14px;cursor:pointer}
-.cp-btn:disabled{opacity:.5;cursor:not-allowed}
