@@ -268,3 +268,79 @@ footer a:link, footer a:visited{
   .ref-panel__scroll{ max-height:none; }
 }
 
+/* ====== References page overrides (append to end of site.css) ====== */
+
+.page--references .wrap.ref-wrap {
+  /* keeps things on-screen under the header */
+  padding-top: 0.5rem;
+  padding-bottom: 0;
+}
+
+.ref-board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(340px, 1fr));
+  gap: 24px;
+  /* height is set by JS to fit viewport minus header/footer */
+  overflow: hidden;
+}
+
+@media (max-width: 980px) {
+  .ref-board { grid-template-columns: 1fr; }
+}
+
+.ref-panel {
+  background: #ffffff;
+  border-radius: 12px;
+  box-shadow: 0 10px 22px rgba(19, 36, 63, 0.08), 0 2px 6px rgba(19, 36, 63, 0.06);
+  padding: 14px 16px 14px 16px;
+  display: flex;
+  flex-direction: column;
+  min-height: 260px; /* allow inner scroller space */
+}
+
+.ref-panel__title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  line-height: 1.35;
+  margin: 0 0 8px 0;
+}
+
+.ref-panel__scroll {
+  /* height is set by JS */
+  overflow: auto;
+  padding-right: 8px; /* breathing room for scrollbar */
+}
+
+.ref-list {
+  list-style: disc;
+  padding-left: 1.1rem;
+  margin: 0;
+}
+.ref-list > li { margin: 8px 0 12px; }
+.ref-meta { color: #63708a; font-size: 0.92rem; margin-top: 4px; }
+.ref-note { color: #273248; font-size: 0.95rem; margin: 4px 0 0 0; }
+
+.ref-footerlinks {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 10px; /* JS will push it further to touch the gradient */
+  padding-bottom: 12px;
+  user-select: none;
+}
+.ref-footerlinks a { color: var(--link, #1a56db); }
+.ref-footerlinks a:hover { text-decoration: underline; }
+
+/* Remove page scroll on the references page — JS enforces the final sizing. */
+.page--references {
+  overflow: hidden;
+}
+
+/* Keep the site header present (some resets accidentally hid it on this page) */
+.page--references .site-header {
+  position: relative;
+  z-index: 10;
+}
+
+/* ====== end references page overrides ====== */
