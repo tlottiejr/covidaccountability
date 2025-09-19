@@ -37,3 +37,4 @@ jobs:
           tag_name: ${{ steps.build_tag.outputs.tag }}
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
