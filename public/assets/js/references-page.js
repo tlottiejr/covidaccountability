@@ -16,18 +16,21 @@
   function size(){
     const board = document.querySelector(SEL.board);
     if (!board) return;
+
+    // reset
     document.body.style.overflow=''; board.style.height='';
     board.querySelectorAll(SEL.panel).forEach(p=>p.style.height='');
     board.querySelectorAll(SEL.scroll).forEach(s=>s.style.maxHeight='');
 
-    if (!isDesktop()) return;
+    if (!isDesktop()) return; // mobile: natural page scroll
 
     const headerH = h(document.querySelector(SEL.header));
     const legalH  = h(document.querySelector(SEL.legal));
     const gap     = parseInt(getComputedStyle(board).gap || '24', 10);
 
+    // three uniform rows on desktop (two rows of two + full-width bottom card)
     const available = Math.max(600, Math.min(1100, window.innerHeight - headerH - legalH - 24));
-    const rowH = Math.floor((available - (gap * 2)) / 3);  // THREE rows on desktop
+    const rowH = Math.floor((available - (gap * 2)) / 3);
     const boardH = (rowH * 3) + (gap * 2);
 
     document.body.style.overflow = 'hidden';
@@ -53,4 +56,3 @@
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(onResize).catch(()=>{});
   });
 })();
-
