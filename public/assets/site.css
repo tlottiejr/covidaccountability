@@ -34,7 +34,7 @@ a:visited{color:#1d4ed8}
 .page-title{font-size:28px;margin:18px 0 6px}
 .page-subtitle{color:var(--muted);margin:0 0 16px}
 
-/* Nav (centered, underline on active; OPT-IN only via #nav-root + nav-include.js) */
+/* Nav (centered, underline on active) */
 header.top{position:sticky;top:0;z-index:10;background:transparent}
 .nav__list{list-style:none;display:flex;justify-content:center;gap:28px;margin:0;padding:14px 0}
 .nav__list a{text-decoration:none;color:inherit}
@@ -57,15 +57,23 @@ header.top{position:sticky;top:0;z-index:10;background:transparent}
   color:var(--accent-2);background:#fff;border:1px solid rgba(29,78,216,.25)
 }
 
-/* Portal specific helpers (can be used elsewhere) */
-.cp-section{background:#fff;border:1px solid rgba(19,36,63,.08);border-radius:12px;box-shadow:var(--shadow);padding:14px 16px;margin:12px 0}
+/* Complaint Portal widgets */
+.cp-grid{display:grid;gap:14px}
+.cp-section{
+  background:#fff;border:1px solid rgba(19,36,63,.12);border-radius:12px;
+  box-shadow:var(--shadow);padding:14px 16px;
+}
+.cp-section legend{font-weight:700}
 .cp-row{display:flex;align-items:center;gap:10px;margin:8px 0}
 .cp-badge{display:inline-block;border:1px solid rgba(19,36,63,.15);border-radius:20px;padding:2px 10px;font-size:12px}
+.cp-boards{max-height:240px;overflow:auto;border:1px solid rgba(19,36,63,.12);border-radius:8px;padding:8px;background:#fff}
+.cp-boards label{display:flex;align-items:center;gap:8px;padding:6px 8px;border-radius:8px;cursor:pointer}
+.cp-boards label:hover{background:#f4f7ff}
 
-/* References page (scoped) */
+/* References page */
 .ref-board{
   display:grid;
-  grid-template-columns:repeat(2,minmax(340px,1fr)); /* 2 columns desktop */
+  grid-template-columns:repeat(2,minmax(340px,1fr));
   gap:var(--gap);
   margin-top:10px;
   overflow:hidden; /* internal scroll happens in cards */
@@ -91,7 +99,6 @@ header.top{position:sticky;top:0;z-index:10;background:transparent}
 .ref-meta{color:var(--muted);font-size:13px;margin-top:2px}
 .ref-note{margin:4px 0 0 0}
 
-/* Footer links (blue, centered, consistent) */
+/* Footer links */
 .page-legal{ text-align:center; margin:28px 0 40px; font-size:14px; color:inherit; }
 .page-legal a{ color:#1d4ed8; text-decoration:underline; }
-
