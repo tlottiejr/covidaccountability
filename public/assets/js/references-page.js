@@ -1,6 +1,6 @@
 // public/assets/js/references-page.js
 // Four scrollable panels sized to fit inside the first gradient.
-// Adds a viewport clamp to remove any residual page overhang.
+// Adds a strict viewport clamp so the page never needs to scroll on desktop.
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -120,22 +120,23 @@ function baseTargetHeight(board) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
-  // Distance from viewport top to the start of the grid
   const topOffset = board.getBoundingClientRect().top;
 
-  // Reserve space for gradient + footer breathing room
-  const RESERVE = 240;
+  // Reserve space for gradient + the legal links + a bit of air
+  const legal = document.querySelector('.footer-legal, .small a[href="/privacy.html"]')?.parentElement;
+  const legalH = legal ? legal.getBoundingClientRect().height : 18;
+
+  const RESERVE = 240 + Math.ceil(legalH * 1.2);
 
   let target = Math.floor(vh - topOffset - RESERVE);
 
   // Sane clamps
-  const MIN = 190;   // ~11.9rem
-  const MAX = 360;   // ~22.5rem
+  const MIN = 180;   // ~11.25rem
+  const MAX = 340;   // ~21.25rem
   target = Math.max(MIN, Math.min(MAX, target));
 
-  // Nudge per width
-  if (vw > 1400) target = Math.min(MAX, target + 10);
-  if (vw < 1100) target = Math.max(MIN, target - 10);
+  if (vw > 1400) target = Math.min(MAX, target + 6);
+  if (vw < 1100) target = Math.max(MIN, target - 6);
 
   return target;
 }
@@ -146,29 +147,20 @@ function applyHeights(px) {
   });
 }
 
+/* Strict clamp: shrink until the page fits the viewport (desktop) */
 function clampToViewport() {
-  // If content still overflows, shrink evenly across panels until it doesn’t.
+  if (window.matchMedia("(max-width: 979px)").matches) return; // allow mobile scroll
   const root = document.scrollingElement;
-  let diff = root.scrollHeight - window.innerHeight;
+  let tries = 0;
 
-  if (diff <= 0) return; // already within viewport
+  while (root.scrollHeight > window.innerHeight && tries < 6) {
+    tries++;
+    const panels = [...document.querySelectorAll(".ref-panel__scroll")];
+    if (!panels.length) break;
 
-  const panels = [...document.querySelectorAll(".ref-panel__scroll")];
-  if (!panels.length) return;
-
-  // current height from first panel
-  const current = parseInt(getComputedStyle(panels[0]).maxHeight || "0", 10) || 300;
-
-  // shrink by the deficit spread across panels + a small buffer
-  const delta = Math.ceil(diff / panels.length) + 8;
-  const next = Math.max(160, current - delta); // don’t go below 160px
-
-  applyHeights(next);
-
-  // If still overflowing, try one more small pass.
-  const after = root.scrollHeight - window.innerHeight;
-  if (after > 0 && next > 160) {
-    applyHeights(Math.max(160, next - 8));
+    const current = parseInt(getComputedStyle(panels[0]).maxHeight || "0", 10) || 280;
+    const next = Math.max(150, current - 12); // step down gently, hard floor 150px
+    applyHeights(next);
   }
 }
 
@@ -177,7 +169,6 @@ function sizePanels() {
   if (!board) return;
   const target = baseTargetHeight(board);
   applyHeights(target);
-  // Clamp after heights applied
   requestAnimationFrame(clampToViewport);
 }
 
@@ -252,4 +243,3 @@ if (document.readyState === "loading") {
 } else {
   render();
 }
-
