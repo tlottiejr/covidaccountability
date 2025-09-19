@@ -29,18 +29,23 @@ body{
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
 
-  /* Smoother, taller gradient for long pages + subtle radial highlight.
-     Fixed attachment on the radial avoids visible “band” while scrolling. */
+  /* Smooth long-page gradient (no mid-page seam).
+     Layer 1: main linear gradient (fixed so it doesn't "swim").
+     Layer 2: ultra-subtle repeating gradient to break banding on some displays. */
   background:
-    radial-gradient(1200px 600px at 70% -10%, rgba(37,99,235,.06), transparent 65%),
     linear-gradient(180deg,
       #ffffff 0%,
-      #f6faff 35%,
-      #edf4ff 65%,
-      #e8f2ff 85%,
+      #f6faff 32%,
+      #eef4ff 64%,
+      #eaf2ff 82%,
       #e6f3ff 100%
+    ),
+    repeating-linear-gradient(180deg,
+      rgba(0,0,0,.004) 0,
+      rgba(0,0,0,0) 4px
     );
   background-attachment: fixed, scroll;
+  background-blend-mode: normal, soft-light;
 }
 
 img{max-width:100%; height:auto}
@@ -174,18 +179,13 @@ footer, .site-footer{
   color:var(--muted);
 }
 
-/* Increased spacing between Privacy / Disclaimer */
+/* Consistent “Privacy · Disclaimer” spacing */
 .footer-links{
   display:flex; align-items:center;
-  gap:18px;                          /* was 12px */
+  gap:18px;
 }
-.footer-links a{
-  padding:2px 4px;                   /* slightly bigger click target */
-}
-.footer-links span{
-  margin:0 2px;                      /* spacing around the dot */
-  opacity:.6;
-}
+.footer-links a{ padding:2px 4px; }
+.footer-links span{ margin:0 2px; opacity:.6; }
 
 /* ---------- Accessibility helpers ---------- */
 .visually-hidden{
@@ -223,4 +223,5 @@ footer, .site-footer{
   text-align: center;
   margin: 32px 0;
 }
+
 
