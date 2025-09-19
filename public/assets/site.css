@@ -263,3 +263,31 @@ main.container > .card:first-of-type .btn + .btn{ margin-left:10px; }
     grid-template-columns: 1fr; /* collapse to single column on small screens */
   }
 }
+
+/* References page – clear section separation and two-column lists */
+.ref-section {
+  padding-top: 1.25rem;
+  margin-top: 1.75rem;
+  border-top: 1px solid rgba(0,0,0,0.08);
+}
+
+.ref-cat {
+  margin: 0 0 0.75rem 0;          /* header on its own row */
+}
+
+.ref-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(300px, 1fr));
+  gap: 1.25rem 2rem;
+}
+
+.ref-grid .ref-col {
+  margin: 0;
+  padding-left: 1.25rem;          /* keep bullets */
+}
+
+@media (max-width: 900px) {
+  .ref-grid {
+    grid-template-columns: 1fr;   /* single column on small screens */
+  }
+}
