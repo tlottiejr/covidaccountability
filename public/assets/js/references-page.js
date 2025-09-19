@@ -1,4 +1,4 @@
-// public/assets/js/references-page.js (v7 — match screenshot target)
+// public/assets/js/references-page.js — v7.2 (height/spacing tuned to match target)
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -89,7 +89,7 @@ function assignCategory(it) {
   const t = (it.title || "").toLowerCase();
   const host = (() => { try { return new URL(it.url).host.toLowerCase(); } catch { return ""; } })();
   if (/\.gov\b|whitehouse|supremecourt|federalregister|house\.gov/.test(host) ||
-      /supreme court|federal register|congressional|fact sheet/.test(t)) return "gov";
+      /supreme court|federal register|congressional|fact sheet|attorney general/.test(t)) return "gov";
   if (/usmle|ethic|code of medical|first aid|acp|ama|annals/.test(t) ||
       /ama-assn|acpjournals|mheducation|annals\.org|usmle|nbme/.test(host)) return "edu";
   if (/nejm|lancet|jama|dialogues in health|vaccine|trial|efficacy/.test(t) ||
@@ -118,11 +118,13 @@ function renderPanels(mount, order, buckets) {
   return wrap;
 }
 
+/* Desktop sizing: keep whole page fixed height; panels scroll internally */
 function sizeBoard(board) {
   if (!board) return;
 
-  const header = document.querySelector("header, header.top");
-  const footer = document.querySelector(".page-legal, footer");
+  const header = document.querySelector("header.top") || document.querySelector("header");
+  const footer = document.querySelector(".page-legal") || document.querySelector("footer");
+
   const headerH = header ? header.getBoundingClientRect().height : 0;
   const footerH = footer ? footer.getBoundingClientRect().height : 0;
 
@@ -135,12 +137,11 @@ function sizeBoard(board) {
     return;
   }
 
-  // Space to match target: slightly taller rows and tighter gutters
-  const verticalGutters = 32; // top/bot padding/margins around content area
-  const avail = clamp(window.innerHeight - headerH - footerH - verticalGutters, 620, 1400);
-
-  const rowGap = 20;     // vertical gap between panel rows
-  const rows = 3;        // we visually want three rows on desktop
+  // Tuned to the target screenshot: 3 rows with generous card height
+  const paddingAround = 32;
+  const avail = clamp(window.innerHeight - headerH - footerH - paddingAround, 640, 1400);
+  const rowGap = 20;
+  const rows = 3;
   const rowH = Math.floor((avail - rowGap * (rows - 1)) / rows);
 
   board.style.height = px(avail);
@@ -153,7 +154,7 @@ function sizeBoard(board) {
     const cs = getComputedStyle(panel);
     const chrome =
       parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) +
-      (title ? title.getBoundingClientRect().height : 0) + 8;
+      (title ? title.getBoundingClientRect().height : 0) + 10;
 
     scroll.style.maxHeight = px(Math.max(120, rowH - chrome));
   });
@@ -184,4 +185,5 @@ function sizeBoard(board) {
     console.warn(e);
   }
 })();
+
 
