@@ -1,6 +1,5 @@
 // public/assets/js/references-page.js
-// Renders four scrollable panels (one per category) inside the existing card.
-// No changes to your HTML layout elsewhere.
+// Four scrollable panels sized to fit the first fold. No HTML changes.
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -94,9 +93,8 @@ function inferCategory(item) {
     return "Preprints & Working Papers";
   return "General References";
 }
-
 function groupByCategory(items) {
-  const wantedOrder = [
+  const order = [
     "General References",
     "Government & Legal",
     "Medical Education & Ethics",
@@ -109,12 +107,48 @@ function groupByCategory(items) {
     if (!map.has(c)) map.set(c, []);
     map.get(c).push(it);
   }
-  // sort categories by the preferred order first, then alpha
   return [...map.entries()].sort((a, b) => {
-    const ia = wantedOrder.indexOf(a[0]); const ib = wantedOrder.indexOf(b[0]);
+    const ia = order.indexOf(a[0]); const ib = order.indexOf(b[0]);
     if (ia !== -1 || ib !== -1) return (ia === -1 ? 999 : ia) - (ib === -1 ? 999 : ib);
     return a[0].localeCompare(b[0]);
   });
+}
+
+/* ------------------------ dynamic sizing -------------------------- */
+function sizePanels() {
+  const board = document.querySelector(".ref-board");
+  if (!board) return;
+
+  // Available vertical space from board top to the start of the footer gradient
+  const vw = window.innerWidth;
+  const vh = window.innerHeight;
+
+  // Heuristic padding for top header/nav + spacing below board.
+  // Works well on 768–1200p; clamped to avoid silly values.
+  const topOffset = board.getBoundingClientRect().top;             // px from top of viewport
+  const reserve = 120;                                              // padding for footer/start of next section
+  let target = Math.floor(vh - topOffset - reserve);
+
+  // Clamp to a sensible range (desktop)
+  const MIN = 220;  // ~14rem
+  const MAX = 420;  // ~26rem
+  target = Math.max(MIN, Math.min(MAX, target));
+
+  // On very wide screens, give a bit more height; on narrow, less
+  if (vw > 1400) target = Math.min(MAX, target + 40);
+  if (vw < 1100) target = Math.max(MIN, target - 20);
+
+  document.querySelectorAll(".ref-panel__scroll").forEach(sc => {
+    sc.style.maxHeight = `${target}px`;
+  });
+}
+
+function onResizeThrottled() {
+  let raf = null;
+  return () => {
+    if (raf) return;
+    raf = requestAnimationFrame(() => { raf = null; sizePanels(); });
+  };
 }
 
 /* ------------------------------ render ---------------------------- */
@@ -164,11 +198,13 @@ async function render() {
 
     const groups = groupByCategory(items);
 
-    // Grid holding up to 4 panels (2x2). If more categories exist, they wrap.
     const board = el("div", { class: "ref-board" });
     groups.forEach(([cat, arr]) => board.appendChild(renderPanel(cat, arr)));
-
     mount.appendChild(board);
+
+    // Initial size + resize handling
+    sizePanels();
+    window.addEventListener("resize", onResizeThrottled(), { passive: true });
   } catch (err) {
     if (status) status.textContent = "Failed to load references. Please try again later.";
     console.error("[references] fetch error:", err);
