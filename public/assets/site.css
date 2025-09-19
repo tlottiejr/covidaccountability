@@ -184,21 +184,18 @@ footer a:link, footer a:visited{
 main.container > .card:first-of-type .btn,
 main.container > .card:first-of-type .btn:link,
 main.container > .card:first-of-type .btn:visited{
-  /* Resting gradient: blue (left) → white (right) */
   background: linear-gradient(90deg, #2563eb 0%, #60a5fa 55%, #e6f2ff 100%);
-  color: #0b1220; /* readable on light gradient */
+  color: #0b1220;
   border: 1px solid rgba(37,99,235,.35);
   text-decoration: none;
-  position: relative; /* for glow underline on hover */
+  position: relative;
 }
-
-/* Hover/focus: remove gradient, single glow underline (no text underline) */
 main.container > .card:first-of-type .btn:hover,
 main.container > .card:first-of-type .btn:focus{
   background: transparent;
   color: var(--link-color);
-  text-decoration: none; /* ensure no default underline */
-  filter: none;          /* override base .btn hover filter */
+  text-decoration: none;
+  filter: none;
   outline: 2px solid transparent;
   outline-offset: 2px;
 }
@@ -211,8 +208,6 @@ main.container > .card:first-of-type .btn:focus::after{
   background: linear-gradient(90deg, #2a6cf0 0%, #6aa8ff 100%);
   box-shadow: 0 4px 12px rgba(37,99,235,.35);
 }
-
-/* Spacing between the two CTAs */
 main.container > .card:first-of-type .btn + .btn{ margin-left:10px; }
 @media (max-width:560px){
   main.container > .card:first-of-type .btn + .btn{ margin-left:0; margin-top:10px; }
@@ -254,7 +249,6 @@ main.container > .card:first-of-type .btn + .btn{ margin-left:10px; }
   grid-auto-rows:1fr;                  /* panels aim for equal heights */
   gap:1.25rem 1.5rem;
 }
-
 .ref-panel{
   box-sizing:border-box;
   display:flex;
@@ -266,18 +260,8 @@ main.container > .card:first-of-type .btn + .btn{ margin-left:10px; }
   background:rgba(255,255,255,0.65);
   box-shadow:0 1px 2px rgba(0,0,0,0.04);
 }
-
-.ref-panel__title{
-  margin:0 0 0.5rem 0;
-  font-size:1.05rem;
-}
-
-.ref-panel__scroll{
-  overflow:auto;
-  padding-right:0.25rem;              /* room for scrollbar */
-  /* max-height is set dynamically by JS for first-fold fit */
-}
-
+.ref-panel__title{ margin:0 0 0.5rem 0; font-size:1.05rem; }
+.ref-panel__scroll{ overflow:auto; padding-right:0.25rem; } /* height set by JS */
 .ref-panel__list{ margin:0; padding-left:1.25rem; } /* keep bullets */
 .ref-panel__item + .ref-panel__item{ margin-top:0.75rem; }
 .ref-panel__desc{ margin:0.25rem 0 0 0; }
