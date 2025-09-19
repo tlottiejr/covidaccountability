@@ -180,39 +180,6 @@ footer a:link, footer a:visited{
   clip:rect(1px,1px,1px,1px); white-space:nowrap;
 }
 
-/* ---------- Home hero CTA buttons (scoped) ---------- */
-main.container > .card:first-of-type .btn,
-main.container > .card:first-of-type .btn:link,
-main.container > .card:first-of-type .btn:visited{
-  background: linear-gradient(90deg, #2563eb 0%, #60a5fa 55%, #e6f2ff 100%);
-  color: #0b1220;
-  border: 1px solid rgba(37,99,235,.35);
-  text-decoration: none;
-  position: relative;
-}
-main.container > .card:first-of-type .btn:hover,
-main.container > .card:first-of-type .btn:focus{
-  background: transparent;
-  color: var(--link-color);
-  text-decoration: none;
-  filter: none;
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-}
-main.container > .card:first-of-type .btn:hover::after,
-main.container > .card:first-of-type .btn:focus::after{
-  content:"";
-  position:absolute;
-  left:12px; right:12px; bottom:6px;
-  height:3px; border-radius:3px;
-  background: linear-gradient(90deg, #2a6cf0 0%, #6aa8ff 100%);
-  box-shadow: 0 4px 12px rgba(37,99,235,.35);
-}
-main.container > .card:first-of-type .btn + .btn{ margin-left:10px; }
-@media (max-width:560px){
-  main.container > .card:first-of-type .btn + .btn{ margin-left:0; margin-top:10px; }
-}
-
 /* ------------------------------
    Accessibility: Skip link visible only on focus
    ------------------------------ */
@@ -241,16 +208,19 @@ main.container > .card:first-of-type .btn + .btn{ margin-left:10px; }
 }
 
 /* ------------------------------
-   References – four scrollable panels (final)
+   References – four scrollable panels (FINAL)
    ------------------------------ */
-/* References grid: slightly tighter to avoid overhang */
+
+/* 2-col grid; no extra bottom margin so we don't push the gradient */
 .ref-board{
   display:grid;
   grid-template-columns:repeat(2, minmax(300px, 1fr));
   grid-auto-rows:1fr;
-  gap:1rem 1.25rem;          /* was 1.25rem 1.5rem */
-  margin-bottom:0;           /* don't add extra space below the grid */
+  gap:1rem 1.25rem;
+  margin-bottom:0;
 }
+
+/* Card look */
 .ref-panel{
   box-sizing:border-box;
   display:flex;
@@ -262,70 +232,39 @@ main.container > .card:first-of-type .btn + .btn{ margin-left:10px; }
   background:rgba(255,255,255,0.65);
   box-shadow:0 1px 2px rgba(0,0,0,0.04);
 }
-.ref-panel__title{ margin:0 0 0.5rem 0; font-size:1.05rem; }
-.ref-panel__scroll{ overflow:auto; padding-right:0.25rem; } /* height set by JS */
-.ref-panel__list{ margin:0; padding-left:1.25rem; } /* keep bullets */
+
+/* Title */
+.ref-panel__title{ margin:0 0 0.5rem 0; font-size:1.05rem; font-weight:700; }
+
+/* Scroll area INSIDE the card; height set by JS */
+.ref-panel__scroll{ overflow:auto; padding-right:0.25rem; }
+
+/* Keep bullets and sane spacing */
+.ref-panel__list{ margin:0; padding-left:1.25rem; }
 .ref-panel__item + .ref-panel__item{ margin-top:0.75rem; }
 .ref-panel__desc{ margin:0.25rem 0 0 0; }
 
-/* Responsive */
+/* Centered legal links (same look as other pages) */
+.legal-links,
+.page-legal{
+  text-align:center;
+  margin:16px 0 6px;
+  font-size:14px;
+}
+.legal-links a,
+.page-legal a{
+  color: var(--link-color);
+  text-decoration: underline;
+}
+.legal-links a:hover,
+.page-legal a:hover{
+  color: var(--link-hover);
+  text-decoration-thickness: 2px;
+}
+
+/* Responsive: single-column on narrow; let page scroll normally */
 @media (max-width:980px){
   .ref-board{ grid-template-columns:1fr; }
-  .ref-panel__scroll{ max-height:none; } /* natural page scroll on mobile */
+  .ref-panel__scroll{ max-height:none; }
 }
 
-.page-legal {
-  text-align: center;
-  margin: 32px 0;
-}
-
-/* ===== References page layout ===== */
-.page--references .page-title { margin-top: 12px; }
-.page--references .page-subtitle { margin: 6px 0 18px; opacity: .85; }
-
-/* Grid of panels (2 x 2 on wide, collapses gracefully on narrow) */
-.ref-board {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(320px, 1fr));
-  gap: 16px;
-}
-
-/* Card look */
-.ref-panel {
-  background: #fff;
-  border-radius: 14px;
-  box-shadow: 0 10px 30px rgba(0,0,0,.06);
-  padding: 14px 14px 10px;
-  border: 1px solid rgba(0,0,0,.06);
-}
-
-.ref-panel__title {
-  margin: 0 0 8px;
-  font-size: 15px;
-  font-weight: 700;
-}
-
-.ref-panel__body {
-  overflow: auto;          /* scroll inside card */
-  padding-right: 6px;      /* leave space for scrollbar so text doesn't jump */
-}
-
-.ref-list { list-style: disc; margin: 0; padding-left: 18px; }
-.ref-list li + li { margin-top: 10px; }
-.ref-meta { font-size: 12px; opacity: .75; }
-.ref-note { margin: 4px 0 0; font-size: 12px; opacity: .9; }
-
-/* Centered legal links exactly like the other pages */
-.legal-links {
-  text-align: center;
-  margin: 16px 0 6px;
-  font-size: 14px;
-}
-.legal-links a { color: var(--link, #1a56db); text-decoration: none; }
-.legal-links a:hover { text-decoration: underline; }
-
-/* Responsive: drop to single column at <= 900px */
-@media (max-width: 900px) {
-  .ref-board { grid-template-columns: 1fr; }
-  .ref-panel__body { max-height: 320px !important; } /* keep it usable on small screens */
-}
