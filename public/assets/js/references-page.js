@@ -1,89 +1,80 @@
-/* public/assets/js/references-page.js
-   References page behavior (safe, scoped):
-   - On desktop (>=981px): lock page scroll, size the board to viewport,
-     split the board into two equal rows so each card has an internal scroller.
-   - On mobile: do nothing special; page scrolls naturally.
-   This script only touches the References page DOM and will not affect other pages.
+/* public/assets/js/references-page.js (restored stable)
+   Restores the 'before' layout:
+   - Desktop (>=981px): two rows of cards; last card spans both columns; each card has an internal scroll.
+   - Mobile: natural page scroll, no JS sizing.
+   The code is **scoped** to references.html only (presence of .ref-board).
 */
-(function () {
-  const S = {
+(function(){
+  const SEL = {
     board: '.ref-board',
     panel: '.ref-panel',
     title: '.ref-panel__title',
     scroll: '.ref-panel__scroll',
     header: 'header.top, .site-header, .top, header',
-    legal:  '.legal-links, .page-legal, .ref-footerlinks'
+    legal:  '.ref-footerlinks, .page-legal, .legal-links'
   };
-
   const DESKTOP_MIN = 981;
+
   const isDesktop = () => window.innerWidth >= DESKTOP_MIN;
   const px = n => `${Math.max(0, Math.floor(n))}px`;
+  const h = el => el ? el.getBoundingClientRect().height : 0;
 
-  function headerH(){
-    const el = document.querySelector(S.header);
-    return el ? el.getBoundingClientRect().height : 0;
-  }
-  function legalH(){
-    const el = document.querySelector(S.legal);
-    return el ? el.getBoundingClientRect().height : 0;
-  }
-
-  function sizeBoard(){
-    const board = document.querySelector(S.board);
+  function size(){
+    const board = document.querySelector(SEL.board);
     if (!board) return;
 
-    // Reset before recalculating (important on breakpoint changes)
+    // Reset first (important on breakpoint changes)
+    document.body.style.overflow = '';
     board.style.height = '';
-    board.querySelectorAll(S.panel).forEach(p => p.style.height = '');
-    board.querySelectorAll(S.scroll).forEach(s => s.style.maxHeight = '');
+    board.querySelectorAll(SEL.panel).forEach(p => p.style.height = '');
+    board.querySelectorAll(SEL.scroll).forEach(s => s.style.maxHeight = '');
 
-    if (!isDesktop()){
-      // Mobile/tablet: let the page scroll normally.
-      document.body.style.overflow = '';
-      return;
-    }
+    if (!isDesktop()) return; // mobile/tablet: let the page scroll normally
 
     const gap = parseInt(getComputedStyle(board).gap || '24', 10);
-    const viewportH = window.innerHeight;
-    const available = Math.max(320, viewportH - headerH() - legalH() - 16);
+    const available = Math.max(
+      560, // minimum total board height
+      Math.min(
+        920, // cap to avoid comically tall cards on big screens
+        window.innerHeight - h(document.querySelector(SEL.header)) - h(document.querySelector(SEL.legal)) - 24
+      )
+    );
 
-    // Lock page scroll and set the board’s height to the viewport slice
+    // Match the old behavior: page doesn’t scroll; cards scroll inside
     document.body.style.overflow = 'hidden';
     board.style.height = px(available);
 
-    // Two rows on desktop → each row gets half (minus the grid gap)
+    // Two rows: each row is half the board (minus the grid gap)
     const rowH = Math.floor((available - gap) / 2);
 
-    // Set each panel to the row height; constrain its inner scroller
-    board.querySelectorAll(S.panel).forEach(panel => {
+    board.querySelectorAll(SEL.panel).forEach(panel => {
       panel.style.height = px(rowH);
 
-      const title = panel.querySelector(S.title);
-      const scroll = panel.querySelector(S.scroll);
+      const title = panel.querySelector(SEL.title);
+      const scroll = panel.querySelector(SEL.scroll);
       if (!scroll) return;
 
       const cs = getComputedStyle(panel);
-      const padV = parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom);
-      const titleHeight = title ? title.getBoundingClientRect().height : 0;
-      const chrome = padV + titleHeight + 6;
+      const chrome = (parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom)) +
+                     (title ? title.getBoundingClientRect().height : 0) + 6;
 
-      scroll.style.maxHeight = px(Math.max(120, rowH - chrome));
+      scroll.style.maxHeight = px(Math.max(140, rowH - chrome));
     });
   }
 
   let raf = 0;
   function onResize(){
     cancelAnimationFrame(raf);
-    raf = requestAnimationFrame(sizeBoard);
+    raf = requestAnimationFrame(size);
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    if (!document.querySelector(S.board)) return; // only on the references page
-    sizeBoard();
+    if (!document.querySelector(SEL.board)) return; // only run on references.html
+    size();
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
     if (document.fonts && document.fonts.ready) {
-      document.fonts.ready.then(onResize).catch(() => {});
+      document.fonts.ready.then(onResize).catch(()=>{});
     }
   });
 })();
