@@ -218,7 +218,9 @@ main.container > .card:first-of-type .btn + .btn{ margin-left:10px; }
   main.container > .card:first-of-type .btn + .btn{ margin-left:0; margin-top:10px; }
 }
 
-/* Accessibility: Skip link is only visible on focus */
+/* ------------------------------
+   Accessibility: Skip link visible only on focus
+   ------------------------------ */
 .skip-to-content {
   position: absolute;
   left: -9999px;
@@ -229,7 +231,6 @@ main.container > .card:first-of-type .btn + .btn{ margin-left:10px; }
   clip: rect(1px, 1px, 1px, 1px);
   white-space: nowrap;
 }
-
 .skip-to-content:focus {
   clip: auto;
   width: auto;
@@ -244,99 +245,45 @@ main.container > .card:first-of-type .btn + .btn{ margin-left:10px; }
   outline: 2px solid #000;
 }
 
-/* References page layout (light and scoped) */
-.ref-cat { margin-top: 2rem; margin-bottom: 0.5rem; }
-
-.ref-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(320px, 1fr));
-  gap: 1.25rem 2rem;
+/* ------------------------------
+   References – four scrollable panels (final)
+   ------------------------------ */
+.ref-board{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(300px, 1fr));
+  grid-auto-rows:1fr;                  /* panels aim for equal heights */
+  gap:1.25rem 1.5rem;
 }
 
-.ref-grid .ref-col {
-  margin: 0;
-  padding-left: 1.25rem; /* keep bullets */
+.ref-panel{
+  box-sizing:border-box;
+  display:flex;
+  flex-direction:column;
+  min-width:0;
+  border:1px solid rgba(0,0,0,0.08);
+  border-radius:10px;
+  padding:0.75rem 0.75rem 0.5rem;
+  background:rgba(255,255,255,0.65);
+  box-shadow:0 1px 2px rgba(0,0,0,0.04);
 }
 
-@media (max-width: 900px) {
-  .ref-grid {
-    grid-template-columns: 1fr; /* collapse to single column on small screens */
-  }
+.ref-panel__title{
+  margin:0 0 0.5rem 0;
+  font-size:1.05rem;
 }
 
-/* References page – clear section separation and two-column lists */
-.ref-section {
-  padding-top: 1.25rem;
-  margin-top: 1.75rem;
-  border-top: 1px solid rgba(0,0,0,0.08);
+.ref-panel__scroll{
+  overflow:auto;
+  padding-right:0.25rem;              /* room for scrollbar */
+  /* max-height is set dynamically by JS for first-fold fit */
 }
 
-.ref-cat {
-  margin: 0 0 0.75rem 0;          /* header on its own row */
-}
+.ref-panel__list{ margin:0; padding-left:1.25rem; } /* keep bullets */
+.ref-panel__item + .ref-panel__item{ margin-top:0.75rem; }
+.ref-panel__desc{ margin:0.25rem 0 0 0; }
 
-.ref-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(300px, 1fr));
-  gap: 1.25rem 2rem;
-}
-
-.ref-grid .ref-col {
-  margin: 0;
-  padding-left: 1.25rem;          /* keep bullets */
-}
-
-@media (max-width: 900px) {
-  .ref-grid {
-    grid-template-columns: 1fr;   /* single column on small screens */
-  }
-}
-
-/* References: four-panel grid (scrollable lists) */
-.ref-board {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(320px, 1fr));
-  grid-auto-rows: 1fr;           /* panels try to be equal height */
-  gap: 1.5rem 2rem;
-}
-
-/* panel wrapper */
-.ref-panel {
-  display: flex;
-  flex-direction: column;
-  min-width: 0;
-  border: 1px solid rgba(0,0,0,0.08);
-  border-radius: 10px;
-  padding: 0.75rem 0.75rem 0.5rem;
-  background: rgba(255,255,255,0.6);
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
-}
-
-/* title */
-.ref-panel__title {
-  margin: 0 0 0.5rem 0;
-  font-size: 1.05rem;
-}
-
-/* scroll area: set an explicit height so all four fit within the first gradient fold */
-.ref-panel__scroll {
-  overflow: auto;
-  padding-right: 0.25rem; /* give room for scrollbar */
-  /* adjust the height to fit your “first gradient” area */
-  max-height: 22rem;      /* ~352px: tweak if you want more/less content visible */
-}
-
-/* list & items */
-.ref-panel__list {
-  margin: 0;
-  padding-left: 1.25rem; /* keep bullets */
-}
-
-.ref-panel__item + .ref-panel__item { margin-top: 0.75rem; }
-.ref-panel__desc { margin: 0.25rem 0 0 0; }
-
-/* Responsive: collapse to single column on narrow screens */
-@media (max-width: 980px) {
-  .ref-board { grid-template-columns: 1fr; }
-  .ref-panel__scroll { max-height: none; } /* allow full height on mobile */
+/* Responsive */
+@media (max-width:980px){
+  .ref-board{ grid-template-columns:1fr; }
+  .ref-panel__scroll{ max-height:none; } /* natural page scroll on mobile */
 }
