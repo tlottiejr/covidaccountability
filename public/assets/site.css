@@ -344,3 +344,90 @@ footer a:link, footer a:visited{
 }
 
 /* ====== end references page overrides ====== */
+
+/* ====== REFERENCES PAGE – FINAL OVERRIDES (paste at end of site.css) ====== */
+
+/* Keep header visible and ensure we don't accidentally hide it */
+.page--references header.top,
+.page--references .site-header { position: relative; z-index: 10; }
+
+/* The grid that holds the four cards */
+.ref-board{
+  display:grid;
+  grid-template-columns:repeat(2, minmax(340px,1fr));
+  gap:24px;
+  margin: 10px 0 0 0;   /* small top breathing room under the sticky nav */
+  overflow:hidden;      /* we manage scrolling inside the cards via JS */
+}
+
+/* Card shell – matches the working visual from the good screenshot */
+.ref-panel{
+  background:#fff;
+  border-radius:12px;
+  border:1px solid rgba(19,36,63,.08);
+  box-shadow:0 10px 22px rgba(19,36,63,.08), 0 2px 6px rgba(19,36,63,.06);
+  padding:14px 16px;
+  display:flex;
+  flex-direction:column;
+  min-height:260px;
+}
+
+/* Title spacing/weight */
+.ref-panel__title{
+  margin:0 0 8px 0;
+  font-weight:700;
+  font-size:1.05rem;
+  line-height:1.35;
+}
+
+/* The inner scrolling region – height is set in JS */
+.ref-panel__scroll{
+  overflow:auto;
+  padding-right:8px; /* space for scrollbar */
+}
+
+/* Bullet/spacing sane defaults */
+.ref-panel__list,
+.ref-list {
+  list-style:disc;
+  padding-left:1.1rem;
+  margin:0;
+}
+.ref-panel__item + .ref-panel__item,
+.ref-list > li { margin:8px 0 12px; }
+.ref-panel__desc,
+.ref-note { margin:4px 0 0 0; }
+
+/* Centered Privacy · Disclaimer (match other pages) */
+.legal-links,
+.page-legal,
+.ref-footerlinks{
+  text-align:center;
+  margin:16px 0 8px;
+  font-size:14px;
+}
+.legal-links a,
+.page-legal a,
+.ref-footerlinks a{
+  color:var(--link-color);
+  text-decoration:underline;
+}
+.legal-links a:hover,
+.page-legal a:hover,
+.ref-footerlinks a:hover{
+  color:var(--link-hover);
+  text-decoration-thickness:2px;
+}
+
+/* Desktop: no page scroll; height is set by JS */
+@media (min-width:981px){
+  .page--references { overflow:hidden; }
+}
+
+/* Mobile: single column; page scrolls normally */
+@media (max-width:980px){
+  .ref-board{ grid-template-columns:1fr; }
+  .page--references { overflow:auto; }
+  .ref-panel__scroll{ max-height:none; }
+}
+/* ====== END REFERENCES PAGE OVERRIDES ====== */
