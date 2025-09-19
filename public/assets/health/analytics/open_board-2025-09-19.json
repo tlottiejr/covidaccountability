@@ -1,0 +1,18 @@
+{
+  "date": "2025-09-19",
+  "totals": 5,
+  "byState": {
+    "DE": 1,
+    "GU": 1,
+    "IA": 1,
+    "MN": 1,
+    "ID": 1
+  },
+  "byHost": {
+    "delpros.delaware.gov": 1,
+    "guamhplo.org": 1,
+    "dial.iowa.gov": 1,
+    "mn.gov": 1,
+    "dopl.idaho.gov": 1
+  }
+}

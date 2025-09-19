@@ -1,6 +1,6 @@
 {
   "date": "2025-09-18",
-  "totals": 26,
+  "totals": 32,
   "byState": {
     "DC": 1,
     "AL": 5,
@@ -8,8 +8,8 @@
     "MD": 2,
     "PR": 1,
     "GA": 1,
-    "MN": 1,
-    "KS": 1,
+    "MN": 2,
+    "KS": 2,
     "MO": 1,
     "IA": 1,
     "CO": 1,
@@ -18,7 +18,10 @@
     "FL": 2,
     "MI": 1,
     "MP": 1,
-    "ND": 1
+    "ND": 1,
+    "AK": 2,
+    "MS": 1,
+    "MA": 1
   },
   "byHost": {
     "dchealth.dc.gov": 1,
@@ -27,8 +30,8 @@
     "www.mbp.state.md.us": 2,
     "www.salud.pr.gov": 1,
     "medicalboard.georgia.gov": 1,
-    "mn.gov": 1,
-    "www.ksbha.ks.gov": 1,
+    "mn.gov": 2,
+    "www.ksbha.ks.gov": 2,
     "mopro.mo.gov": 1,
     "dial.iowa.gov": 1,
     "dpo.colorado.gov": 1,
@@ -38,6 +41,9 @@
     "complaint-portal.mqa.flhealthsource.gov": 2,
     "www.michigan.gov": 1,
     "www.cnmilicensing.gov.mp": 1,
-    "www.ndbom.org": 1
+    "www.ndbom.org": 1,
+    "www.commerce.alaska.gov": 2,
+    "www.msbml.ms.gov": 1,
+    "www.mass.gov": 1
   }
 }
