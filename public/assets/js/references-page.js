@@ -1,75 +1,87 @@
-// public/assets/js/references-page.js
-// Final layout fitter for References panels.
+/* references-page.js
+ * Makes each card internally scrollable and prevents the page itself from scrolling,
+ * while keeping the top nav visible and the footer links centered in the gradient.
+ */
 
-function isMobile() {
-  return window.matchMedia('(max-width:980px)').matches;
-}
+(function () {
+  const qs = (s, r = document) => r.querySelector(s);
+  const qsa = (s, r = document) => Array.from(r.querySelectorAll(s));
 
-function fitReferencePanels() {
-  const board = document.querySelector('.ref-board');
-  if (!board) return;
+  const header = qs('.site-header');
+  const wrap = qs('.ref-wrap');
+  const board = qs('.ref-board');
+  const panels = qsa('.ref-panel');
+  const footLinks = qs('.ref-footerlinks');
 
-  const scrollAreas = board.querySelectorAll('.ref-panel__scroll');
+  function px(n) { return `${Math.max(0, Math.floor(n))}px`; }
 
-  // Mobile: normal page flow & scrolling.
-  if (isMobile()) {
-    document.documentElement.style.overflowY = 'auto';
-    document.body.style.overflowY = 'auto';
-    scrollAreas.forEach(el => {
-      const panel = el.closest('.ref-panel');
-      if (panel) panel.style.height = '';
-      el.style.maxHeight = '';
+  function layout() {
+    if (!wrap || !board || !panels.length) return;
+
+    const vh = window.innerHeight;
+    const headerH = header ? header.getBoundingClientRect().height : 0;
+
+    // Target area for the board + footer within the gradient
+    const available = vh - headerH;
+
+    // We want the board to fill most of that area and the footer links to sit at the bottom
+    const footerH = footLinks ? footLinks.getBoundingClientRect().height : 0;
+    const boardGap = 24; // grid gap & breathing room
+    const boardTarget = Math.max(320, available - footerH - boardGap);
+
+    // Lock the main wrapper to viewport (no page scroll)
+    document.documentElement.style.height = '100%';
+    document.body.style.height = '100%';
+    document.body.style.overflow = 'hidden';
+
+    // Constrain the references wrapper
+    wrap.style.minHeight = px(available);
+    wrap.style.maxHeight = px(available);
+    wrap.style.overflow = 'hidden';
+    wrap.style.display = 'block';
+
+    // Size the board
+    board.style.height = px(boardTarget);
+    board.style.maxHeight = px(boardTarget);
+    board.style.overflow = 'hidden';
+
+    // For each panel, compute internal scroll height
+    panels.forEach(panel => {
+      const title = panel.querySelector('.ref-panel__title');
+      const scroller = panel.querySelector('.ref-panel__scroll');
+      if (!scroller) return;
+
+      const panelRect = panel.getBoundingClientRect();
+      // Reserve padding + title space (16 top + title + some spacing)
+      const titleH = title ? title.getBoundingClientRect().height : 0;
+      const PADDING = 32; // padding/rounding allowance
+
+      const innerMax = panelRect.height - titleH - PADDING;
+      scroller.style.height = px(innerMax);
+      scroller.style.maxHeight = px(innerMax);
+      scroller.style.overflow = 'auto';
+      scroller.style.webkitOverflowScrolling = 'touch';
     });
-    return;
+
+    // Center footer links under the board, inside the gradient
+    if (footLinks) {
+      const boardRect = board.getBoundingClientRect();
+      const used = headerH + boardRect.height;
+      const remain = vh - used;
+      // add a little offset so it kisses the gradient nicely
+      footLinks.style.marginTop = px(Math.max(8, remain - 8));
+    }
   }
 
-  // Desktop: lock page scroll so we don't get the white blip.
-  document.documentElement.style.overflowY = 'hidden';
-  document.body.style.overflowY = 'hidden';
+  // Reflow on load and resize (debounced)
+  let rafId = 0;
+  function onResize() {
+    if (rafId) cancelAnimationFrame(rafId);
+    rafId = requestAnimationFrame(layout);
+  }
 
-  // Compute max card height available in the viewport.
-  const boardRect = board.getBoundingClientRect();
-
-  // Reserve space for the footer/legal links if present.
-  const legal = document.querySelector('.page-legal, .legal-links');
-  const legalReserve = legal ? (legal.getBoundingClientRect().height + 24) : 40;
-
-  // Extra breathing room under the grid.
-  const bottomGap = 12;
-
-  const viewport = window.innerHeight;
-  const maxPanelHeight = Math.max(
-    240,
-    viewport - boardRect.top - legalReserve - bottomGap
-  );
-
-  scrollAreas.forEach(el => {
-    const panel = el.closest('.ref-panel');
-    if (!panel) return;
-
-    // Set the panel’s overall height.
-    panel.style.height = `${maxPanelHeight}px`;
-
-    // Calculate how tall the inner scroll area can be (panel minus title/padding).
-    const panelStyle = getComputedStyle(panel);
-    const paddingTop = parseFloat(panelStyle.paddingTop) || 0;
-    const paddingBottom = parseFloat(panelStyle.paddingBottom) || 0;
-
-    // Sum siblings' heights (title, etc.)
-    let siblingsHeight = 0;
-    panel.childNodes.forEach(node => {
-      if (node.nodeType === 1 && node !== el) {
-        const r = node.getBoundingClientRect();
-        siblingsHeight += r.height;
-      }
-    });
-
-    const inner = maxPanelHeight - siblingsHeight - paddingTop - paddingBottom;
-    el.style.maxHeight = `${Math.max(inner, 120)}px`;
-  });
-}
-
-// Run on ready + resize
-function ready(fn){ document.readyState !== 'loading' ? fn() : document.addEventListener('DOMContentLoaded', fn); }
-ready(fitReferencePanels);
-window.addEventListener('resize', () => { requestAnimationFrame(fitReferencePanels); });
+  window.addEventListener('resize', onResize, { passive: true });
+  window.addEventListener('orientationchange', onResize, { passive: true });
+  window.addEventListener('load', layout, { once: true });
+  document.addEventListener('DOMContentLoaded', layout, { once: true });
+})();
