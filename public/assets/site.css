@@ -1,3 +1,5 @@
+@import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,opsz,wght@0,8..60,300..800;1,8..60,300..800&display=swap');
+
 /* public/assets/site.css — cohesive light theme */
 
 /* ---------- Design tokens ---------- */
@@ -19,9 +21,10 @@
 /* ---------- Base ---------- */
 *{box-sizing:border-box}
 html,body{height:100%}
+html{font-size:17px}
 body{
   margin:0;
-  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Noto Sans";
+  font-family:"Source Sans 3", ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Noto Sans";
   color:var(--text);
   -webkit-font-smoothing:antialiased;
   -moz-osx-font-smoothing:grayscale;
@@ -30,18 +33,8 @@ body{
     linear-gradient(180deg, #ffffff 0%, #eaf3ff 60%, #e1f4ff 100%);
 }
 
-.container{max-width:1100px;margin:40px auto;padding:0 20px}
-
-/* Headings & text */
-h1{font-size:28px;margin:10px 0 18px}
-h2{font-size:22px;margin:18px 0 10px}
-h3{font-size:18px;margin:10px 0 8px}
-p{line-height:1.55}
-.small{color:var(--muted);font-size:13px}
-
-/* ---------- Links (global normalization: avoid purple visited) ---------- */
-:root{ --link-color: var(--accent); --link-hover: var(--accent-hover); }
-a:link, a:visited{ color: var(--link-color); text-decoration: underline; }
+img{max-width:100%; height:auto}
+a{ color:#2253d9; text-underline-offset: 3px; text-decoration-thickness: 1px; }
 a:hover, a:focus{ color: var(--link-hover); text-decoration-thickness: 2px; }
 
 /* ---------- Top navigation (“hotbar”) ---------- */
@@ -86,43 +79,33 @@ a:hover, a:focus{ color: var(--link-hover); text-decoration-thickness: 2px; }
 /* ---------- Layout helpers ---------- */
 main.container{display:block}
 .grid{display:grid; gap:var(--gap)}
-.grid-2{grid-template-columns:1fr}
-.grid-3{grid-template-columns:1fr}
-.grid-4{grid-template-columns:1fr 1fr}
-@media (min-width:900px){
-  .grid-2{grid-template-columns:1fr 1fr}
-  .grid-3{grid-template-columns:1fr 1fr 1fr}
-  .grid-4{grid-template-columns:1fr 1fr 1fr 1fr}
+.grid-2{grid-template-columns: 1fr 1fr}
+.grid-3{grid-template-columns: repeat(3, 1fr)}
+@media (max-width:980px){
+  .grid-2, .grid-3{grid-template-columns:1fr}
 }
+
+/* ---------- Typography ---------- */
+h1{font-size:32px;margin:10px 0 18px}
+h2{font-size:24px;margin:18px 0 10px}
+h3{font-size:20px;margin:10px 0 8px}
+.h4{font-size:16px;font-weight:700;margin:0 0 8px}
+.small{font-size:14px;color:var(--muted)}
+
+.lead{ font-size:18px; line-height:1.6; color:var(--text); }
 
 /* ---------- Cards ---------- */
 .card{
   background:var(--panel);
   border-radius:var(--radius);
-  padding:16px;
   box-shadow:var(--shadow);
-  border:1px solid rgba(2,6,23,.06);
+  padding:18px 18px;
+  border:1px solid rgba(15,23,42,.06);
 }
-.card h3{margin-top:0}
-.card .h4{font-size:17px;margin:0 0 6px}
+.card .muted{color:var(--muted)}
+.card + .card{ margin-top: var(--gap); }
 
-/* Reference grid spacing */
-.grid.grid-2 .card{margin-bottom:6px}
-
-/* ---------- Tiles (portal) ---------- */
-.tile{
-  display:block; padding:16px;
-  border:1px solid rgba(2,6,23,.06);
-  background:var(--panel);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  text-decoration:none; color:inherit;
-}
-.tile:hover{filter:brightness(1.02)}
-.tile .title{display:block; font-weight:700; margin-bottom:4px}
-.tile .host{display:block; color:var(--muted); font-size:13px}
-
-/* ---------- Buttons (base) ---------- */
+/* ---------- Buttons ---------- */
 .btn,
 .btn:link,
 .btn:visited{
@@ -155,24 +138,26 @@ main.container{display:block}
 .btn-outline:hover{background:rgba(37,99,235,.05)}
 
 /* ---------- Forms ---------- */
-label{display:block; font-size:13px; color:var(--muted); margin-bottom:8px}
-select,input[type="text"],input[type="email"],textarea{
-  width:100%; padding:10px 12px;
+label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px}
+input, select, textarea{
+  width:100%;
+  padding:10px 12px;
   border-radius:10px;
-  border:1px solid rgba(2,6,23,.15);
-  background:#fff; color:var(--text);
+  border:1px solid rgba(15,23,42,.2);
+  background:#fff;
+  box-shadow: inset 0 1px 2px rgba(2,6,23,.04);
+  font:inherit;
 }
+select{appearance:none; background-image:linear-gradient(45deg, transparent 50%, #64748b 50%), linear-gradient(135deg, #64748b 50%, transparent 50%); background-position:calc(100% - 18px) 16px, calc(100% - 12px) 16px; background-size:6px 6px, 6px 6px; background-repeat:no-repeat}
+input:focus, select:focus, textarea:focus{ outline:2px solid #2a6cf0; outline-offset:2px }
 
 /* ---------- Footer ---------- */
-footer{
-  text-align:center;
-  padding:40px 0 50px;
+footer, .site-footer{
+  display:flex; justify-content:center; align-items:center;
+  padding:28px 12px 40px;
   color:var(--muted);
 }
-footer a:link, footer a:visited{
-  color:var(--link-color);
-  margin:0 8px;
-}
+.footer-links{display:flex; gap:12px; align-items:center}
 
 /* ---------- Accessibility helpers ---------- */
 .visually-hidden{
@@ -180,89 +165,21 @@ footer a:link, footer a:visited{
   clip:rect(1px,1px,1px,1px); white-space:nowrap;
 }
 
-/* ---------- Home hero CTA buttons (scoped) ---------- */
-main.container > .card:first-of-type .btn,
-main.container > .card:first-of-type .btn:link,
-main.container > .card:first-of-type .btn:visited{
-  background: linear-gradient(90deg, #2563eb 0%, #60a5fa 55%, #e6f2ff 100%);
-  color: #0b1220;
-  border: 1px solid rgba(37,99,235,.35);
-  text-decoration: none;
-  position: relative;
-}
-main.container > .card:first-of-type .btn:hover,
-main.container > .card:first-of-type .btn:focus{
-  background: transparent;
-  color: var(--link-color);
-  text-decoration: none;
-  filter: none;
-  outline: 2px solid transparent;
-  outline-offset: 2px;
-}
-main.container > .card:first-of-type .btn:hover::after,
-main.container > .card:first-of-type .btn:focus::after{
-  content:"";
-  position:absolute;
-  left:12px; right:12px; bottom:6px;
-  height:3px; border-radius:3px;
-  background: linear-gradient(90deg, #2a6cf0 0%, #6aa8ff 100%);
-  box-shadow: 0 4px 12px rgba(37,99,235,.35);
-}
-main.container > .card:first-of-type .btn + .btn{ margin-left:10px; }
-@media (max-width:560px){
-  main.container > .card:first-of-type .btn + .btn{ margin-left:0; margin-top:10px; }
-}
-
-/* ------------------------------
-   Accessibility: Skip link visible only on focus
-   ------------------------------ */
-.skip-to-content {
-  position: absolute;
-  left: -9999px;
-  top: auto;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(1px, 1px, 1px, 1px);
-  white-space: nowrap;
-}
-.skip-to-content:focus {
-  clip: auto;
-  width: auto;
-  height: auto;
-  left: 0.5rem;
-  top: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  z-index: 1000;
-  background: #fff;
-  border-radius: 0.375rem;
-  box-shadow: 0 1px 2px rgba(0,0,0,.1);
-  outline: 2px solid #000;
-}
-
-/* ------------------------------
-   References – four scrollable panels (final)
-   ------------------------------ */
-/* References grid: slightly tighter to avoid overhang */
+/* ---------- Reference page components (existing) ---------- */
 .ref-board{
-  display:grid;
-  grid-template-columns:repeat(2, minmax(300px, 1fr));
-  grid-auto-rows:1fr;
-  gap:1rem 1.25rem;          /* was 1.25rem 1.5rem */
-  margin-bottom:0;           /* don't add extra space below the grid */
+  display:grid; gap:var(--gap); grid-template-columns: 1.1fr .9fr; align-items:start;
 }
+.ref-board .ref-card{
+  padding:14px 16px; border-radius:12px; border:1px solid rgba(2,6,23,.10);
+  background:#fff; box-shadow: var(--shadow);
+}
+.ref-board .ref-card + .ref-card{ margin-top: var(--gap); }
+.ref-card h3{ margin-top:0; }
+
 .ref-panel{
-  box-sizing:border-box;
-  display:flex;
-  flex-direction:column;
-  min-width:0;
-  border:1px solid rgba(0,0,0,0.08);
-  border-radius:10px;
-  padding:0.75rem 0.75rem 0.5rem;
-  background:rgba(255,255,255,0.65);
-  box-shadow:0 1px 2px rgba(0,0,0,0.04);
+  padding:14px 16px; border-radius:12px; border:1px solid rgba(2,6,23,.10);
+  background:#fff; box-shadow: var(--shadow);
 }
-.ref-panel__title{ margin:0 0 0.5rem 0; font-size:1.05rem; }
 .ref-panel__scroll{ overflow:auto; padding-right:0.25rem; } /* height set by JS */
 .ref-panel__list{ margin:0; padding-left:1.25rem; } /* keep bullets */
 .ref-panel__item + .ref-panel__item{ margin-top:0.75rem; }
