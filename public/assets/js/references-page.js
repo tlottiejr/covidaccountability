@@ -1,5 +1,6 @@
 // public/assets/js/references-page.js
-// Four scrollable panels sized to fit the first fold. No HTML changes.
+// Four scrollable panels sized to fit within the first fold.
+// Renders inside the existing card and keeps your styling.
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -119,22 +120,19 @@ function sizePanels() {
   const board = document.querySelector(".ref-board");
   if (!board) return;
 
-  // Available vertical space from board top to the start of the footer gradient
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
-  // Heuristic padding for top header/nav + spacing below board.
-  // Works well on 768–1200p; clamped to avoid silly values.
-  const topOffset = board.getBoundingClientRect().top;             // px from top of viewport
-  const reserve = 120;                                              // padding for footer/start of next section
+  // distance from top of viewport to start of board
+  const topOffset = board.getBoundingClientRect().top;
+  const reserve = 120;               // room for footer/gradient breathing space
   let target = Math.floor(vh - topOffset - reserve);
 
-  // Clamp to a sensible range (desktop)
-  const MIN = 220;  // ~14rem
-  const MAX = 420;  // ~26rem
+  // sane clamps
+  const MIN = 220;                   // ~14rem
+  const MAX = 420;                   // ~26rem
   target = Math.max(MIN, Math.min(MAX, target));
 
-  // On very wide screens, give a bit more height; on narrow, less
   if (vw > 1400) target = Math.min(MAX, target + 40);
   if (vw < 1100) target = Math.max(MIN, target - 20);
 
@@ -142,7 +140,6 @@ function sizePanels() {
     sc.style.maxHeight = `${target}px`;
   });
 }
-
 function onResizeThrottled() {
   let raf = null;
   return () => {
@@ -197,12 +194,10 @@ async function render() {
     }
 
     const groups = groupByCategory(items);
-
     const board = el("div", { class: "ref-board" });
     groups.forEach(([cat, arr]) => board.appendChild(renderPanel(cat, arr)));
     mount.appendChild(board);
 
-    // Initial size + resize handling
     sizePanels();
     window.addEventListener("resize", onResizeThrottled(), { passive: true });
   } catch (err) {
@@ -216,3 +211,4 @@ if (document.readyState === "loading") {
 } else {
   render();
 }
+
