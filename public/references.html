@@ -8,19 +8,17 @@
   <!-- Global styles (cache-busted) -->
   <link rel="stylesheet" href="/assets/site.css?v=3" />
 
-  <!-- Keep your existing include (if present it can overwrite the static header) -->
+  <!-- Optional include: if present, it can still enhance/override nav -->
   <script src="/assets/nav-include.js" defer></script>
   <script src="/assets/js/ux-accessibility.js" defer></script>
 </head>
 <body>
   <a class="skip-to-content" href="#main">Skip to content</a>
 
-  <!-- Static header/nav so the bar always shows even without JS -->
+  <!-- Static header/nav (no brand text on this page) -->
   <header class="top">
     <div class="inner">
-      <div class="brand">
-        <span class="title">COVID Accountability Now</span>
-      </div>
+      <div class="brand" aria-hidden="true" style="display:none"></div>
       <nav aria-label="Main">
         <a href="/index.html">Home</a>
         <a href="/about.html">About Us</a>
@@ -43,12 +41,17 @@
       <p data-ref-status>Loading...</p>
       <div></div>
     </div>
+
+    <!-- Privacy / Disclaimer kept inside the gradient so the page never scrolls -->
+    <p class="small" style="text-align:center;margin:16px 0 0;">
+      <a href="/privacy.html">Privacy</a>
+      &nbsp;·&nbsp;
+      <a href="/disclaimer.html">Disclaimer</a>
+    </p>
   </main>
 
-  <footer>
-    <a href="/privacy.html">Privacy</a> ·
-    <a href="/disclaimer.html">Disclaimer</a>
-  </footer>
+  <!-- Keep footer present but empty so it doesn't add vertical height -->
+  <footer style="height:0; padding:0; margin:0; overflow:hidden;"></footer>
 
   <!-- Sprint 11 renderer with viewport clamp -->
   <script type="module" src="/assets/js/references-page.js?v=3"></script>
