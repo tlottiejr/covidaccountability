@@ -22,17 +22,18 @@
     board.querySelectorAll(SEL.panel).forEach(p=>p.style.height='');
     board.querySelectorAll(SEL.scroll).forEach(s=>s.style.maxHeight='');
 
-    if (!isDesktop()) return; // mobile: natural page scroll
+    if (!isDesktop()) return; // mobile: natural flow
 
     const headerH = h(document.querySelector(SEL.header));
     const legalH  = h(document.querySelector(SEL.legal));
     const gap     = parseInt(getComputedStyle(board).gap || '24', 10);
 
-    // three uniform rows on desktop (two rows of two + full-width bottom card)
+    // We have 5 cards in a 2-col grid -> THREE rows total, all same height.
     const available = Math.max(600, Math.min(1100, window.innerHeight - headerH - legalH - 24));
     const rowH = Math.floor((available - (gap * 2)) / 3);
     const boardH = (rowH * 3) + (gap * 2);
 
+    // body locked; cards scroll internally
     document.body.style.overflow = 'hidden';
     board.style.height = px(boardH);
 
