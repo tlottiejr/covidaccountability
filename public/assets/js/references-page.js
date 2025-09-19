@@ -1,13 +1,7 @@
-// public/assets/js/references-page.js (v6 — 5 fixed panels, desktop lock)
-// Matches OLDWORKING look/feel with the new baseline styles.
-// - 5 panels in a 2-col grid (desktop), each panel scrolls internally.
-// - Mobile uses normal page scroll.
-// - Uses category on each item if present; otherwise falls back to heuristics.
-// - Preserves your desired category order and titles exactly.
+// public/assets/js/references-page.js (v7 — match screenshot target)
 
 const $ = (s, r = document) => r.querySelector(s);
 
-/* ---------- page anchors: find status + mount ----------- */
 function findStatusAndMount() {
   let status =
     $("[data-ref-status]") ||
@@ -16,7 +10,6 @@ function findStatusAndMount() {
     $(".status");
 
   if (!status) {
-    // Fallback: find a node that literally says "Loading..." (or …)
     const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT);
     while (tw.nextNode()) {
       const txt = (tw.currentNode.textContent || "").trim().toLowerCase();
@@ -24,8 +17,6 @@ function findStatusAndMount() {
     }
   }
 
-  // Prefer the empty sibling after the status as the mount (your HTML has this),
-  // otherwise render into the same container as a safe fallback.
   let mount = null;
   if (status) {
     if (status.nextElementSibling && status.nextElementSibling.children.length === 0) {
@@ -37,7 +28,6 @@ function findStatusAndMount() {
   return { status, mount };
 }
 
-/* ---------------------- helpers ------------------------ */
 async function getJSON(url) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`Failed ${url}: ${res.status}`);
@@ -67,46 +57,72 @@ function byTitle(a, b) {
   return A.localeCompare(B);
 }
 
-/* -------------------- presentation --------------------- */
 function itemRow(it) {
-  const metaBits = [];
-  if (it.source) metaBits.push(it.source);
-  if (it.year || it.date) metaBits.push(it.year || it.date);
+  const meta = [];
+  if (it.source) meta.push(it.source);
+  if (it.year || it.date) meta.push(it.year || it.date);
 
   return el("li", { class: "ref-item" },
     el("a", { href: it.url, target: "_blank", rel: "noopener" }, it.title || it.url),
-    metaBits.length ? el("div", { class: "ref-meta" }, metaBits.join(" · ")) : null,
+    meta.length ? el("div", { class: "ref-meta" }, meta.join(" · ")) : null,
     it.description ? el("p", { class: "ref-note" }, it.description) : null,
   );
 }
 
-function renderPanels(mount, orderedPanels, buckets) {
+const PANEL_CONFIG = {
+  general:   { title: "General References" },
+  gov:       { title: "Government & Legal" },
+  edu:       { title: "Medical Education & Ethics" },
+  peer:      { title: "Peer-reviewed Literature" },
+  preprint:  { title: "Preprints & Working Papers" },
+};
+const PANEL_ORDER = ["general", "gov", "edu", "peer", "preprint"];
+
+function assignCategory(it) {
+  const c = (it.category || "").toLowerCase();
+  if (c.includes("general")) return "general";
+  if (c.includes("gov") || c.includes("legal")) return "gov";
+  if (c.includes("edu") || c.includes("ethic")) return "edu";
+  if (c.includes("peer")) return "peer";
+  if (c.includes("preprint") || c.includes("working")) return "preprint";
+
+  const t = (it.title || "").toLowerCase();
+  const host = (() => { try { return new URL(it.url).host.toLowerCase(); } catch { return ""; } })();
+  if (/\.gov\b|whitehouse|supremecourt|federalregister|house\.gov/.test(host) ||
+      /supreme court|federal register|congressional|fact sheet/.test(t)) return "gov";
+  if (/usmle|ethic|code of medical|first aid|acp|ama|annals/.test(t) ||
+      /ama-assn|acpjournals|mheducation|annals\.org|usmle|nbme/.test(host)) return "edu";
+  if (/nejm|lancet|jama|dialogues in health|vaccine|trial|efficacy/.test(t) ||
+      /nejm\.org|thelancet\.com|jamanetwork|sciencedirect|doi\.org|thegms/.test(host)) return "peer";
+  if (/researchgate|preprint|working paper/.test(host + " " + t)) return "preprint";
+  return "general";
+}
+
+function renderPanels(mount, order, buckets) {
   const wrap = el("div", { class: "ref-board" });
   mount.innerHTML = "";
   mount.appendChild(wrap);
 
-  orderedPanels.forEach(key => {
+  order.forEach(key => {
     const conf = PANEL_CONFIG[key];
-    const items = (buckets[key] || []).slice(); // copy
-    wrap.appendChild(el("section", { class: "ref-panel" },
-      el("div", { class: "ref-panel__title" }, conf.title),
-      el("div", { class: "ref-panel__scroll" },
-        el("ul", { class: "ref-list" }, ...items.map(itemRow))
+    const items = (buckets[key] || []).slice();
+    wrap.appendChild(
+      el("section", { class: "ref-panel" },
+        el("div", { class: "ref-panel__title" }, conf.title),
+        el("div", { class: "ref-panel__scroll" },
+          el("ul", { class: "ref-list" }, ...items.map(itemRow))
+        )
       )
-    ));
+    );
   });
-
   return wrap;
 }
 
-/* ----------------- sizing (desktop lock) ---------------- */
-// Desktop: lock body scroll; each panel scrolls internally.
-// Mobile: normal page scroll.
 function sizeBoard(board) {
   if (!board) return;
 
-  const header = $("header.top");
-  const footer = $(".page-legal") || $("footer");
+  const header = document.querySelector("header, header.top");
+  const footer = document.querySelector(".page-legal, footer");
   const headerH = header ? header.getBoundingClientRect().height : 0;
   const footerH = footer ? footer.getBoundingClientRect().height : 0;
 
@@ -114,25 +130,20 @@ function sizeBoard(board) {
   document.body.style.overflow = isDesktop ? "hidden" : "";
 
   if (!isDesktop) {
-    // Let content flow naturally on small screens.
     board.style.height = "";
-    board.querySelectorAll(".ref-panel").forEach(p => {
-      const scroll = p.querySelector(".ref-panel__scroll");
-      scroll.style.maxHeight = "";
-    });
+    board.querySelectorAll(".ref-panel__scroll").forEach(s => s.style.maxHeight = "");
     return;
   }
 
-  // Desktop: 2 cols grid; compute target heights so the whole board fits viewport
-  const padding = 24; // top/btm padding inside main content wrapper
-  const avail = clamp(window.innerHeight - headerH - footerH - padding, 580, 1400);
+  // Space to match target: slightly taller rows and tighter gutters
+  const verticalGutters = 32; // top/bot padding/margins around content area
+  const avail = clamp(window.innerHeight - headerH - footerH - verticalGutters, 620, 1400);
 
-  // layout: 3 rows (to comfortably fit 5 cards like your screenshot)
-  const rowGap = 16;
-  const targetBoardH = avail;
-  const rowH = Math.floor((targetBoardH - (rowGap * 2)) / 3);
+  const rowGap = 20;     // vertical gap between panel rows
+  const rows = 3;        // we visually want three rows on desktop
+  const rowH = Math.floor((avail - rowGap * (rows - 1)) / rows);
 
-  board.style.height = px(targetBoardH);
+  board.style.height = px(avail);
 
   board.querySelectorAll(".ref-panel").forEach(panel => {
     panel.style.height = px(rowH);
@@ -144,65 +155,17 @@ function sizeBoard(board) {
       parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) +
       (title ? title.getBoundingClientRect().height : 0) + 8;
 
-    const maxH = Math.max(120, rowH - chrome);
-    scroll.style.maxHeight = px(maxH);
+    scroll.style.maxHeight = px(Math.max(120, rowH - chrome));
   });
 }
 
-/* -------------- categorization & order ----------------- */
-// Exact titles and order you asked for (5 cards).
-const PANEL_CONFIG = {
-  general:   { title: "General References" },
-  gov:       { title: "Government & Legal" },
-  edu:       { title: "Medical Education & Ethics" },
-  peer:      { title: "Peer-reviewed Literature" },
-  preprint:  { title: "Preprints & Working Papers" },
-};
-const PANEL_ORDER = ["general", "gov", "edu", "peer", "preprint"];
-
-// Use item.category if present; otherwise infer by host/title.
-function assignCategory(it) {
-  const c = (it.category || "").toLowerCase();
-  if (c.includes("general"))   return "general";
-  if (c.includes("gov") || c.includes("legal")) return "gov";
-  if (c.includes("edu") || c.includes("ethic")) return "edu";
-  if (c.includes("peer"))      return "peer";
-  if (c.includes("preprint") || c.includes("working")) return "preprint";
-
-  // Heuristics fallback (kept conservative)
-  const t = (it.title || "").toLowerCase();
-  const host = (() => { try { return new URL(it.url).host.toLowerCase(); } catch { return ""; } })();
-
-  if (/whitehouse|supremecourt|hhs\.gov|cdc\.gov|fda\.gov|congress|\.gov\b/.test(host) ||
-      /supreme court|federal register|attorney general|congressional|fact sheet/.test(t)) return "gov";
-
-  if (/usmle|code of medical ethics|ama |acp |first aid/.test(t) ||
-      /ama-assn|acpjournals|mheducation|usmle|nbme|aafp|annals\.org/.test(host)) return "edu";
-
-  if (/nejm|lancet|jama|dialogues in health|vaccine|trial|efficacy/.test(t) ||
-      /nejm\.org|thelancet\.com|jamanetwork|sciencedirect|doi\.org|thegms/.test(host)) return "peer";
-
-  if (/researchgate|working paper|preprint/.test(host + " " + t)) return "preprint";
-
-  return "general";
-}
-
-/* -------------------------- main ----------------------- */
 (async function main() {
   const { status, mount } = findStatusAndMount();
   if (!mount) return;
 
   try {
     const rows = await getJSON("/assets/references.json");
-
-    // Group into fixed buckets; always render 5 panels (even if some empty).
-    const buckets = {
-      general:  [],
-      gov:      [],
-      edu:      [],
-      peer:     [],
-      preprint: [],
-    };
+    const buckets = { general: [], gov: [], edu: [], peer: [], preprint: [] };
 
     rows.forEach(r => buckets[assignCategory(r)].push(r));
     Object.keys(buckets).forEach(k => buckets[k].sort(byTitle));
@@ -221,3 +184,4 @@ function assignCategory(it) {
     console.warn(e);
   }
 })();
+
