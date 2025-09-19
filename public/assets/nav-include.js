@@ -1,5 +1,4 @@
 // public/assets/nav-include.js
-// Safe nav include: ONLY renders when #nav-root exists. Won't touch pages without it.
 (function () {
   const root = document.getElementById('nav-root');
   if (!root) return;
@@ -11,6 +10,7 @@
     ['/why-report.html', 'Why Report'],
     ['/who-can-report.html', 'Who Can Report'],
     ['/references.html', 'References'],
+    ['/complaint-portal.html', 'Complaint Portal'],
     ['/donate.html', 'Donate'],
   ];
 
