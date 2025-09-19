@@ -1,19 +1,15 @@
-/* public/assets/site.css — cohesive light theme (deduped) */
+/* public/assets/site.css */
 
-/* ---------- Design tokens ---------- */
+/* ---------- Tokens ---------- */
 :root{
   --bg:#f7fbff;
   --panel:#ffffff;
   --text:#0b1220;
   --muted:#4b5563;
-
-  --accent:#2563eb;          /* brand blue */
-  --accent-2:#60a5fa;        /* lighter blue */
-  --accent-hover:#1e40af;    /* darker hover */
-
-  --radius:14px;
-  --gap:16px;
-  --shadow:0 10px 25px rgba(2,6,23,.08);
+  --accent:#2563eb;
+  --radius:12px;
+  --gap:24px;
+  --shadow:0 10px 22px rgba(19,36,63,.08), 0 2px 6px rgba(19,36,63,.06);
 }
 
 /* ---------- Base ---------- */
@@ -21,65 +17,48 @@
 html,body{height:100%}
 body{
   margin:0;
-  font-family:ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Noto Sans";
   color:var(--text);
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
   background:
     radial-gradient(1200px 600px at 70% -10%, rgba(37,99,235,.08), transparent 65%),
-    linear-gradient(180deg, #ffffff 0%, #eaf3ff 60%, #e1f4ff 100%);
+    linear-gradient(180deg,#fff 0%,#eaf3ff 60%,#e1f4ff 100%);
+  font:16px/1.5 system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+  -webkit-font-smoothing:antialiased;
 }
+a{color:#1d4ed8;text-decoration:underline;text-underline-offset:2px}
+a:visited{color:#1d4ed8}
 
-.container{max-width:1100px;margin:40px auto;padding:0 20px}
-
-/* Headings & text */
-h1{font-size:28px;margin:10px 0 18px}
-h2{font-size:22px;margin:18px 0 10px}
-h3{font-size:18px;margin:10px 0 8px}
-p{line-height:1.55}
-.small{color:var(--muted);font-size:13px}
-
-/* ---------- Links (avoid purple visited) ---------- */
-:root{ --link-color: var(--accent); --link-visited: var(--accent); }
-a{ color:var(--link-color); text-decoration:underline; text-underline-offset:2px; }
-a:visited{ color:var(--link-visited); }
-
-/* ---------- Header / nav ---------- */
-header.top{ position:sticky; top:0; z-index:10; background:transparent; }
 .wrap{max-width:1100px;margin:0 auto;padding:0 20px}
-.nav-wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
-.nav__list{list-style:none;display:flex;gap:18px;margin:0;padding:0}
-.nav__list a{text-decoration:none;color:inherit}
-.nav__list .is-active a,[aria-current="page"]{font-weight:600;text-decoration:underline}
+.container{max-width:1100px;margin:28px auto 0;padding:0 20px}
 
-/* ---------- Page titles ---------- */
-.page-title{margin:18px 0 6px}
+.page-title{font-size:28px;margin:18px 0 6px}
 .page-subtitle{color:var(--muted);margin:0 0 16px}
 
-/* ---------- References page only ---------- */
+/* ---------- Nav (shared; no logo) ---------- */
+header.top{position:sticky;top:0;z-index:10;background:transparent}
+.nav__list{list-style:none;display:flex;gap:24px;margin:0;padding:12px 0}
+.nav__list a{text-decoration:none;color:inherit}
+.nav__item a{padding-bottom:4px;border-bottom:2px solid transparent}
+.nav__item.is-active a,[aria-current="page"]{border-bottom-color:#9ec3ff}
 
-/* Keep header visible on this page */
-.page--references header.top,
-.page--references .site-header { position: relative; z-index: 10; }
-
-/* The grid that holds the four cards (+ one bottom full-width card) */
+/* ---------- References page ---------- */
+.page--references{ /* lock scroll on desktop only via JS; mobile normal */ }
 .ref-board{
   display:grid;
-  grid-template-columns:repeat(2, minmax(340px,1fr));
-  gap:24px;
-  margin:10px 0 0 0; /* breathing room under sticky nav */
-  overflow:hidden;   /* scrolling happens inside the cards (JS sizes them) */
+  grid-template-columns:repeat(2,minmax(340px,1fr));
+  gap:var(--gap);
+  margin-top:10px;
+  overflow:hidden;
 }
-
-/* Make the 5th card (last) span full width on desktop */
 @media (min-width:981px){
-  .ref-board > .ref-panel:last-child{ grid-column:1 / -1; }
+  .ref-board > .ref-panel:last-child{ grid-column:1 / -1; } /* full-width bottom card */
+}
+@media (max-width:980px){
+  .ref-board{ grid-template-columns:1fr; }
 }
 
-/* Card shell (visuals match the “good” screenshot) */
 .ref-panel{
   background:var(--panel);
-  border-radius:12px;
+  border-radius:var(--radius);
   border:1px solid rgba(19,36,63,.08);
   box-shadow:var(--shadow);
   padding:14px 16px;
@@ -87,59 +66,15 @@ header.top{ position:sticky; top:0; z-index:10; background:transparent; }
   flex-direction:column;
   min-height:220px;
 }
+.ref-panel__title{margin:0 0 8px 0;font-size:18px;font-weight:700}
+.ref-panel__scroll{overflow:auto;padding-right:8px}
+.ref-list{margin:0;padding-left:18px}
+.ref-list li{margin:10px 0}
+.ref-meta{color:var(--muted);font-size:13px;margin-top:2px}
+.ref-note{margin:4px 0 0 0}
 
-/* Title */
-.ref-panel__title{
-  margin:0 0 8px 0;
-  font-weight:700;
-  font-size:1.05rem;
-  line-height:1.35;
+/* Footer links under the board */
+.page-legal, .legal-links, .ref-footerlinks{
+  text-align:center;color:var(--muted);margin:16px 0 28px
 }
-
-/* Inner scroll area (final height set in JS) */
-.ref-panel__scroll{
-  overflow:auto;
-  padding-right:8px; /* space for scrollbar */
-}
-
-/* Lists spacing */
-.ref-panel__list,
-.ref-list{
-  list-style:disc;
-  padding-left:1.1rem;
-  margin:0;
-}
-.ref-panel__item + .ref-panel__item,
-.ref-list > li{ margin:8px 0 12px; }
-.ref-panel__desc,
-.ref-note{ margin:4px 0 0 0; }
-
-/* Centered legal links (same look everywhere) */
-.legal-links,
-.page-legal,
-.ref-footerlinks{
-  text-align:center;
-  margin:16px 0 28px;
-  color:var(--muted);
-}
-.legal-links a,
-.page-legal a,
-.ref-footerlinks a{
-  color:inherit;
-  text-decoration:underline;
-  text-underline-offset:2px;
-  text-decoration-thickness:2px;
-}
-
-/* Desktop: lock page scroll; cards scroll internally */
-@media (min-width:981px){
-  .page--references{ overflow:hidden; }
-}
-
-/* Mobile: single column; page scrolls normally */
-@media (max-width:980px){
-  .ref-board{ grid-template-columns:1fr; }
-  .page--references{ overflow:auto; }
-  .ref-panel__scroll{ max-height:none; }
-}
-
+.page-legal a{color:inherit;text-decoration:underline}
