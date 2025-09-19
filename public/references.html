@@ -3,71 +3,134 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>References • COVID Accountability Now</title>
+  <title>References · COVID Accountability</title>
 
-  <!-- Global CSS -->
-  <link rel="stylesheet" href="/assets/site.css?v=8" />
-
-  <!-- Shared JS -->
-  <script src="/assets/js/ux-accessibility.js" defer></script>
-
-  <!-- Page-scoped tweaks (only for this page) -->
-  <style>
-    /* Keep page fixed height on desktop — panels scroll internally */
-    @media (min-width: 980px){
-      html, body { overflow: hidden; height: 100%; }
-    }
-
-    /* Ensure exactly one legal row is centered and consistent */
-    .legal.center { text-align: center; margin: 24px 0 0; }
-    .legal.center a { font: inherit; }  /* inherit size from site defaults (same as other pages) */
-
-    /* If a stray, old legal row remains in deployed HTML, hide it as a guardrail */
-    #references-card + p.small,
-    #references-card + p.legal { display: none !important; }
-  </style>
+  <link rel="stylesheet" href="/assets/site.css?v=12" />
+  <!-- If you have a page-specific CSS, keep it; otherwise site.css covers it -->
 </head>
-<body class="references-page">
-  <a class="skip-to-content" href="#main">Skip to content</a>
-
-  <!-- Header (brand hidden on this page per your request) -->
-  <header class="top">
-    <div class="inner">
-      <div class="brand" aria-hidden="true" style="display:none"></div>
-      <nav aria-label="Main">
-        <a href="/index.html">Home</a>
-        <a href="/about.html">About Us</a>
-        <a href="/our-story.html">Our Story</a>
-        <a href="/why-report.html">Why Report</a>
-        <a href="/who-can-report.html">Who Can Report</a>
-        <a href="/references.html" aria-current="page">References</a>
-        <a href="/donate.html">Donate</a>
-      </nav>
-      <div></div>
-    </div>
+<body class="page page--references">
+  <!-- header/nav include -->
+  <header id="site-header">
+    <!-- your existing header markup -->
   </header>
 
-  <main id="main" class="container">
-    <h1>References</h1>
-    <p class="small">Curated materials that support reporting and accountability.</p>
+  <main id="content" class="container container--lg">
+    <h1 class="page-title">References</h1>
+    <p class="page-subtitle">Curated materials that support reporting and accountability.</p>
 
-    <!-- Panels container: the JS builds the 4 scrollable columns here -->
-    <div class="card" id="references-card">
-      <p data-ref-status>Loading...</p>
-      <div></div>
-    </div>
+    <section class="ref-board" aria-label="Reference categories">
+      <!-- Panel 1 -->
+      <article class="ref-panel">
+        <h2 class="ref-panel__title">General References</h2>
+        <div class="ref-panel__body">
+          <ul class="ref-list">
+            <li>
+              <a href="https://www.firstaidteam.com/..." target="_blank" rel="noopener">First Aid for the USMLE Step 1 — Public Health Sciences: Epidemiology &amp; Biostatistics (p. 260)</a>
+              <div class="ref-meta">McGraw Hill / First Aid · 2022 · 2022</div>
+              <p class="ref-note">Board-review overview of epidemiology and biostatistics concepts used in evidence appraisal.</p>
+            </li>
 
-    <!-- centered legal links (match all other pages) -->
-    <p class="page-legal">
+            <li>
+              <a href="https://doi.org/..." target="_blank" rel="noopener">Relative risk reduction: misinformative measure in clinical trials and COVID-19 vaccine efficacy</a>
+              <div class="ref-meta">Dialogues in Health · 2022</div>
+              <p class="ref-note">Methodology commentary highlighting limitations of relative risk reduction versus absolute measures.</p>
+            </li>
+
+            <li>
+              <a href="https://www.thelancet.com/..." target="_blank" rel="noopener">Misleading Use of Risk Ratios</a>
+              <div class="ref-meta">The Lancet · 2005</div>
+              <p class="ref-note">Letter discussing common pitfalls when interpreting risk ratios in medical research.</p>
+            </li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Panel 2 -->
+      <article class="ref-panel">
+        <h2 class="ref-panel__title">Government &amp; Legal</h2>
+        <div class="ref-panel__body">
+          <ul class="ref-list">
+            <li>
+              <a href="https://www.fda.gov/..." target="_blank" rel="noopener">Communicating Risks &amp; Benefits — Absolute risk, relative risk, and NNT</a>
+              <div class="ref-meta">FDA (Evidence-Based User’s Guide) · 2011</div>
+            </li>
+            <li>
+              <a href="https://www.supremecourt.gov/..." target="_blank" rel="noopener">NFIB v. OSHA (2022) — Supreme Court Opinion</a>
+              <div class="ref-meta">Supreme Court of the United States · 2022</div>
+            </li>
+            <li>
+              <a href="https://www.whitehouse.gov/..." target="_blank" rel="noopener">Fact Sheet: Actions Taken after Public Health Emergency Transition</a>
+              <div class="ref-meta">The White House · 2023-05-09</div>
+            </li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Panel 3 -->
+      <article class="ref-panel">
+        <h2 class="ref-panel__title">Medical Education &amp; Ethics</h2>
+        <div class="ref-panel__body">
+          <ul class="ref-list">
+            <li>
+              <a href="https://www.usmle.org/..." target="_blank" rel="noopener">USMLE® Content Outline — Biostatistics, Epidemiology/Population Health, &amp; Interpretation of the Medical Literature (p. 37)</a>
+              <div class="ref-meta">USMLE / FSMB &amp; NBME · 2024</div>
+            </li>
+            <li>
+              <a href="https://www.usmle.org/..." target="_blank" rel="noopener">USMLE® Content Outline — Social Sciences (p. 39)</a>
+              <div class="ref-meta">USMLE / FSMB &amp; NBME · 2024</div>
+            </li>
+            <li>
+              <a href="https://www.firstaidteam.com/..." target="_blank" rel="noopener">First Aid for the USMLE Step 1 — Public Health Sciences: Ethics (pp. 268–269)</a>
+              <div class="ref-meta">McGraw Hill / First Aid · 2022 · 2022</div>
+            </li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Panel 4 -->
+      <article class="ref-panel">
+        <h2 class="ref-panel__title">Peer-reviewed Literature</h2>
+        <div class="ref-panel__body">
+          <ul class="ref-list">
+            <li>
+              <a href="https://www.nejm.org/..." target="_blank" rel="noopener">Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine</a>
+              <div class="ref-meta">New England Journal of Medicine · 2020</div>
+              <p class="ref-note">Pivotal randomized trial reporting early efficacy and safety outcomes for BNT162b2 (Pfizer-BioNTech).</p>
+            </li>
+          </ul>
+        </div>
+      </article>
+
+      <!-- Panel 5 (bottom-left) -->
+      <article class="ref-panel">
+        <h2 class="ref-panel__title">Preprints &amp; Working Papers</h2>
+        <div class="ref-panel__body">
+          <ul class="ref-list">
+            <li>
+              <a href="https://www.researchgate.net/..." target="_blank" rel="noopener">COVID-19 vaccine-associated mortality in the Southern Hemisphere</a>
+              <div class="ref-meta">ResearchGate (preprint/working paper) · 2023</div>
+            </li>
+            <li>
+              <a href="https://www.researchgate.net/..." target="_blank" rel="noopener">Worldwide Bayesian Causal Impact Analysis of Vaccine Administration (145 Countries)</a>
+              <div class="ref-meta">ResearchGate (preprint/working paper) · 2021</div>
+            </li>
+          </ul>
+        </div>
+      </article>
+    </section>
+
+    <!-- Centered legal links, identical look to other pages -->
+    <div class="legal-links" role="contentinfo">
       <a href="/privacy.html">Privacy</a>
-      &nbsp;·&nbsp;
+      <span> · </span>
       <a href="/disclaimer.html">Disclaimer</a>
-    </p>
+    </div>
   </main>
 
-  <footer style="height:0; padding:0; margin:0; overflow:hidden;"></footer>
+  <!-- footer include (if you render a global footer, keep it after the main gradient) -->
+  <footer id="site-footer"></footer>
 
-  <!-- Build the panels -->
-  <script type="module" src="/assets/js/references-page.js?v=8"></script>
+  <!-- tiny helper to fit the panels so the page itself doesn’t scroll -->
+  <script type="module" src="/assets/js/references-page.js?v=3"></script>
 </body>
 </html>
