@@ -1,8 +1,12 @@
-/* public/assets/js/references-page.js (restored stable)
-   Restores the 'before' layout:
-   - Desktop (>=981px): two rows of cards; last card spans both columns; each card has an internal scroll.
-   - Mobile: natural page scroll, no JS sizing.
-   The code is **scoped** to references.html only (presence of .ref-board).
+/* public/assets/js/references-page.js (final restore)
+   Desktop (>=981px):
+     - Grid has THREE equal rows.
+     - Bottom (5th) card spans both columns and is fully visible.
+     - Page body is locked; each card scrolls internally.
+   Mobile:
+     - Natural page scroll; no forced heights.
+
+   Safe: only runs on references.html (checks for .ref-board).
 */
 (function(){
   const SEL = {
@@ -13,8 +17,8 @@
     header: 'header.top, .site-header, .top, header',
     legal:  '.ref-footerlinks, .page-legal, .legal-links'
   };
-  const DESKTOP_MIN = 981;
 
+  const DESKTOP_MIN = 981;
   const isDesktop = () => window.innerWidth >= DESKTOP_MIN;
   const px = n => `${Math.max(0, Math.floor(n))}px`;
   const h = el => el ? el.getBoundingClientRect().height : 0;
@@ -23,42 +27,46 @@
     const board = document.querySelector(SEL.board);
     if (!board) return;
 
-    // Reset first (important on breakpoint changes)
+    // Reset before measuring (important on breakpoint changes)
     document.body.style.overflow = '';
     board.style.height = '';
     board.querySelectorAll(SEL.panel).forEach(p => p.style.height = '');
     board.querySelectorAll(SEL.scroll).forEach(s => s.style.maxHeight = '');
 
-    if (!isDesktop()) return; // mobile/tablet: let the page scroll normally
+    if (!isDesktop()) return; // mobile/tablet: natural flow
 
-    const gap = parseInt(getComputedStyle(board).gap || '24', 10);
+    const headerH = h(document.querySelector(SEL.header));
+    const legalH  = h(document.querySelector(SEL.legal));
+    const gap     = parseInt(getComputedStyle(board).gap || '24', 10);
+
+    // Total viewport slice we can use for the board
     const available = Math.max(
-      560, // minimum total board height
-      Math.min(
-        920, // cap to avoid comically tall cards on big screens
-        window.innerHeight - h(document.querySelector(SEL.header)) - h(document.querySelector(SEL.legal)) - 24
-      )
+      600,                                      // floor
+      Math.min(1100, window.innerHeight - headerH - legalH - 24) // cap
     );
 
-    // Match the old behavior: page doesn’t scroll; cards scroll inside
+    // *** IMPORTANT: The board has THREE rows on desktop. ***
+    // Solve for uniform row height given 2 gaps between rows.
+    const rowH = Math.floor((available - (gap * 2)) / 3);
+    const boardH = (rowH * 3) + (gap * 2);
+
+    // Lock page scroll; board occupies a fixed viewport slice
     document.body.style.overflow = 'hidden';
-    board.style.height = px(available);
+    board.style.height = px(boardH);
 
-    // Two rows: each row is half the board (minus the grid gap)
-    const rowH = Math.floor((available - gap) / 2);
-
+    // Each card consumes one row worth of height
     board.querySelectorAll(SEL.panel).forEach(panel => {
       panel.style.height = px(rowH);
 
-      const title = panel.querySelector(SEL.title);
-      const scroll = panel.querySelector(SEL.scroll);
-      if (!scroll) return;
+      const title   = panel.querySelector(SEL.title);
+      const scroller= panel.querySelector(SEL.scroll);
+      if (!scroller) return;
 
       const cs = getComputedStyle(panel);
       const chrome = (parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom)) +
                      (title ? title.getBoundingClientRect().height : 0) + 6;
 
-      scroll.style.maxHeight = px(Math.max(140, rowH - chrome));
+      scroller.style.maxHeight = px(Math.max(120, rowH - chrome));
     });
   }
 
@@ -69,7 +77,7 @@
   }
 
   document.addEventListener('DOMContentLoaded', () => {
-    if (!document.querySelector(SEL.board)) return; // only run on references.html
+    if (!document.querySelector(SEL.board)) return; // run only on the References page
     size();
     window.addEventListener('resize', onResize);
     window.addEventListener('orientationchange', onResize);
