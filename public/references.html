@@ -1,88 +1,73 @@
 <!doctype html>
 <html lang="en">
-<script src="/assets/js/ux-accessibility.js" defer></script>
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>References • COVID Accountability</title>
-  <link rel="stylesheet" href="/assets/site.css"/>
-  <link rel="icon" href="/assets/img/favicon.ico"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>References • COVID Accountability Now</title>
+
+  <!-- Global CSS -->
+  <link rel="stylesheet" href="/assets/site.css?v=8" />
+
+  <!-- Shared JS -->
+  <script src="/assets/js/ux-accessibility.js" defer></script>
+
+  <!-- Page-scoped tweaks (only for this page) -->
+  <style>
+    /* Keep page fixed height on desktop — panels scroll internally */
+    @media (min-width: 980px){
+      html, body { overflow: hidden; height: 100%; }
+    }
+
+    /* Ensure exactly one legal row is centered and consistent */
+    .legal.center { text-align: center; margin: 24px 0 0; }
+    .legal.center a { font: inherit; }  /* inherit size from site defaults (same as other pages) */
+
+    /* If a stray, old legal row remains in deployed HTML, hide it as a guardrail */
+    #references-card + p.small,
+    #references-card + p.legal { display: none !important; }
+  </style>
 </head>
+<body class="references-page">
+  <a class="skip-to-content" href="#main">Skip to content</a>
 
-<body class="page page--references">
-  <div id="nav-root"></div>
-  <script src="/assets/nav-include.js" defer></script>
+  <!-- Header (brand hidden on this page per your request) -->
+  <header class="top">
+    <div class="inner">
+      <div class="brand" aria-hidden="true" style="display:none"></div>
+      <nav aria-label="Main">
+        <a href="/index.html">Home</a>
+        <a href="/about.html">About Us</a>
+        <a href="/our-story.html">Our Story</a>
+        <a href="/why-report.html">Why Report</a>
+        <a href="/who-can-report.html">Who Can Report</a>
+        <a href="/references.html" aria-current="page">References</a>
+        <a href="/donate.html">Donate</a>
+      </nav>
+      <div></div>
+    </div>
+  </header>
 
-  <main id="main" class="container" role="main" aria-label="References">
-    <h1 class="page-title">References</h1>
-    <p class="page-subtitle">Curated materials that support reporting and accountability.</p>
+  <main id="main" class="container">
+    <h1>References</h1>
+    <p class="small">Curated materials that support reporting and accountability.</p>
 
-    <section class="ref-board" aria-label="References Board">
-      <article class="ref-panel" aria-labelledby="ref-a">
-        <h2 class="ref-panel__title" id="ref-a">General References</h2>
-        <div class="ref-panel__scroll"><ul class="ref-list" id="ref-list-general"></ul></div>
-      </article>
+    <!-- Panels container: the JS builds the 4 scrollable columns here -->
+    <div class="card" id="references-card">
+      <p data-ref-status>Loading...</p>
+      <div></div>
+    </div>
 
-      <article class="ref-panel" aria-labelledby="ref-b">
-        <h2 class="ref-panel__title" id="ref-b">Government &amp; Legal</h2>
-        <div class="ref-panel__scroll"><ul class="ref-list" id="ref-list-gov"></ul></div>
-      </article>
-
-      <article class="ref-panel" aria-labelledby="ref-c">
-        <h2 class="ref-panel__title" id="ref-c">Medical Education &amp; Ethics</h2>
-        <div class="ref-panel__scroll"><ul class="ref-list" id="ref-list-edu"></ul></div>
-      </article>
-
-      <article class="ref-panel" aria-labelledby="ref-d">
-        <h2 class="ref-panel__title" id="ref-d">Peer-reviewed Literature</h2>
-        <div class="ref-panel__scroll"><ul class="ref-list" id="ref-list-peer"></ul></div>
-      </article>
-
-      <article class="ref-panel" aria-labelledby="ref-e">
-        <h2 class="ref-panel__title" id="ref-e">Preprints &amp; Working Papers</h2>
-        <div class="ref-panel__scroll"><ul class="ref-list" id="ref-list-preprints"></ul></div>
-      </article>
-    </section>
-
-    <p class="page-legal"><a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a></p>
+    <!-- centered legal links (match all other pages) -->
+    <p class="page-legal">
+      <a href="/privacy.html">Privacy</a>
+      &nbsp;·&nbsp;
+      <a href="/disclaimer.html">Disclaimer</a>
+    </p>
   </main>
 
-  <!-- Inline fallback data -->
-  <script>
-    window.REFERENCES_DATA = [
-      {"title":"American College of Physicians Ethics Manual: Seventh Edition","url":"https://www.acpjournals.org/doi/10.7326/M18-2160","source":"Ann Intern Med","year":"2019"},
-      {"title":"AMA Code of Medical Ethics — Opinion 2.1.1 Informed Consent","url":"https://code-medical-ethics.ama-assn.org/ethics-opinions/informed-consent","source":"American Medical Association"},
-      {"title":"AMA Code of Medical Ethics — Opinion 8.3 Physicians’ Responsibilities in Disaster Response & Preparedness","url":"https://code-medical-ethics.ama-assn.org/ethics-opinions/physicians-responsibilities-disaster-response-preparedness","source":"American Medical Association"},
-      {"title":"AHRQ: Communicating Numbers to Your Patients (SHARE Approach Tool 5)","url":"https://www.ahrq.gov/sites/default/files/wysiwyg/professionals/education/curriculum-tools/shareddecisionmaking/tools/tool-5/share-tool5.pdf","source":"AHRQ","year":"2023","category":"gov"},
-      {"title":"ABMS Statement Supporting Role of Medical Professionals in Preventing COVID-19 Misinformation","url":"https://www.abms.org/wp-content/uploads/2021/09/ABMS-Statement-Supporting-Role-of-Medical-Professionals-In-Preventing-COVID-19-Misinformation.pdf","source":"ABMS","year":"2021","category":"gov"},
-      {"title":"Beattie K. Worldwide Bayesian Causal Impact Analysis of Vaccine Administration (145 Countries)","url":"https://doi.org/10.13140/RG.2.2.34214.65605","source":"ResearchGate","year":"2021","category":"preprint"},
-      {"title":"Brown RB. Relative risk reduction: Misinformative measure in clinical trials and COVID-19 vaccine efficacy","url":"https://doi.org/10.1016/j.dialog.2022.100074","source":"Dialogues in Health","year":"2022","category":"peer"},
-      {"title":"Clinical Decision Making & Interpreting the Medical Literature (MKSAP 19)","url":"https://www.acponline.org/featured-products/acp-mksap","source":"American College of Physicians","year":"2024","category":"general"},
-      {"title":"Fact Sheet: Actions After Public Health Emergency Transition","url":"https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/09/fact-sheet-actions-taken-by-the-biden-harris-administration-to-ensure-continued-covid-19-protections-and-surge-preparedness-after-public-health-emergency-transition/","source":"The White House","year":"2023","category":"gov"},
-      {"title":"Fagerlin A, et al. Absolute risk, relative risk, and NNT (Communicating Risks & Benefits)","url":"https://www.fda.gov/media/81597/download","source":"FDA","year":"2011","category":"gov"},
-      {"title":"Final Report on Lessons Learned and the Path Forward","url":"https://oversight.house.gov/release/final-report-covid-select-concludes-2-year-investigation-issues-500-page-final-report-on-lessons-learned-and-the-path-forward/","source":"U.S. House Select Subcommittee","year":"2024","category":"gov"},
-      {"title":"Fraiman J, et al. Serious adverse events of special interest following mRNA COVID-19 vaccination","url":"https://doi.org/10.1016/j.vaccine.2022.08.036","source":"Vaccine","year":"2022","category":"peer"},
-      {"title":"HHS OSG: Impact of Health Misinformation RFI","url":"https://www.federalregister.gov/documents/2022/03/07/2022-04777/impact-of-health-misinformation-in-the-digital-information-environment-in-the-united-states","source":"Federal Register","year":"2022","category":"gov"},
-      {"title":"Kansas v. Pfizer Inc. (Complaint)","url":"https://ag.ks.gov/docs/default-source/documents/2024-06-15-pfizer-complaint-(002).pdf?sfvrsn=eb8bbe1a_8","source":"AG Kansas","year":"2024","category":"gov"},
-      {"title":"NFIB v. OSHA — Supreme Court Opinion","url":"https://www.supremecourt.gov/opinions/21pdf/21a244_hgci.pdf","source":"Supreme Court of the United States","year":"2022","category":"gov"},
-      {"title":"Perlis RH, et al. Trust in Physicians and Hospitals During the COVID-19 Pandemic","url":"https://doi.org/10.1001/jamanetworkopen.2024.24984","source":"JAMA Netw Open","year":"2024","category":"peer"},
-      {"title":"Polack FP, et al. Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine","url":"https://doi.org/10.1056/NEJMoa2034577","source":"N Engl J Med","year":"2020","category":"peer"},
-      {"title":"PREP Act — Questions & Answers","url":"https://aspr.hhs.gov/legal/PREPact/Pages/PREP-Act-Question-and-Answers.aspx","source":"US HHS ASPR","category":"gov"},
-      {"title":"Public Health Sciences: Epidemiology & Biostatistics (First Aid Step 1)","url":"https://archive.org/details/fa-2022/mode/2up","source":"McGraw Hill / First Aid","year":"2022","category":"general"},
-      {"title":"Public Health Sciences: Ethics (First Aid Step 1)","url":"https://archive.org/details/fa-2022/mode/2up","source":"McGraw Hill / First Aid","year":"2022","category":"general"},
-      {"title":"Rancourt D, et al. COVID-19 vaccine-associated mortality in the Southern Hemisphere","url":"https://doi.org/10.13140/RG.2.2.24720.79366","source":"ResearchGate","year":"2023","category":"preprint"},
-      {"title":"Rancourt D, et al. Spatiotemporal variation of excess all-cause mortality in the world during the COVID period","url":"https://correlation-canada.org/covid-excess-mortality-125-countries/","source":"Correlation Research in the Public Interest","year":"2024","category":"preprint"},
-      {"title":"Shared Decision-Making: NICE Guidelines (summary)","url":"https://www.aafp.org/pubs/afp/issues/2022/0800/practice-guidelines-shared-decision-making.html","source":"Am Fam Physician","year":"2022","category":"edu"},
-      {"title":"State of Texas v. Pfizer Inc. (Complaint)","url":"https://www.texasattorneygeneral.gov/sites/default/files/images/press/Pfizer%20Vaccine%20Petition%20Filed.pdf","source":"Texas Attorney General","year":"2023","category":"gov"},
-      {"title":"Stadel B, et al. Misleading Use of Risk Ratios","url":"https://doi.org/10.1016/S0140-6736(05)61024-0","source":"The Lancet","year":"2005","category":"peer"},
-      {"title":"USMLE® Content Outline — Biostatistics, Epidemiology/Population Health & Interpretation of the Medical Literature (p. 37)","url":"https://www.usmle.org/sites/default/files/2022-01/USMLE_Content_Outline_0.pdf#page=37","source":"USMLE / FSMB & NBME","year":"2024","category":"edu"},
-      {"title":"USMLE® Content Outline — Social Sciences (p. 39)","url":"https://www.usmle.org/sites/default/files/2022-01/USMLE_Content_Outline_0.pdf#page=39","source":"USMLE / FSMB & NBME","year":"2024","category":"edu"},
-      {"title":"Vella D. Failure of Care Standard Involving Pfizer BNT162b2 modRNA","url":"https://www.doi.org/10.46766/thegms","source":"G Med Sci","year":"2024","category":"peer"},
-      {"title":"Vella D. Failure of Care Standard Involving Pfizer BNT162b2 modRNA (Podcast page)","url":"https://www.thegms.co/podcasts/care-standard-failure/","source":"GMS Podcasts","year":"2024","category":"peer"},
-      {"title":"White House: Actions After Public Health Emergency (Fact Sheet)","url":"https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/09/fact-sheet-actions-taken-by-the-biden-harris-administration-to-ensure-continued-covid-19-protections-and-surge-preparedness-after-public-health-emergency-transition/","source":"The White House","year":"2023","category":"gov"}
-    ];
-  </script>
+  <footer style="height:0; padding:0; margin:0; overflow:hidden;"></footer>
 
-  <script src="/assets/js/references-page.js" defer></script>
+  <!-- Build the panels -->
+  <script type="module" src="/assets/js/references-page.js?v=8"></script>
 </body>
 </html>
