@@ -278,3 +278,54 @@ main.container > .card:first-of-type .btn + .btn{ margin-left:10px; }
   text-align: center;
   margin: 32px 0;
 }
+
+/* ===== References page layout ===== */
+.page--references .page-title { margin-top: 12px; }
+.page--references .page-subtitle { margin: 6px 0 18px; opacity: .85; }
+
+/* Grid of panels (2 x 2 on wide, collapses gracefully on narrow) */
+.ref-board {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(320px, 1fr));
+  gap: 16px;
+}
+
+/* Card look */
+.ref-panel {
+  background: #fff;
+  border-radius: 14px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.06);
+  padding: 14px 14px 10px;
+  border: 1px solid rgba(0,0,0,.06);
+}
+
+.ref-panel__title {
+  margin: 0 0 8px;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.ref-panel__body {
+  overflow: auto;          /* scroll inside card */
+  padding-right: 6px;      /* leave space for scrollbar so text doesn't jump */
+}
+
+.ref-list { list-style: disc; margin: 0; padding-left: 18px; }
+.ref-list li + li { margin-top: 10px; }
+.ref-meta { font-size: 12px; opacity: .75; }
+.ref-note { margin: 4px 0 0; font-size: 12px; opacity: .9; }
+
+/* Centered legal links exactly like the other pages */
+.legal-links {
+  text-align: center;
+  margin: 16px 0 6px;
+  font-size: 14px;
+}
+.legal-links a { color: var(--link, #1a56db); text-decoration: none; }
+.legal-links a:hover { text-decoration: underline; }
+
+/* Responsive: drop to single column at <= 900px */
+@media (max-width: 900px) {
+  .ref-board { grid-template-columns: 1fr; }
+  .ref-panel__body { max-height: 320px !important; } /* keep it usable on small screens */
+}
