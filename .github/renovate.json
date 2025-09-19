@@ -1,0 +1,25 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":maintainLockFilesWeekly",
+    ":disableRateLimiting"
+  ],
+  "rangeStrategy": "bump",
+  "packageRules": [
+    {
+      "matchManagers": ["npm"],
+      "groupName": "npm (minor/patch)",
+      "matchUpdateTypes": ["minor", "patch"],
+      "stabilityDays": 3,
+      "automerge": false
+    },
+    {
+      "matchManagers": ["github-actions"],
+      "groupName": "GitHub Actions",
+      "stabilityDays": 3,
+      "automerge": false
+    }
+  ]
+}
