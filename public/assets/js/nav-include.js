@@ -1,4 +1,4 @@
-// public/assets/js/nav-include.js
+// public/assets/nav-include.js
 (function () {
   const el = document.getElementById('nav-root');
   if (!el) return;
