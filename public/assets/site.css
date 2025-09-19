@@ -40,179 +40,29 @@ p{line-height:1.55}
 .small{color:var(--muted);font-size:13px}
 
 /* ---------- Links (avoid purple visited) ---------- */
-:root{ --link-color: var(--accent); --link-hover: var(--accent-hover); }
-a:link, a:visited{ color: var(--link-color); text-decoration: underline; }
-a:hover, a:focus{ color: var(--link-hover); text-decoration-thickness: 2px; }
+:root{ --link-color: var(--accent); --link-visited: var(--accent); }
+a{ color:var(--link-color); text-decoration:underline; text-underline-offset:2px; }
+a:visited{ color:var(--link-visited); }
 
-/* ---------- Top navigation (“hotbar”) ---------- */
-.top{
-  position:sticky; top:0; z-index:40;
-  background:rgba(255,255,255,.72);
-  backdrop-filter:saturate(120%) blur(8px);
-  box-shadow:0 4px 16px rgba(2,6,23,.06);
-}
+/* ---------- Header / nav ---------- */
+header.top{ position:sticky; top:0; z-index:10; background:transparent; }
+.wrap{max-width:1100px;margin:0 auto;padding:0 20px}
+.nav-wrap{display:flex;align-items:center;justify-content:space-between;padding:14px 0}
+.nav__list{list-style:none;display:flex;gap:18px;margin:0;padding:0}
+.nav__list a{text-decoration:none;color:inherit}
+.nav__list .is-active a,[aria-current="page"]{font-weight:600;text-decoration:underline}
 
-/* Center the nav across the bar (brand left, nav centered, spacer right) */
-.top .inner{
-  display:grid;
-  grid-template-columns: 1fr auto 1fr;
-  align-items:center;
-  max-width:1100px; margin:0 auto; padding:10px 16px;
-}
-.top .brand{justify-self:start; display:flex; align-items:center; gap:10px}
-.top .brand .title{font-weight:700; letter-spacing:.2px}
+/* ---------- Page titles ---------- */
+.page-title{margin:18px 0 6px}
+.page-subtitle{color:var(--muted);margin:0 0 16px}
 
-/* nav links – spacing + subtle glow underline on hover/active */
-.top .inner nav{grid-column:2; justify-self:center; display:flex; gap:28px; align-items:center}
-.top .inner a{
-  position:relative;
-  display:inline-flex; align-items:center; gap:8px;
-  padding:8px 10px;
-  border-radius:10px;
-  text-decoration:none;           /* override global underline for nav */
-  color:var(--text);               /* nav uses text color, not blue */
-  transition:background .2s ease, color .2s ease, text-shadow .2s ease;
-}
-.top .inner a:hover{background:rgba(2,6,23,.04)}
-.top .inner a:hover::after,
-.top .inner a[aria-current="page"]::after{
-  content:"";
-  position:absolute; left:8px; right:8px; bottom:4px;
-  height:3px; border-radius:3px;
-  background:linear-gradient(90deg, #2a6cf0 0%, #6aa8ff 100%);
-  box-shadow:0 4px 12px rgba(37,99,235,.35);
-}
-
-/* ---------- Layout helpers ---------- */
-main.container{display:block}
-.grid{display:grid; gap:var(--gap)}
-.grid-2{grid-template-columns:1fr}
-.grid-3{grid-template-columns:1fr}
-.grid-4{grid-template-columns:1fr 1fr}
-@media (min-width:900px){
-  .grid-2{grid-template-columns:1fr 1fr}
-  .grid-3{grid-template-columns:1fr 1fr 1fr}
-  .grid-4{grid-template-columns:1fr 1fr 1fr 1fr}
-}
-
-/* ---------- Cards ---------- */
-.card{
-  background:var(--panel);
-  border-radius:var(--radius);
-  padding:16px;
-  box-shadow:var(--shadow);
-  border:1px solid rgba(2,6,23,.06);
-}
-.card h3{margin-top:0}
-.card .h4{font-size:17px;margin:0 0 6px}
-
-/* Reference grid spacing */
-.grid.grid-2 .card{margin-bottom:6px}
-
-/* ---------- Tiles (portal) ---------- */
-.tile{
-  display:block; padding:16px;
-  border:1px solid rgba(2,6,23,.06);
-  background:var(--panel);
-  border-radius:var(--radius);
-  box-shadow:var(--shadow);
-  text-decoration:none; color:inherit;
-}
-.tile:hover{filter:brightness(1.02)}
-.tile .title{display:block; font-weight:700; margin-bottom:4px}
-.tile .host{display:block; color:var(--muted); font-size:13px}
-
-/* ---------- Buttons ---------- */
-.btn,
-.btn:link,
-.btn:visited{
-  display:inline-block;
-  padding:10px 14px;
-  border-radius:10px;
-  border:none;
-  cursor:pointer;
-  font-weight:600;
-  color:#fff;
-  background:linear-gradient(180deg, var(--accent-2), var(--accent));
-  box-shadow:0 6px 16px rgba(37,99,235,.20);
-  text-decoration:none;
-  transition:filter .15s ease, color .15s ease, background .15s ease;
-}
-.btn:hover, .btn:focus{
-  filter:brightness(1.05);
-  outline:2px solid transparent;
-  outline-offset:2px;
-}
-.btn:disabled{opacity:.6; cursor:not-allowed}
-.btn-outline{
-  color:var(--accent);
-  background:#fff;
-  border:1px solid rgba(37,99,235,.35);
-  box-shadow:0 4px 10px rgba(2,6,23,.06);
-}
-.btn-outline:hover{background:rgba(37,99,235,.05)}
-
-/* ---------- Forms ---------- */
-label{display:block; font-size:13px; color:var(--muted); margin-bottom:8px}
-select,input[type="text"],input[type="email"],textarea{
-  width:100%; padding:10px 12px;
-  border-radius:10px;
-  border:1px solid rgba(2,6,23,.15);
-  background:#fff; color:var(--text);
-}
-
-/* ---------- Footer ---------- */
-footer{
-  text-align:center;
-  padding:40px 0 50px;
-  color:var(--muted);
-}
-footer a:link, footer a:visited{
-  color:var(--link-color);
-  margin:0 8px;
-}
-
-/* ---------- Accessibility helpers ---------- */
-.visually-hidden{
-  position:absolute !important; height:1px; width:1px; overflow:hidden;
-  clip:rect(1px,1px,1px,1px); white-space:nowrap;
-}
-
-/* Skip link visible only on focus */
-.skip-to-content {
-  position: absolute;
-  left: -9999px;
-  top: auto;
-  width: 1px;
-  height: 1px;
-  overflow: hidden;
-  clip: rect(1px, 1px, 1px, 1px);
-  white-space: nowrap;
-}
-.skip-to-content:focus {
-  clip: auto;
-  width: auto;
-  height: auto;
-  left: 0.5rem;
-  top: 0.5rem;
-  padding: 0.5rem 0.75rem;
-  z-index: 1000;
-  background: #fff;
-  border-radius: 0.375rem;
-  box-shadow: 0 1px 2px rgba(0,0,0,.1);
-  outline: 2px solid #000;
-}
-
-/* ===================================================================
-   REFERENCES PAGE — SINGLE, FINAL BLOCK
-   (4 scrollable cards; header visible; no page scroll on desktop)
-   =================================================================== */
+/* ---------- References page only ---------- */
 
 /* Keep header visible on this page */
 .page--references header.top,
 .page--references .site-header { position: relative; z-index: 10; }
 
-/* The grid that holds the four cards */
+/* The grid that holds the four cards (+ one bottom full-width card) */
 .ref-board{
   display:grid;
   grid-template-columns:repeat(2, minmax(340px,1fr));
@@ -221,16 +71,21 @@ footer a:link, footer a:visited{
   overflow:hidden;   /* scrolling happens inside the cards (JS sizes them) */
 }
 
+/* Make the 5th card (last) span full width on desktop */
+@media (min-width:981px){
+  .ref-board > .ref-panel:last-child{ grid-column:1 / -1; }
+}
+
 /* Card shell (visuals match the “good” screenshot) */
 .ref-panel{
-  background:#fff;
+  background:var(--panel);
   border-radius:12px;
   border:1px solid rgba(19,36,63,.08);
-  box-shadow:0 10px 22px rgba(19,36,63,.08), 0 2px 6px rgba(19,36,63,.06);
+  box-shadow:var(--shadow);
   padding:14px 16px;
   display:flex;
   flex-direction:column;
-  min-height:260px;
+  min-height:220px;
 }
 
 /* Title */
@@ -247,7 +102,7 @@ footer a:link, footer a:visited{
   padding-right:8px; /* space for scrollbar */
 }
 
-/* Lists/spacing */
+/* Lists spacing */
 .ref-panel__list,
 .ref-list{
   list-style:disc;
@@ -264,19 +119,15 @@ footer a:link, footer a:visited{
 .page-legal,
 .ref-footerlinks{
   text-align:center;
-  margin:16px 0 8px;
-  font-size:14px;
+  margin:16px 0 28px;
+  color:var(--muted);
 }
 .legal-links a,
 .page-legal a,
 .ref-footerlinks a{
-  color:var(--link-color);
+  color:inherit;
   text-decoration:underline;
-}
-.legal-links a:hover,
-.page-legal a:hover,
-.ref-footerlinks a:hover{
-  color:var(--link-hover);
+  text-underline-offset:2px;
   text-decoration-thickness:2px;
 }
 
@@ -291,3 +142,4 @@ footer a:link, footer a:visited{
   .page--references{ overflow:auto; }
   .ref-panel__scroll{ max-height:none; }
 }
+
