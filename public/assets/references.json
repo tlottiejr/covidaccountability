@@ -1,213 +1,206 @@
 [
   {
-    "title": "USMLE® Content Outline — Biostatistics, Epidemiology/Population Health, & Interpretation of the Medical Literature (p. 37)",
-    "url": "https://www.usmle.org/sites/default/files/2022-01/USMLE_Content_Outline_0.pdf",
+    "title": "American College of Physicians Ethics Manual: Seventh Edition",
+    "url": "https://www.acpjournals.org/doi/10.7326/M18-2160",
+    "source": "Ann Intern Med",
+    "year": "2019"
+  },
+  {
+    "title": "AMA Code of Medical Ethics — Opinion 2.1.1 Informed Consent",
+    "url": "https://code-medical-ethics.ama-assn.org/ethics-opinions/informed-consent",
+    "source": "American Medical Association"
+  },
+  {
+    "title": "AMA Code of Medical Ethics — Opinion 8.3 Physicians’ Responsibilities in Disaster Response & Preparedness",
+    "url": "https://code-medical-ethics.ama-assn.org/ethics-opinions/physicians-responsibilities-disaster-response-preparedness",
+    "source": "American Medical Association"
+  },
+  {
+    "title": "AHRQ: Communicating Numbers to Your Patients (SHARE Approach Tool 5)",
+    "url": "https://www.ahrq.gov/sites/default/files/wysiwyg/professionals/education/curriculum-tools/shareddecisionmaking/tools/tool-5/share-tool5.pdf",
+    "source": "AHRQ",
+    "year": "2023",
+    "category": "gov"
+  },
+  {
+    "title": "ABMS Statement Supporting Role of Medical Professionals in Preventing COVID-19 Misinformation",
+    "url": "https://www.abms.org/wp-content/uploads/2021/09/ABMS-Statement-Supporting-Role-of-Medical-Professionals-In-Preventing-COVID-19-Misinformation.pdf",
+    "source": "ABMS",
+    "year": "2021",
+    "category": "gov"
+  },
+  {
+    "title": "Beattie K. Worldwide Bayesian Causal Impact Analysis of Vaccine Administration (145 Countries)",
+    "url": "https://doi.org/10.13140/RG.2.2.34214.65605",
+    "source": "ResearchGate",
+    "year": "2021",
+    "category": "preprint"
+  },
+  {
+    "title": "Brown RB. Relative risk reduction: Misinformative measure in clinical trials and COVID-19 vaccine efficacy",
+    "url": "https://doi.org/10.1016/j.dialog.2022.100074",
+    "source": "Dialogues in Health",
+    "year": "2022",
+    "category": "peer"
+  },
+  {
+    "title": "Clinical Decision Making & Interpreting the Medical Literature (MKSAP 19)",
+    "url": "https://www.acponline.org/featured-products/acp-mksap",
+    "source": "American College of Physicians",
+    "year": "2024",
+    "category": "general"
+  },
+  {
+    "title": "Fact Sheet: Actions After Public Health Emergency Transition",
+    "url": "https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/09/fact-sheet-actions-taken-by-the-biden-harris-administration-to-ensure-continued-covid-19-protections-and-surge-preparedness-after-public-health-emergency-transition/",
+    "source": "The White House",
+    "year": "2023",
+    "category": "gov"
+  },
+  {
+    "title": "Fagerlin A, et al. Absolute risk, relative risk, and NNT (Communicating Risks & Benefits)",
+    "url": "https://www.fda.gov/media/81597/download",
+    "source": "FDA",
+    "year": "2011",
+    "category": "gov"
+  },
+  {
+    "title": "Final Report on Lessons Learned and the Path Forward",
+    "url": "https://oversight.house.gov/release/final-report-covid-select-concludes-2-year-investigation-issues-500-page-final-report-on-lessons-learned-and-the-path-forward/",
+    "source": "U.S. House Select Subcommittee",
+    "year": "2024",
+    "category": "gov"
+  },
+  {
+    "title": "Fraiman J, et al. Serious adverse events of special interest following mRNA COVID-19 vaccination",
+    "url": "https://doi.org/10.1016/j.vaccine.2022.08.036",
+    "source": "Vaccine",
+    "year": "2022",
+    "category": "peer"
+  },
+  {
+    "title": "HHS OSG: Impact of Health Misinformation RFI",
+    "url": "https://www.federalregister.gov/documents/2022/03/07/2022-04777/impact-of-health-misinformation-in-the-digital-information-environment-in-the-united-states",
+    "source": "Federal Register",
+    "year": "2022",
+    "category": "gov"
+  },
+  {
+    "title": "Kansas v. Pfizer Inc. (Complaint)",
+    "url": "https://ag.ks.gov/docs/default-source/documents/2024-06-15-pfizer-complaint-(002).pdf?sfvrsn=eb8bbe1a_8",
+    "source": "AG Kansas",
+    "year": "2024",
+    "category": "gov"
+  },
+  {
+    "title": "NFIB v. OSHA — Supreme Court Opinion",
+    "url": "https://www.supremecourt.gov/opinions/21pdf/21a244_hgci.pdf",
+    "source": "Supreme Court of the United States",
+    "year": "2022",
+    "category": "gov"
+  },
+  {
+    "title": "Perlis RH, et al. Trust in Physicians and Hospitals During the COVID-19 Pandemic",
+    "url": "https://doi.org/10.1001/jamanetworkopen.2024.24984",
+    "source": "JAMA Netw Open",
+    "year": "2024",
+    "category": "peer"
+  },
+  {
+    "title": "Polack FP, et al. Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine",
+    "url": "https://doi.org/10.1056/NEJMoa2034577",
+    "source": "N Engl J Med",
+    "year": "2020",
+    "category": "peer"
+  },
+  {
+    "title": "PREP Act — Questions & Answers",
+    "url": "https://aspr.hhs.gov/legal/PREPact/Pages/PREP-Act-Question-and-Answers.aspx",
+    "source": "US HHS ASPR",
+    "category": "gov"
+  },
+  {
+    "title": "Public Health Sciences: Epidemiology & Biostatistics (First Aid Step 1)",
+    "url": "https://archive.org/details/fa-2022/mode/2up",
+    "source": "McGraw Hill / First Aid",
+    "year": "2022",
+    "category": "general"
+  },
+  {
+    "title": "Public Health Sciences: Ethics (First Aid Step 1)",
+    "url": "https://archive.org/details/fa-2022/mode/2up",
+    "source": "McGraw Hill / First Aid",
+    "year": "2022",
+    "category": "general"
+  },
+  {
+    "title": "Rancourt D, et al. COVID-19 vaccine-associated mortality in the Southern Hemisphere",
+    "url": "https://doi.org/10.13140/RG.2.2.24720.79366",
+    "source": "ResearchGate",
+    "year": "2023",
+    "category": "preprint"
+  },
+  {
+    "title": "Rancourt D, et al. Spatiotemporal variation of excess all-cause mortality in the world during the COVID period",
+    "url": "https://correlation-canada.org/covid-excess-mortality-125-countries/",
+    "source": "Correlation Research in the Public Interest",
+    "year": "2024",
+    "category": "preprint"
+  },
+  {
+    "title": "Shared Decision-Making: NICE Guidelines (summary)",
+    "url": "https://www.aafp.org/pubs/afp/issues/2022/0800/practice-guidelines-shared-decision-making.html",
+    "source": "Am Fam Physician",
+    "year": "2022",
+    "category": "edu"
+  },
+  {
+    "title": "State of Texas v. Pfizer Inc. (Complaint)",
+    "url": "https://www.texasattorneygeneral.gov/sites/default/files/images/press/Pfizer%20Vaccine%20Petition%20Filed.pdf",
+    "source": "Texas Attorney General",
+    "year": "2023",
+    "category": "gov"
+  },
+  {
+    "title": "Stadel B, et al. Misleading Use of Risk Ratios",
+    "url": "https://doi.org/10.1016/S0140-6736(05)61024-0",
+    "source": "The Lancet",
+    "year": "2005",
+    "category": "peer"
+  },
+  {
+    "title": "USMLE® Content Outline — Biostatistics, Epidemiology/Population Health & Interpretation of the Medical Literature (p. 37)",
+    "url": "https://www.usmle.org/sites/default/files/2022-01/USMLE_Content_Outline_0.pdf#page=37",
     "source": "USMLE / FSMB & NBME",
-    "date": "2024",
-    "description": "Official outline describing tested competencies in statistics, population health, and interpreting the medical literature."
+    "year": "2024",
+    "category": "edu"
   },
   {
     "title": "USMLE® Content Outline — Social Sciences (p. 39)",
-    "url": "https://www.usmle.org/sites/default/files/2022-01/USMLE_Content_Outline_0.pdf",
+    "url": "https://www.usmle.org/sites/default/files/2022-01/USMLE_Content_Outline_0.pdf#page=39",
     "source": "USMLE / FSMB & NBME",
-    "date": "2024",
-    "description": "Defines examined social science domains for medical practice, including communication and ethics."
+    "year": "2024",
+    "category": "edu"
   },
   {
-    "title": "First Aid for the USMLE Step 1 — Public Health Sciences: Epidemiology & Biostatistics (p. 260)",
-    "url": "https://archive.org/details/fa-2022/mode/2up",
-    "source": "McGraw Hill / First Aid 2022",
-    "date": "2022",
-    "description": "Board-review overview of epidemiology and biostatistics concepts used in evidence appraisal."
+    "title": "Vella D. Failure of Care Standard Involving Pfizer BNT162b2 modRNA",
+    "url": "https://www.doi.org/10.46766/thegms",
+    "source": "G Med Sci",
+    "year": "2024",
+    "category": "peer"
   },
   {
-    "title": "First Aid for the USMLE Step 1 — Public Health Sciences: Ethics (pp. 268–269)",
-    "url": "https://archive.org/details/fa-2022/mode/2up",
-    "source": "McGraw Hill / First Aid 2022",
-    "date": "2022",
-    "description": "Concise reference on medical ethics principles relevant to patient care and reporting."
+    "title": "Vella D. Failure of Care Standard Involving Pfizer BNT162b2 modRNA (Podcast page)",
+    "url": "https://www.thegms.co/podcasts/care-standard-failure/",
+    "source": "GMS Podcasts",
+    "year": "2024",
+    "category": "peer"
   },
   {
-    "title": "Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine",
-    "url": "https://www.nejm.org/doi/full/10.1056/NEJMoa2034577",
-    "source": "New England Journal of Medicine",
-    "date": "2020",
-    "description": "Pivotal randomized trial reporting early efficacy and safety outcomes for BNT162b2 (Pfizer-BioNTech)."
-  },
-  {
-    "title": "Relative risk reduction: misinformative measure in clinical trials and COVID-19 vaccine efficacy",
-    "url": "https://doi.org/10.1016/j.dialog.2022.100074",
-    "source": "Dialogues in Health",
-    "date": "2022",
-    "description": "Methodology commentary highlighting limitations of relative risk reduction versus absolute measures."
-  },
-  {
-    "title": "Misleading Use of Risk Ratios",
-    "url": "https://doi.org/10.1016/S0140-6736(05)61024-0",
-    "source": "The Lancet",
-    "date": "2005",
-    "description": "Letter discussing common pitfalls when interpreting risk ratios in medical research."
-  },
-  {
-    "title": "Serious adverse events of special interest following mRNA COVID-19 vaccination in randomized trials in adults",
-    "url": "https://doi.org/10.1016/j.vaccine.2022.08.036",
-    "source": "Vaccine",
-    "date": "2022",
-    "description": "Re-analysis of serious adverse events of special interest (SAEs) from mRNA vaccine RCTs."
-  },
-  {
-    "title": "MKSAP 19 — Interpreting & Applying the Medical Literature",
-    "url": "https://www.acponline.org/featured-products/acp-mksap",
-    "source": "American College of Physicians",
-    "date": "2024",
-    "description": "Continuing education program covering evidence appraisal and clinical decision-making."
-  },
-  {
-    "title": "Shared Decision-Making: NICE Guidelines summary",
-    "url": "https://www.aafp.org/pubs/afp/issues/2022/0800/practice-guidelines-shared-decision-making.html",
-    "source": "American Family Physician",
-    "date": "2022",
-    "description": "Primary-care oriented summary of NICE guidance on shared decision-making in clinical encounters."
-  },
-  {
-    "title": "Communicating Risks & Benefits — Absolute risk, relative risk, and NNT",
-    "url": "https://www.fda.gov/media/81597/download",
-    "source": "FDA (Evidence-Based User’s Guide)",
-    "date": "2011",
-    "description": "Practical guide on presenting quantitative risk information to patients, including NNT/NNH."
-  },
-  {
-    "title": "The SHARE Approach — Communicating Numbers to Your Patients (Tool 5)",
-    "url": "https://www.ahrq.gov/sites/default/files/wysiwyg/professionals/education/curriculum-tools/shareddecisionmaking/tools/tool-5/share-tool5.pdf",
-    "source": "AHRQ",
-    "date": "2023",
-    "description": "Provider reference for communicating probabilities and uncertainty in shared decision-making."
-  },
-  {
-    "title": "ACP Ethics Manual — Seventh Edition",
-    "url": "https://www.acpjournals.org/doi/10.7326/M18-2160",
-    "source": "Annals of Internal Medicine",
-    "date": "2019",
-    "description": "Comprehensive ethical framework for internists, including consent, confidentiality, and professionalism."
-  },
-  {
-    "title": "AMA Code of Medical Ethics — Opinion 2.1.1: Informed Consent",
-    "url": "https://code-medical-ethics.ama-assn.org/ethics-opinions/informed-consent",
-    "source": "American Medical Association",
-    "date": "Current",
-    "description": "Foundational policy on informed consent and shared decision-making responsibilities."
-  },
-  {
-    "title": "PREP Act — Questions and Answers",
-    "url": "https://aspr.hhs.gov/legal/PREPact/Pages/PREP-Act-Question-and-Answers.aspx",
-    "source": "US HHS / ASPR",
-    "date": "Current",
-    "description": "Official Q&A on liability protections and scope under the Public Readiness and Emergency Preparedness Act."
-  },
-  {
-    "title": "AMA — Physicians’ Responsibilities in Disaster Response & Preparedness (Opinion 8.3)",
-    "url": "https://code-medical-ethics.ama-assn.org/ethics-opinions/physicians-responsibilities-disaster-response-preparedness",
-    "source": "American Medical Association",
-    "date": "Current",
-    "description": "Ethics guidance for physician roles during disasters and public health emergencies."
-  },
-  {
-    "title": "State of Texas v. Pfizer Inc. — Petition",
-    "url": "https://www.texasattorneygeneral.gov/sites/default/files/images/press/Pfizer%20Vaccine%20Petition%20Filed.pdf",
-    "source": "Texas Attorney General",
-    "date": "2023",
-    "description": "State complaint filed in Lubbock County District Court regarding representations about COVID-19 vaccines."
-  },
-  {
-    "title": "State of Kansas v. Pfizer Inc. — Complaint",
-    "url": "https://ag.ks.gov/docs/default-source/documents/2024-06-15-pfizer-complaint-(002).pdf?sfvrsn=eb8bbe1a_8",
-    "source": "Kansas Attorney General",
-    "date": "2024-06-15",
-    "description": "State complaint filed in Thomas County District Court concerning COVID-19 vaccine claims."
-  },
-  {
-    "title": "ABMS Statement on Preventing COVID-19 Misinformation",
-    "url": "https://www.abms.org/wp-content/uploads/2021/09/ABMS-Statement-Supporting-Role-of-Medical-Professionals-In-Preventing-COVID-19-Misinformation.pdf",
-    "source": "American Board of Medical Specialties",
-    "date": "2021-09-13",
-    "description": "Professional statement supporting physicians’ role in addressing COVID-19 misinformation."
-  },
-  {
-    "title": "Request for Information — Impact of Health Misinformation (COVID-19)",
-    "url": "https://www.federalregister.gov/documents/2022/03/07/2022-04777/impact-of-health-misinformation-in-the-digital-information-environment-in-the-united-states",
-    "source": "U.S. Office of the Surgeon General",
-    "date": "2022-03-07",
-    "description": "Federal RFI seeking input on the scope and impact of health misinformation in digital environments."
-  },
-  {
-    "title": "FSMB — Professional Expectations Regarding Medical Misinformation and Disinformation",
-    "url": "https://www.fsmb.org/siteassets/advocacy/policies/ethics-committee-report-misinformation-april-2022-final.pdf",
-    "source": "Federation of State Medical Boards",
-    "date": "2022-04",
-    "description": "Policy statement outlining expectations for licensees related to misinformation and disinformation."
-  },
-  {
-    "title": "AMA adopts policy to address public health disinformation",
-    "url": "https://www.ama-assn.org/press-center/press-releases/ama-adopts-new-policy-aimed-addressing-public-health-disinformation",
-    "source": "American Medical Association",
-    "date": "2022-06-13",
-    "description": "Press release summarizing AMA policy actions on public health disinformation."
-  },
-  {
-    "title": "Spatiotemporal variation of excess all-cause mortality during the COVID period",
-    "url": "https://correlation-canada.org/covid-excess-mortality-125-countries/",
-    "source": "Correlation Research in the Public Interest",
-    "date": "2024",
-    "description": "Analysis of excess all-cause mortality across 125 countries during the COVID period."
-  },
-  {
-    "title": "COVID-19 vaccine-associated mortality in the Southern Hemisphere",
-    "url": "https://www.researchgate.net/publication/372394612_COVID-19_vaccine-associated_mortality_in_the_Southern_Hemisphere",
-    "source": "ResearchGate (preprint/working paper)",
-    "date": "2023",
-    "description": "Working paper exploring associations between vaccination and mortality in Southern Hemisphere data."
-  },
-  {
-    "title": "Worldwide Bayesian Causal Impact Analysis of Vaccine Administration (145 Countries)",
-    "url": "https://www.researchgate.net/publication/349272103_Worldwide_Bayesian_Causal_Impact_Analysis_of_Vaccine_Administration_on_Deaths_and_Cases_Associated_with_COVID-19_A_BigData_Analysis_of_145_Countries",
-    "source": "ResearchGate (preprint/working paper)",
-    "date": "2021",
-    "description": "Large-scale causal impact analysis exploring relationships between vaccination, cases, and deaths."
-  },
-  {
-    "title": "Trust in Physicians and Hospitals During the COVID-19 Pandemic — 50-State Survey",
-    "url": "https://doi.org/10.1001/jamanetworkopen.2024.24984",
-    "source": "JAMA Network Open",
-    "date": "2024",
-    "description": "National survey assessing public trust in clinicians and hospitals during the pandemic."
-  },
-  {
-    "title": "NFIB v. OSHA (2022) — Supreme Court Opinion",
-    "url": "https://www.supremecourt.gov/opinions/21pdf/21a244_hgci.pdf",
-    "source": "Supreme Court of the United States",
-    "date": "2022",
-    "description": "SCOTUS opinion addressing OSHA’s COVID-19 vaccination/testing ETS."
-  },
-  {
-    "title": "Fact Sheet: Actions Taken after Public Health Emergency Transition",
+    "title": "White House: Actions After Public Health Emergency (Fact Sheet)",
     "url": "https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/09/fact-sheet-actions-taken-by-the-biden-harris-administration-to-ensure-continued-covid-19-protections-and-surge-preparedness-after-public-health-emergency-transition/",
     "source": "The White House",
-    "date": "2023-05-09",
-    "description": "Summary of federal actions to maintain protections and readiness after the PHE transition."
-  },
-  {
-    "title": "Final Report — COVID Select Committee (Lessons Learned & Path Forward)",
-    "url": "https://oversight.house.gov/release/final-report-covid-select-concludes-2-year-investigation-issues-500-page-final-report-on-lessons-learned-and-the-path-forward/",
-    "source": "U.S. House Committee on Oversight and Accountability",
-    "date": "2024-12-02",
-    "description": "Release announcing a 500-page final report with findings and recommendations."
-  },
-  {
-    "title": "Failure of Care Standard Involving Pfizer BNT162b2 modRNA",
-    "url": "https://www.thegms.co/podcasts/care-standard-failure/",
-    "source": "G Med Sci",
-    "date": "2024",
-    "description": "Podcast excerpt discussing alleged failures of care standards.",
-    "notes": "Podcast page: https://www.thegms.co/podcasts/care-standard-failure/"
+    "year": "2023",
+    "category": "gov"
   }
 ]
