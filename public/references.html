@@ -5,31 +5,28 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>References • COVID Accountability Now</title>
 
-  <!-- Global styles -->
-  <link rel="stylesheet" href="/assets/site.css?v=6" />
+  <!-- Global CSS -->
+  <link rel="stylesheet" href="/assets/site.css?v=7" />
 
-  <!-- Optional includes -->
+  <!-- Shared JS (if any) -->
   <script src="/assets/nav-include.js" defer></script>
   <script src="/assets/js/ux-accessibility.js" defer></script>
 
-  <!-- Page-scoped: guarantee no page scroll on desktop; center the legal row -->
+  <!-- Page-scoped tweaks only -->
   <style>
-    body.references-page .card { margin-bottom: 8px; }
-    body.references-page .ref-board { margin-bottom: 0; }
-
-    /* Center legal links and keep global look (font/size/color from .small and <a>) */
-    body.references-page .legal-links { text-align: center; margin: 14px 0 0; }
-
-    /* Prevent page scroll on desktop (panels scroll internally) */
+    /* Keep page height fixed (panels scroll internally) on desktop */
     @media (min-width: 980px){
       html, body { overflow: hidden; height: 100%; }
     }
+
+    /* Center the single legal row, same appearance as other pages */
+    .legal-links { text-align: center; margin: 18px 0 0; }
   </style>
 </head>
 <body class="references-page">
   <a class="skip-to-content" href="#main">Skip to content</a>
 
-  <!-- Header without site name -->
+  <!-- Header (site name hidden on this page as requested) -->
   <header class="top">
     <div class="inner">
       <div class="brand" aria-hidden="true" style="display:none"></div>
@@ -50,13 +47,13 @@
     <h1>References</h1>
     <p class="small">Curated materials that support reporting and accountability.</p>
 
-    <!-- The cards render here (4 scrollable panels) -->
+    <!-- The 4 scrollable reference panels render into this card -->
     <div class="card" id="references-card">
       <p data-ref-status>Loading...</p>
       <div></div>
     </div>
 
-    <!-- SINGLE, centered legal row (same style as other pages) -->
+    <!-- SINGLE, CENTERED legal row (same size/color as other pages via .small) -->
     <p class="small legal-links">
       <a href="/privacy.html">Privacy</a>
       &nbsp;·&nbsp;
@@ -64,10 +61,10 @@
     </p>
   </main>
 
-  <!-- Footer inert to avoid extra height -->
+  <!-- No footer height so nothing shifts the gradient -->
   <footer style="height:0; padding:0; margin:0; overflow:hidden;"></footer>
 
-  <!-- Renderer with strict viewport clamp -->
-  <script type="module" src="/assets/js/references-page.js?v=6"></script>
+  <!-- Page script that builds the 4 panels -->
+  <script type="module" src="/assets/js/references-page.js?v=7"></script>
 </body>
 </html>
