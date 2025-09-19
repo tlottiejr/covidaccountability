@@ -1,143 +1,182 @@
-/* public/assets/js/references-page.js */
-(function(){
-  const lists = {
-    general:  document.getElementById('ref-list-general'),
-    gov:      document.getElementById('ref-list-gov'),
-    edu:      document.getElementById('ref-list-edu'),
-    peer:     document.getElementById('ref-list-peer'),
-    preprint: document.getElementById('ref-list-preprints'),
-  };
+// public/assets/js/references-page.js (v5)
+// - Renders 4 scrollable panels.
+// - Strong viewport clamp so desktop never scrolls.
+// - Mobile keeps normal page scrolling.
 
-  const CATEGORY = {
-    GENERAL: 'general',
-    GOV: 'gov',
-    EDU: 'edu',
-    PEER: 'peer',
-    PREPRINT: 'preprint'
-  };
+const $ = (s, r = document) => r.querySelector(s);
 
-  function inferCategory(item){
-    if (item.category) return item.category;
-    const t = (item.title||'').toLowerCase();
-    const host = (()=>{ try { return new URL(item.url).host.toLowerCase(); } catch(_) { return ''; } })();
+/* ---------- locate status/mount ----------- */
+function findStatusAndMount() {
+  let status =
+    $("[data-ref-status]") ||
+    $("#references-status") ||
+    $(".references .status") ||
+    $(".status");
 
-    if (/whitehouse\.gov|supremecourt\.gov|hhs\.gov|aspr\.hhs\.gov|federalregister\.gov|ag\.ks\.gov|attorneygeneral|texasattorneygeneral/.test(host)) return CATEGORY.GOV;
-    if (/fact sheet|supreme court|complaint|prep act|questions & answers|misinformation|disinformation|final report/.test(t)) return CATEGORY.GOV;
-
-    if (/usmle|first aid|mksap|ethics manual|ama code|shared decision/.test(t)) return CATEGORY.EDU;
-    if (/acpjournals\.org|ama-assn\.org|aafp\.org|usmle\.org/.test(host)) return CATEGORY.EDU;
-
-    if (/nejm|lancet|vaccine|jamanet|dialogues in health|g med sci/.test(t)) return CATEGORY.PEER;
-    if (/nejm\.org|thelancet\.com|jamanetwork|sciencedirect\.com|doi\.org|thegms\./.test(host)) return CATEGORY.PEER;
-
-    if (/researchgate|correlation-canada/.test(host)) return CATEGORY.PREPRINT;
-
-    return CATEGORY.GENERAL;
-  }
-
-  function renderItem(item){
-    const metaBits = [];
-    if (item.source) metaBits.push(item.source);
-    if (item.year)   metaBits.push(item.year);
-    const meta = metaBits.length ? `<br/><span class="ref-meta">${metaBits.join(' · ')}</span>` : '';
-    const note = item.description ? `<p class="ref-note">${item.description}</p>` : '';
-    return `<li><a href="${item.url}" target="_blank" rel="noopener">${item.title}</a>${meta}${note}</li>`;
-  }
-
-  function sortAlpha(a,b){ return a.title.localeCompare(b.title, undefined, {sensitivity:'base'}); }
-
-  async function loadData(){
-    if (Array.isArray(window.REFERENCES_DATA) && window.REFERENCES_DATA.length) return window.REFERENCES_DATA;
-    try{
-      const resp = await fetch('/assets/references.json', {cache:'no-store'});
-      if (!resp.ok) throw new Error('fetch failed');
-      return await resp.json();
-    }catch(e){
-      console.warn('References data not found.', e);
-      return [];
+  if (!status) {
+    const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT);
+    while (tw.nextNode()) {
+      const txt = (tw.currentNode.textContent || "").trim().toLowerCase();
+      if (txt === "loading..." || txt === "loading…") { status = tw.currentNode; break; }
     }
   }
 
-  async function init(){
-    const all = await loadData();
-
-    const buckets = {
-      [CATEGORY.GENERAL]: [],
-      [CATEGORY.GOV]: [],
-      [CATEGORY.EDU]: [],
-      [CATEGORY.PEER]: [],
-      [CATEGORY.PREPRINT]: [],
-    };
-
-    all.forEach(it => {
-      const c = inferCategory(it);
-      buckets[c].push(it);
-    });
-
-    Object.keys(buckets).forEach(k => buckets[k].sort(sortAlpha));
-
-    const map = {
-      [CATEGORY.GENERAL]: lists.general,
-      [CATEGORY.GOV]: lists.gov,
-      [CATEGORY.EDU]: lists.edu,
-      [CATEGORY.PEER]: lists.peer,
-      [CATEGORY.PREPRINT]: lists.preprint
-    };
-    Object.keys(map).forEach(k => {
-      map[k].innerHTML = buckets[k].map(renderItem).join('');
-    });
-
-    size();
+  let mount = null;
+  if (status) {
+    if (status.nextElementSibling && status.nextElementSibling.children.length === 0) {
+      mount = status.nextElementSibling; // empty sibling after status
+    } else {
+      mount = status.parentElement;      // render in the same card
+    }
   }
+  return { status, mount };
+}
 
-  // sizing (3 equal rows on desktop)
-  const DESKTOP_MIN = 981;
-  const isDesktop = () => window.innerWidth >= DESKTOP_MIN;
-  const px = n => `${Math.max(0, Math.floor(n))}px`;
-  const h = el => el ? el.getBoundingClientRect().height : 0;
+/* ---------------------- utils ------------------------ */
+async function getJSON(url) {
+  const res = await fetch(url, { cache: "no-store" });
+  if (!res.ok) throw new Error(`Failed ${url}: ${res.status}`);
+  return await res.json();
+}
+const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
+const px = (n) => `${Math.round(n)}px`;
 
-  function size(){
-    const board = document.querySelector('.ref-board');
-    if (!board) return;
-
-    document.body.style.overflow='';
-    board.style.height='';
-    board.querySelectorAll('.ref-panel').forEach(p=>p.style.height='');
-    board.querySelectorAll('.ref-panel__scroll').forEach(s=>s.style.maxHeight='');
-
-    if (!isDesktop()) return;
-
-    const header = document.querySelector('header.top, .site-header, header');
-    const footer = document.querySelector('.page-legal, .legal-links, .ref-footerlinks');
-    const headerH = h(header);
-    const footerH = h(footer);
-    const gap     = parseInt(getComputedStyle(board).gap || '24', 10);
-
-    const available = Math.max(600, Math.min(1100, window.innerHeight - headerH - footerH - 24));
-    const rowH = Math.floor((available - (gap * 2)) / 3);
-    const boardH = (rowH * 3) + (gap * 2);
-
-    document.body.style.overflow = 'hidden';
-    board.style.height = px(boardH);
-
-    board.querySelectorAll('.ref-panel').forEach(panel => {
-      panel.style.height = px(rowH);
-      const title = panel.querySelector('.ref-panel__title');
-      const scroll = panel.querySelector('.ref-panel__scroll');
-      if (!scroll) return;
-      const cs = getComputedStyle(panel);
-      const chrome = (parseFloat(cs.paddingTop)+parseFloat(cs.paddingBottom)) +
-                     (title ? title.getBoundingClientRect().height : 0) + 6;
-      scroll.style.maxHeight = px(Math.max(120, rowH - chrome));
-    });
-  }
-
-  let raf=0; const onResize=()=>{cancelAnimationFrame(raf); raf=requestAnimationFrame(size);};
-
-  document.addEventListener('DOMContentLoaded', ()=>{
-    init();
-    window.addEventListener('resize', onResize);
-    window.addEventListener('orientationchange', onResize);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(onResize).catch(()=>{});
+/* ---------------- data -> dom helpers ---------------- */
+function el(tag, attrs = {}, ...children) {
+  const node = document.createElement(tag);
+  Object.entries(attrs).forEach(([k, v]) => {
+    if (v == null) return;
+    if (k === "class") node.className = v;
+    else if (k === "html") node.innerHTML = v;
+    else node.setAttribute(k, v);
   });
+  children.forEach(c => {
+    if (c == null) return;
+    if (typeof c === "string") node.appendChild(document.createTextNode(c));
+    else node.appendChild(c);
+  });
+  return node;
+}
+
+function byTitle(a, b) {
+  const A = (a.title || "").toLowerCase();
+  const B = (b.title || "").toLowerCase();
+  return A.localeCompare(B);
+}
+
+function pill(text) {
+  return el("span", { class: "pill" }, text);
+}
+
+function itemRow(it) {
+  const meta = [];
+  if (it.source) meta.push(it.source);
+  if (it.year || it.date) meta.push(it.year || it.date);
+
+  return el("li", { class: "ref-item" },
+    el("a", { href: it.url, target: "_blank", rel: "noopener" }, it.title || it.url),
+    meta.length ? el("div", { class: "ref-meta" }, meta.join(" · ")) : null,
+    it.description ? el("p", { class: "ref-note" }, it.description) : null,
+  );
+}
+
+/* ------------- render layout (4 panels) --------------- */
+function renderPanels(mount, buckets) {
+  const wrap = el("div", { class: "ref-board" },
+    panel("General", buckets.general),
+    panel("Government / Legal", buckets.gov),
+    panel("Education / Ethics", buckets.edu),
+    panel("Peer-reviewed & Preprints", [...buckets.peer, ...buckets.preprint]),
+  );
+  mount.innerHTML = "";
+  mount.appendChild(wrap);
+  return wrap;
+
+  function panel(title, items) {
+    return el("section", { class: "ref-panel" },
+      el("div", { class: "ref-panel__title" }, title),
+      el("div", { class: "ref-panel__scroll" },
+        el("ul", { class: "ref-list" }, ...items.map(itemRow))
+      )
+    );
+  }
+}
+
+/* ------------- sizing (desktop fixed height) ---------- */
+function sizeBoard(board) {
+  if (!board) return;
+  const header = $("header.top");
+  const footer = $(".page-legal") || $("footer");
+  const headerH = header ? header.getBoundingClientRect().height : 0;
+  const footerH = footer ? footer.getBoundingClientRect().height : 0;
+
+  const gap = 12;
+  const available = clamp(window.innerHeight - headerH - footerH - 24, 580, 1100);
+  const rowH = Math.floor((available - (gap * 2)) / 3);
+  const boardH = (rowH * 3) + (gap * 2);
+
+  document.body.style.overflow = window.innerWidth >= 980 ? "hidden" : "";
+  board.style.height = px(boardH);
+
+  board.querySelectorAll(".ref-panel").forEach(panel => {
+    panel.style.height = px(rowH);
+    const title = panel.querySelector(".ref-panel__title");
+    const scroll = panel.querySelector(".ref-panel__scroll");
+    const cs = getComputedStyle(panel);
+    const chrome = (parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom)) +
+                   (title ? title.getBoundingClientRect().height : 0) + 6;
+    scroll.style.maxHeight = px(Math.max(120, rowH - chrome));
+  });
+}
+
+/* ----------------------- main ------------------------- */
+(async function main() {
+  const { status, mount } = findStatusAndMount();
+  if (!mount) return;
+
+  try {
+    const rows = await getJSON("/assets/references.json");
+    const buckets = {
+      general:   [],
+      gov:       [],
+      edu:       [],
+      peer:      [],
+      preprint:  []
+    };
+
+    const infer = (it) => {
+      const t = (it.title || "").toLowerCase();
+      const host = (() => { try { return new URL(it.url).host.toLowerCase(); } catch { return ""; } })();
+
+      if (/whitehouse|supremecourt|hhs\.gov|cdc\.gov|fda\.gov|gov/.test(host)) return "gov";
+      if (/fact sheet|supreme court|complaint|prep act|attorney general|final report/.test(t)) return "gov";
+
+      if (/usmle|ethics manual|ama code|aafp|shared decision/.test(t)) return "edu";
+      if (/acpjournals|ama-assn|aafp|usmle/.test(host)) return "edu";
+
+      if (/nejm|lancet|jama|g med sci|dialogues in health|vaccine/.test(t)) return "peer";
+      if (/nejm\.org|thelancet\.com|jamanetwork|sciencedirect|doi\.org|thegms/.test(host)) return "peer";
+
+      if (/researchgate|correlation-canada/.test(host)) return "preprint";
+
+      return "general";
+    };
+
+    rows.forEach(r => (buckets[infer(r)] || buckets.general).push(r));
+    Object.keys(buckets).forEach(k => buckets[k].sort(byTitle));
+
+    if (status) status.remove();
+    const board = renderPanels(mount, buckets);
+    sizeBoard(board);
+
+    let raf = 0;
+    const onResize = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => sizeBoard(board)); };
+    window.addEventListener("resize", onResize);
+    window.addEventListener("orientationchange", onResize);
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(onResize).catch(()=>{});
+  } catch (e) {
+    if (status) status.textContent = "Failed to load references.";
+    console.warn(e);
+  }
 })();
+
