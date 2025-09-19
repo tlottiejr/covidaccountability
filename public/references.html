@@ -1,81 +1,73 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>References • COVID Accountability</title>
-  <link rel="stylesheet" href="/assets/site.css"/>
-  <link rel="icon" href="/assets/img/favicon.ico"/>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>References • COVID Accountability Now</title>
+
+  <!-- Global CSS -->
+  <link rel="stylesheet" href="/assets/site.css?v=8" />
+
+  <!-- Shared JS -->
   <script src="/assets/js/ux-accessibility.js" defer></script>
+
+  <!-- Page-scoped tweaks (only for this page) -->
+  <style>
+    /* Keep page fixed height on desktop — panels scroll internally */
+    @media (min-width: 980px){
+      html, body { overflow: hidden; height: 100%; }
+    }
+
+    /* Ensure exactly one legal row is centered and consistent */
+    .legal.center { text-align: center; margin: 24px 0 0; }
+    .legal.center a { font: inherit; }  /* inherit size from site defaults (same as other pages) */
+
+    /* If a stray, old legal row remains in deployed HTML, hide it as a guardrail */
+    #references-card + p.small,
+    #references-card + p.legal { display: none !important; }
+  </style>
 </head>
+<body class="references-page">
+  <a class="skip-to-content" href="#main">Skip to content</a>
 
-<body class="page page--references">
-  <!-- Shared navbar (same pattern as all other pages) -->
-  <div id="nav-root"></div>
-  <script src="/assets/nav-include.js" defer></script>
+  <!-- Header (brand hidden on this page per your request) -->
+  <header class="top">
+    <div class="inner">
+      <div class="brand" aria-hidden="true" style="display:none"></div>
+      <nav aria-label="Main">
+        <a href="/index.html">Home</a>
+        <a href="/about.html">About Us</a>
+        <a href="/our-story.html">Our Story</a>
+        <a href="/why-report.html">Why Report</a>
+        <a href="/who-can-report.html">Who Can Report</a>
+        <a href="/references.html" aria-current="page">References</a>
+        <a href="/donate.html">Donate</a>
+      </nav>
+      <div></div>
+    </div>
+  </header>
 
-  <main id="main" class="container" role="main" aria-label="References">
-    <h1 class="page-title">References</h1>
-    <p class="page-subtitle">Curated materials that support reporting and accountability.</p>
+  <main id="main" class="container">
+    <h1>References</h1>
+    <p class="small">Curated materials that support reporting and accountability.</p>
 
-    <!-- References board (static markup preserved so we don't touch content) -->
-    <section class="ref-board" aria-label="References Board">
-      <!-- General -->
-      <article class="ref-panel" aria-labelledby="ref-general">
-        <h2 id="ref-general" class="ref-panel__title">General References</h2>
-        <div class="ref-panel__scroll">
-          <ul class="ref-list">
-            <!-- keep your current list items exactly as in your live file -->
-          </ul>
-        </div>
-      </article>
+    <!-- Panels container: the JS builds the 4 scrollable columns here -->
+    <div class="card" id="references-card">
+      <p data-ref-status>Loading...</p>
+      <div></div>
+    </div>
 
-      <!-- Government & Legal -->
-      <article class="ref-panel" aria-labelledby="ref-gov">
-        <h2 id="ref-gov" class="ref-panel__title">Government &amp; Legal</h2>
-        <div class="ref-panel__scroll">
-          <ul class="ref-list">
-            <!-- keep your current list items exactly as in your live file -->
-          </ul>
-        </div>
-      </article>
-
-      <!-- Medical Education & Ethics -->
-      <article class="ref-panel" aria-labelledby="ref-edu">
-        <h2 id="ref-edu" class="ref-panel__title">Medical Education &amp; Ethics</h2>
-        <div class="ref-panel__scroll">
-          <ul class="ref-list">
-            <!-- keep your current list items exactly as in your live file -->
-          </ul>
-        </div>
-      </article>
-
-      <!-- Peer-reviewed Literature -->
-      <article class="ref-panel" aria-labelledby="ref-peer">
-        <h2 id="ref-peer" class="ref-panel__title">Peer-reviewed Literature</h2>
-        <div class="ref-panel__scroll">
-          <ul class="ref-list">
-            <!-- keep your current list items exactly as in your live file -->
-          </ul>
-        </div>
-      </article>
-
-      <!-- Preprints & Working Papers -->
-      <article class="ref-panel" aria-labelledby="ref-preprint">
-        <h2 id="ref-preprint" class="ref-panel__title">Preprints &amp; Working Papers</h2>
-        <div class="ref-panel__scroll">
-          <ul class="ref-list">
-            <!-- keep your current list items exactly as in your live file -->
-          </ul>
-        </div>
-      </article>
-    </section>
-
+    <!-- centered legal links (match all other pages) -->
     <p class="page-legal">
       <a href="/privacy.html">Privacy</a>
       &nbsp;·&nbsp;
       <a href="/disclaimer.html">Disclaimer</a>
     </p>
   </main>
+
+  <footer style="height:0; padding:0; margin:0; overflow:hidden;"></footer>
+
+  <!-- Build the panels -->
+  <script type="module" src="/assets/js/references-page.js?v=8"></script>
 </body>
 </html>
