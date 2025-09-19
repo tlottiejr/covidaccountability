@@ -243,3 +243,23 @@ main.container > .card:first-of-type .btn + .btn{ margin-left:10px; }
   box-shadow: 0 1px 2px rgba(0,0,0,.1);
   outline: 2px solid #000;
 }
+
+/* References page layout (light and scoped) */
+.ref-cat { margin-top: 2rem; margin-bottom: 0.5rem; }
+
+.ref-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(320px, 1fr));
+  gap: 1.25rem 2rem;
+}
+
+.ref-grid .ref-col {
+  margin: 0;
+  padding-left: 1.25rem; /* keep bullets */
+}
+
+@media (max-width: 900px) {
+  .ref-grid {
+    grid-template-columns: 1fr; /* collapse to single column on small screens */
+  }
+}
