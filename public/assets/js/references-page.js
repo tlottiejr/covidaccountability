@@ -1,10 +1,11 @@
-// public/assets/js/references-page.js
-// Four scrollable panels sized to fit inside the first gradient.
-// Adds a strict viewport clamp so the page never needs to scroll on desktop.
+// public/assets/js/references-page.js (v5)
+// - Renders 4 scrollable panels.
+// - Strong viewport clamp so desktop never scrolls.
+// - Mobile keeps normal page scrolling.
 
 const $ = (s, r = document) => r.querySelector(s);
 
-/* ---------- find the existing "Loading..." card & mount ----------- */
+/* ---------- locate status/mount ----------- */
 function findStatusAndMount() {
   let status =
     $("[data-ref-status]") ||
@@ -31,7 +32,7 @@ function findStatusAndMount() {
   return { status, mount };
 }
 
-/* ---------------------- small util helpers ------------------------ */
+/* ---------------------- utils ------------------------ */
 async function getJSON(url) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`${url} -> ${res.status}`);
@@ -55,7 +56,7 @@ function el(tag, attrs = {}, kids = []) {
   return n;
 }
 
-/* ---------------------- hide "Last checked" ----------------------- */
+/* ---------------- hide "Last checked" safety ---------------- */
 function hideLastChecked() {
   const cand = [
     $("[data-ref-lastchecked]"),
@@ -64,7 +65,6 @@ function hideLastChecked() {
   ].find(Boolean);
   if (cand) (cand.closest("p,div,span") || cand).style.display = "none";
 
-  // fallback textual match
   const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_TEXT);
   while (tw.nextNode()) {
     const s = (tw.currentNode.nodeValue || "").trim().toLowerCase();
@@ -76,7 +76,7 @@ function hideLastChecked() {
   }
 }
 
-/* ----------------- grouping (explicit or inferred) ---------------- */
+/* ---------------- grouping ---------------- */
 function inferCategory(item) {
   if (item.category) return item.category;
 
@@ -115,52 +115,53 @@ function groupByCategory(items) {
   });
 }
 
-/* ------------------------ dynamic sizing -------------------------- */
+/* ---------------- dynamic sizing + clamp ---------------- */
 function baseTargetHeight(board) {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
 
   const topOffset = board.getBoundingClientRect().top;
 
-  // Reserve space for gradient + the legal links + a bit of air
-  const legal = document.querySelector('.footer-legal, .small a[href="/privacy.html"]')?.parentElement;
+  // Height of legal links within gradient
+  const legal = document.querySelector('.legal-links');
   const legalH = legal ? legal.getBoundingClientRect().height : 18;
 
+  // Reserve room for gradient + legals + small buffer
   const RESERVE = 240 + Math.ceil(legalH * 1.2);
 
   let target = Math.floor(vh - topOffset - RESERVE);
 
-  // Sane clamps
-  const MIN = 180;   // ~11.25rem
-  const MAX = 340;   // ~21.25rem
+  // Clamp per viewport
+  const MIN = 170;   // floor
+  const MAX = 330;   // ceiling
   target = Math.max(MIN, Math.min(MAX, target));
 
-  if (vw > 1400) target = Math.min(MAX, target + 6);
-  if (vw < 1100) target = Math.max(MIN, target - 6);
+  if (vw > 1400) target = Math.min(MAX, target + 4);
+  if (vw < 1100) target = Math.max(MIN, target - 8);
 
   return target;
 }
 
-function applyHeights(px) {
+function setPanelHeights(px) {
   document.querySelectorAll(".ref-panel__scroll").forEach(sc => {
     sc.style.maxHeight = `${px}px`;
   });
 }
 
-/* Strict clamp: shrink until the page fits the viewport (desktop) */
+/* STRICT clamp: shrink until the page fits the viewport (desktop only) */
 function clampToViewport() {
-  if (window.matchMedia("(max-width: 979px)").matches) return; // allow mobile scroll
+  if (window.matchMedia("(max-width: 979px)").matches) return; // allow mobile page scroll
   const root = document.scrollingElement;
   let tries = 0;
 
-  while (root.scrollHeight > window.innerHeight && tries < 6) {
+  while (root.scrollHeight > window.innerHeight && tries < 10) {
     tries++;
     const panels = [...document.querySelectorAll(".ref-panel__scroll")];
     if (!panels.length) break;
 
     const current = parseInt(getComputedStyle(panels[0]).maxHeight || "0", 10) || 280;
-    const next = Math.max(150, current - 12); // step down gently, hard floor 150px
-    applyHeights(next);
+    const next = Math.max(140, current - 16); // stronger step and lower floor
+    setPanelHeights(next);
   }
 }
 
@@ -168,7 +169,7 @@ function sizePanels() {
   const board = document.querySelector(".ref-board");
   if (!board) return;
   const target = baseTargetHeight(board);
-  applyHeights(target);
+  setPanelHeights(target);
   requestAnimationFrame(clampToViewport);
 }
 
@@ -180,7 +181,7 @@ function onResizeThrottled() {
   };
 }
 
-/* ------------------------------ render ---------------------------- */
+/* ---------------- render ---------------- */
 function renderPanel(category, items) {
   const panel = el("section", { class: "ref-panel", "aria-label": category });
   panel.appendChild(el("h2", { class: "ref-panel__title" }, category));
@@ -243,3 +244,4 @@ if (document.readyState === "loading") {
 } else {
   render();
 }
+
