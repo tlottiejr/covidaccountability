@@ -6,24 +6,40 @@
   <title>References • COVID Accountability Now</title>
 
   <!-- Global styles (cache-busted) -->
-  <link rel="stylesheet" href="/assets/site.css?v=2" />
-  <!-- Your nav/partials + a11y helpers -->
+  <link rel="stylesheet" href="/assets/site.css?v=3" />
+
+  <!-- Keep your existing include (if present it can overwrite the static header) -->
   <script src="/assets/nav-include.js" defer></script>
   <script src="/assets/js/ux-accessibility.js" defer></script>
 </head>
 <body>
   <a class="skip-to-content" href="#main">Skip to content</a>
 
-  <!-- Header is populated by nav-include.js -->
-  <header></header>
+  <!-- Static header/nav so the bar always shows even without JS -->
+  <header class="top">
+    <div class="inner">
+      <div class="brand">
+        <span class="title">COVID Accountability Now</span>
+      </div>
+      <nav aria-label="Main">
+        <a href="/index.html">Home</a>
+        <a href="/about.html">About Us</a>
+        <a href="/our-story.html">Our Story</a>
+        <a href="/why-report.html">Why Report</a>
+        <a href="/who-can-report.html">Who Can Report</a>
+        <a href="/references.html" aria-current="page">References</a>
+        <a href="/donate.html">Donate</a>
+      </nav>
+      <div></div>
+    </div>
+  </header>
 
   <main id="main" class="container">
     <h1>References</h1>
     <p class="small">Curated materials that support reporting and accountability.</p>
 
-    <!-- Card wrapper: JS renders panels inside this.
-         Keep a visible status line the JS can detect and replace. -->
-    <div class="card">
+    <!-- Card wrapper: JS renders the 4 panels inside this. -->
+    <div class="card" id="references-card">
       <p data-ref-status>Loading...</p>
       <div></div>
     </div>
@@ -34,7 +50,7 @@
     <a href="/disclaimer.html">Disclaimer</a>
   </footer>
 
-  <!-- Sprint 11 renderer (cache-busted). Must be type="module". -->
-  <script type="module" src="/assets/js/references-page.js?v=2"></script>
+  <!-- Sprint 11 renderer with viewport clamp -->
+  <script type="module" src="/assets/js/references-page.js?v=3"></script>
 </body>
 </html>
