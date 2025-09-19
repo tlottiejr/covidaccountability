@@ -1,74 +1,75 @@
 // public/assets/js/references-page.js
-// Fits the 4 references panels so the page itself doesn't scroll (desktop).
-// It ONLY uses existing classes already in your repo: .ref-board, .ref-panel, .ref-panel__scroll
+// Final layout fitter for References panels.
 
-(function () {
-  // Run only on /references (with or without trailing slash or query)
-  var onRefs = /\/references(?:\/|$|\?)/i.test(location.pathname + location.search);
-  if (!onRefs) return;
+function isMobile() {
+  return window.matchMedia('(max-width:980px)').matches;
+}
 
-  function fit() {
-    var board = document.querySelector('.ref-board');
-    if (!board) return;
+function fitReferencePanels() {
+  const board = document.querySelector('.ref-board');
+  if (!board) return;
 
-    // Try to detect your sticky header height (.top) and the legal links row
-    var header = document.querySelector('header.top');
-    var legal  = document.querySelector('.legal-links, .page-legal');
+  const scrollAreas = board.querySelectorAll('.ref-panel__scroll');
 
-    var vh       = window.innerHeight;
-    var headerH  = header ? header.offsetHeight : 64;
-    var legalH   = legal  ? legal.offsetHeight  : 28;
-    var pad      = 48;        // breathing room inside the gradient section
-    var rowGap   = 16;        // must match CSS grid gap between rows
-    var titlePad = 20;        // padding inside each card around the title
+  // Mobile: normal page flow & scrolling.
+  if (isMobile()) {
+    document.documentElement.style.overflowY = 'auto';
+    document.body.style.overflowY = 'auto';
+    scrollAreas.forEach(el => {
+      const panel = el.closest('.ref-panel');
+      if (panel) panel.style.height = '';
+      el.style.maxHeight = '';
+    });
+    return;
+  }
 
-    // Total height available for the grid (2 rows)
-    var gridH = vh - headerH - legalH - pad;
-    if (gridH < 320) gridH = Math.floor(vh * 0.7); // safety lower bound
+  // Desktop: lock page scroll so we don't get the white blip.
+  document.documentElement.style.overflowY = 'hidden';
+  document.body.style.overflowY = 'hidden';
 
-    // Two rows on desktop; one column on narrow via CSS breakpoint
-    var oneCol = window.matchMedia('(max-width: 980px)').matches;
+  // Compute max card height available in the viewport.
+  const boardRect = board.getBoundingClientRect();
 
-    // Get all scroll areas (your markup already uses .ref-panel__scroll)
-    var scrollAreas = Array.from(document.querySelectorAll('.ref-panel__scroll'));
-    if (!scrollAreas.length) return;
+  // Reserve space for the footer/legal links if present.
+  const legal = document.querySelector('.page-legal, .legal-links');
+  const legalReserve = legal ? (legal.getBoundingClientRect().height + 24) : 40;
 
-    if (oneCol) {
-      // Mobile: let page scroll naturally; don't force heights
-      scrollAreas.forEach(function (el) { el.style.maxHeight = ''; });
-      return;
-    }
+  // Extra breathing room under the grid.
+  const bottomGap = 12;
 
-    // Desktop: two rows, subtract a single row gap
-    var perRow = (gridH - rowGap) / 2;
+  const viewport = window.innerHeight;
+  const maxPanelHeight = Math.max(
+    240,
+    viewport - boardRect.top - legalReserve - bottomGap
+  );
 
-    // Compute per-card body height = rowHeight - titleHeight - padding
-    scrollAreas.forEach(function (el) {
-      var panel  = el.closest('.ref-panel') || el.parentElement;
-      var title  = panel ? panel.querySelector('.ref-panel__title, h2') : null;
-      var tH     = title ? title.offsetHeight : 28;
-      var maxH   = Math.max(160, Math.floor(perRow - tH - titlePad));
-      el.style.maxHeight = maxH + 'px';
-      // Ensure it's scrollable
-      el.style.overflow = 'auto';
+  scrollAreas.forEach(el => {
+    const panel = el.closest('.ref-panel');
+    if (!panel) return;
+
+    // Set the panel’s overall height.
+    panel.style.height = `${maxPanelHeight}px`;
+
+    // Calculate how tall the inner scroll area can be (panel minus title/padding).
+    const panelStyle = getComputedStyle(panel);
+    const paddingTop = parseFloat(panelStyle.paddingTop) || 0;
+    const paddingBottom = parseFloat(panelStyle.paddingBottom) || 0;
+
+    // Sum siblings' heights (title, etc.)
+    let siblingsHeight = 0;
+    panel.childNodes.forEach(node => {
+      if (node.nodeType === 1 && node !== el) {
+        const r = node.getBoundingClientRect();
+        siblingsHeight += r.height;
+      }
     });
 
-    // Guard: clamp once more if the page still overflows by a hair
-    var diff = document.scrollingElement.scrollHeight - window.innerHeight;
-    if (diff > 0) {
-      var step = Math.ceil(diff / scrollAreas.length) + 4;
-      scrollAreas.forEach(function (el) {
-        var cur = parseInt(getComputedStyle(el).maxHeight || '0', 10) || 280;
-        el.style.maxHeight = Math.max(140, cur - step) + 'px';
-      });
-    }
-  }
+    const inner = maxPanelHeight - siblingsHeight - paddingTop - paddingBottom;
+    el.style.maxHeight = `${Math.max(inner, 120)}px`;
+  });
+}
 
-  function onReady(cb) {
-    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', cb);
-    else cb();
-  }
-
-  onReady(fit);
-  window.addEventListener('resize', fit);
-})();
+// Run on ready + resize
+function ready(fn){ document.readyState !== 'loading' ? fn() : document.addEventListener('DOMContentLoaded', fn); }
+ready(fitReferencePanels);
+window.addEventListener('resize', () => { requestAnimationFrame(fitReferencePanels); });
