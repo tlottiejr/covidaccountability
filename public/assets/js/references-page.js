@@ -1,4 +1,4 @@
-// public/assets/js/references-page.js — v7.2 (height/spacing tuned to match target)
+// public/assets/js/references-page.js — v7.3 (aligned to site CSS/classes)
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -24,6 +24,10 @@ function findStatusAndMount() {
     } else {
       mount = status.parentElement;
     }
+  }
+  // Fallback for this page (no visible status element): render into #ref-board
+  if (!mount) {
+    mount = $("#ref-board") || $(".ref-board") || $("#references-card") || $("#main");
   }
   return { status, mount };
 }
@@ -54,7 +58,20 @@ function el(tag, attrs = {}, ...children) {
 function byTitle(a, b) {
   const A = (a.title || "").toLowerCase();
   const B = (b.title || "").toLowerCase();
-  return A.localeCompare(B);
+  return A < B ? -1 : A > B ? 1 : 0;
+}
+
+function normalize(row) {
+  if (!row || typeof row !== "object") return null;
+  return {
+    title: row.title || row.name || "",
+    url: row.url || row.href || "",
+    source: row.source || row.publisher || row.org || "",
+    year: row.year || (row.date ? String(row.date).slice(0, 4) : ""),
+    date: row.date || "",
+    description: row.description || row.note || "",
+    category: row.category || row.cat || "",
+  };
 }
 
 function itemRow(it) {
@@ -62,10 +79,10 @@ function itemRow(it) {
   if (it.source) meta.push(it.source);
   if (it.year || it.date) meta.push(it.year || it.date);
 
-  return el("li", { class: "ref-item" },
+  return el("li", { class: "ref-panel__item" },
     el("a", { href: it.url, target: "_blank", rel: "noopener" }, it.title || it.url),
-    meta.length ? el("div", { class: "ref-meta" }, meta.join(" · ")) : null,
-    it.description ? el("p", { class: "ref-note" }, it.description) : null,
+    meta.length ? el("div", { class: "small" }, meta.join(" · ")) : null,
+    it.description ? el("p", { class: "ref-panel__desc" }, it.description) : null,
   );
 }
 
@@ -90,12 +107,23 @@ function assignCategory(it) {
   const host = (() => { try { return new URL(it.url).host.toLowerCase(); } catch { return ""; } })();
   if (/\.gov\b|whitehouse|supremecourt|federalregister|house\.gov/.test(host) ||
       /supreme court|federal register|congressional|fact sheet|attorney general/.test(t)) return "gov";
-  if (/usmle|ethic|code of medical|first aid|acp|ama|annals/.test(t) ||
-      /ama-assn|acpjournals|mheducation|annals\.org|usmle|nbme/.test(host)) return "edu";
-  if (/nejm|lancet|jama|dialogues in health|vaccine|trial|efficacy/.test(t) ||
-      /nejm\.org|thelancet\.com|jamanetwork|sciencedirect|doi\.org|thegms/.test(host)) return "peer";
-  if (/researchgate|preprint|working paper/.test(host + " " + t)) return "preprint";
+  if (/nejm|jama|lancet|bmj|nature|science|medrxiv|researchgate/.test(host) ||
+      /randomized|efficacy|trial|meta-analysis|review/.test(t)) return "peer";
   return "general";
+}
+
+function bucketize(rows) {
+  const buckets = { general: [], gov: [], edu: [], peer: [], preprint: [] };
+  rows.forEach(r => {
+    const it = normalize(r);
+    if (!it || !it.url) return;
+    const cat = assignCategory(it);
+    buckets[cat].push(it);
+  });
+  for (const k of Object.keys(buckets)) {
+    buckets[k].sort(byTitle);
+  }
+  return buckets;
 }
 
 function renderPanels(mount, order, buckets) {
@@ -108,9 +136,9 @@ function renderPanels(mount, order, buckets) {
     const items = (buckets[key] || []).slice();
     wrap.appendChild(
       el("section", { class: "ref-panel" },
-        el("div", { class: "ref-panel__title" }, conf.title),
+        el("h3", {}, conf.title),
         el("div", { class: "ref-panel__scroll" },
-          el("ul", { class: "ref-list" }, ...items.map(itemRow))
+          el("ul", { class: "ref-panel__list" }, ...items.map(itemRow))
         )
       )
     );
@@ -137,7 +165,7 @@ function sizeBoard(board) {
     return;
   }
 
-  // Tuned to the target screenshot: 3 rows with generous card height
+  // 3 rows with generous card height (matches “good” screenshot)
   const paddingAround = 32;
   const avail = clamp(window.innerHeight - headerH - footerH - paddingAround, 640, 1400);
   const rowGap = 20;
@@ -148,31 +176,24 @@ function sizeBoard(board) {
 
   board.querySelectorAll(".ref-panel").forEach(panel => {
     panel.style.height = px(rowH);
-
-    const title = panel.querySelector(".ref-panel__title");
+    const title = panel.querySelector("h3");
     const scroll = panel.querySelector(".ref-panel__scroll");
-    const cs = getComputedStyle(panel);
-    const chrome =
-      parseFloat(cs.paddingTop) + parseFloat(cs.paddingBottom) +
-      (title ? title.getBoundingClientRect().height : 0) + 10;
-
-    scroll.style.maxHeight = px(Math.max(120, rowH - chrome));
+    const titleH = title ? title.getBoundingClientRect().height : 0;
+    const paddingY = 24; // card internal padding
+    const maxH = rowH - titleH - paddingY;
+    scroll.style.maxHeight = px(Math.max(120, maxH));
   });
 }
 
 (async function main() {
-  const { status, mount } = findStatusAndMount();
-  if (!mount) return;
-
   try {
+    const { status, mount } = findStatusAndMount();
+    if (!mount) return;
+
     const rows = await getJSON("/assets/references.json");
-    const buckets = { general: [], gov: [], edu: [], peer: [], preprint: [] };
-
-    rows.forEach(r => buckets[assignCategory(r)].push(r));
-    Object.keys(buckets).forEach(k => buckets[k].sort(byTitle));
-
-    if (status) status.remove();
+    const buckets = bucketize(rows);
     const board = renderPanels(mount, PANEL_ORDER, buckets);
+
     sizeBoard(board);
 
     let raf = 0;
@@ -181,9 +202,7 @@ function sizeBoard(board) {
     window.addEventListener("orientationchange", onResize);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(onResize).catch(()=>{});
   } catch (e) {
-    if (status) status.textContent = "Failed to load references.";
+    if (typeof status !== "undefined" && status) status.textContent = "Failed to load references.";
     console.warn(e);
   }
 })();
-
-
