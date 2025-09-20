@@ -1,36 +1,60 @@
 // public/assets/nav-include.js
-// Consistent, non-flickering top nav with correct active underline.
-// Builds synchronously (no fetch), canonicalizes paths, and prevents reload
+// Consistent, non-flickering top nav with correct active underline on every page.
+// Renders synchronously (no fetch), normalizes clean URLs, and prevents reload
 // when clicking the currently active tab.
 
 (function () {
-  function canonicalizePath(p) {
+  /**
+   * Canonicalize a path so that:
+   *   - /index.html        -> /
+   *   - /dir/index.html    -> /dir
+   *   - /about.html        -> /about
+   *   - trailing slashes removed for non-root
+   *   - multiple slashes collapsed
+   */
+  function canonicalizePath(input) {
+    let p;
     try {
-      p = new URL(p, location.origin).pathname || '/';
+      p = new URL(input, location.origin).pathname || '/';
     } catch {
-      p = p || '/';
+      p = input || '/';
     }
-    p = p.replace(/\/{2,}/g, '/'); // collapse // -> /
+
+    // Collapse multiple slashes
+    p = p.replace(/\/{2,}/g, '/');
+
+    // Handle index.html in root or subdirs
     const low = p.toLowerCase();
     if (low.endsWith('/index.html')) {
-      p = p.slice(0, -('/index.html'.length)) || '/';
-      if (p !== '/' && !p.endsWith('/')) p += '/';
+      p = p.slice(0, -('/index.html'.length));
     } else if (low === '/index.html') {
       p = '/';
     }
-    if (p !== '/' && !p.endsWith('.html') && p.endsWith('/')) p = p.slice(0, -1);
+
+    // Strip .html extension to support clean-URL routing
+    if (p.toLowerCase().endsWith('.html')) {
+      p = p.slice(0, -('.html'.length));
+      if (p === '') p = '/';
+    }
+
+    // Remove trailing slash for non-root
+    if (p !== '/' && p.endsWith('/')) {
+      p = p.slice(0, -1);
+    }
+
     if (!p) p = '/';
     return p;
   }
 
+  // Define the nav links (extension-less so they match clean URLs)
   const NAV_LINKS = [
     { label: 'Home',            href: '/' },
-    { label: 'About Us',        href: '/about.html' },
-    { label: 'Our Story',       href: '/our-story.html' },
-    { label: 'Why Report',      href: '/why-report.html' },
-    { label: 'Who Can Report',  href: '/who-can-report.html' },
-    { label: 'References',      href: '/references.html' },
-    { label: 'Donate',          href: '/donate.html' },
+    { label: 'About Us',        href: '/about' },
+    { label: 'Our Story',       href: '/our-story' },
+    { label: 'Why Report',      href: '/why-report' },
+    { label: 'Who Can Report',  href: '/who-can-report' },
+    { label: 'References',      href: '/references' },
+    { label: 'Donate',          href: '/donate' },
   ];
 
   function renderNav() {
@@ -69,14 +93,14 @@
     mount.appendChild(top);
   }
 
-  // Build nav immediately (script should be loaded with defer)
+  // Build nav ASAP (script is included with `defer`)
   if (document.readyState === 'loading') {
     document.addEventListener('DOMContentLoaded', renderNav);
   } else {
     renderNav();
   }
 
-  // Normalize footer “Privacy · Disclaimer” sitewide
+  // Normalize footer “Privacy · Disclaimer” sitewide (keeps your spacing and dot)
   function normalizeFooter() {
     const fl = document.querySelector('.footer-links');
     if (!fl) return;
@@ -86,13 +110,13 @@
     if (links.length === 1) {
       fl.innerHTML = '';
       const a1 = document.createElement('a');
-      a1.href = '/privacy.html';
+      a1.href = '/privacy';
       a1.textContent = 'Privacy';
       const dot = document.createElement('span');
       dot.textContent = '·';
       dot.setAttribute('aria-hidden', 'true');
       const a2 = document.createElement('a');
-      a2.href = '/disclaimer.html';
+      a2.href = '/disclaimer';
       a2.textContent = 'Disclaimer';
       fl.append(a1, dot, a2);
     } else if (links.length === 2 && !fl.querySelector('span')) {
