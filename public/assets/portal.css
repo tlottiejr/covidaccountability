@@ -216,3 +216,12 @@ body#portal .card h2 {
   margin-right: auto;
   width: 100%;
 }
+/* Center legends in the first two cards (state + boards) to match the "Open board site" card */
+body#portal section.card fieldset > legend,
+body#portal section.card legend.h4 {
+  display: block;
+  width: 100%;
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+}
