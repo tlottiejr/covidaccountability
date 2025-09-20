@@ -1,9 +1,11 @@
-// public/assets/js/references-page.js — v10.4
-// Equal footer spacing: reserve gap ABOVE and BELOW the footer so it sits centered
-// between the grid and the page edge. Desktop page does not scroll; cards scroll.
+// public/assets/js/references-page.js — v11.0
+// - Page scroll stays enabled (like other pages).
+// - Inner scrollers on ALL viewports, sized so they never clip or overlap.
+// - No custom footer math; we rely on .container spacing for consistency.
 
 const $ = (s, r = document) => r.querySelector(s);
 
+/* -------------------- mount -------------------- */
 function findMount() {
   return document.querySelector("#ref-board")
       || document.querySelector(".ref-board")
@@ -11,6 +13,7 @@ function findMount() {
       || document.querySelector("#main");
 }
 
+/* -------------------- helpers -------------------- */
 async function getJSON(url) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`Failed ${url}: ${res.status}`);
@@ -33,7 +36,7 @@ function el(tag, attrs = {}, ...children) {
   return node;
 }
 
-/* --- categorization & fallbacks (same as your working version) --- */
+/* -------------------- categorization & fallbacks (same behavior you have) -------------------- */
 const CATEGORY_BY_HOST = [
   [/usmle|nbme|fsmb/, "edu"],
   [/ama-assn|acponline/, "general"],
@@ -49,25 +52,24 @@ const CATEGORY_BY_TITLE = [
   [/ethics manual|ama code|acp|decision making/i, "general"]
 ];
 function fallbackDesc(title, url){
-  let host = "";
-  try { host = new URL(url).host.toLowerCase(); } catch {}
+  let host = ""; try { host = new URL(url).host.toLowerCase(); } catch {}
   if (host.includes("ama-assn")) return "AMA ethical guidance or policy resource.";
-  if (host.includes("usmle")) return "Official USMLE outline or reference content.";
-  if (host.match(/nejm|jama|thelancet|bmj/)) return "Peer-reviewed journal article.";
-  if (host.match(/whitehouse|fda\.gov|hhs|ahrq|supremecourt|federalregister|ag\./)) return "Government or legal document.";
+  if (host.includes("usmle"))  return "Official USMLE outline or reference content.";
+  if (/nejm|jama|thelancet|bmj/.test(host)) return "Peer-reviewed journal article.";
+  if (/whitehouse|fda\.gov|hhs|ahrq|supremecourt|federalregister|ag\./.test(host)) return "Government or legal document.";
   if (host.includes("researchgate")) return "Research preprint or working paper.";
   return "Reference material related to COVID accountability.";
 }
 function normalize(row) {
   if (!row || typeof row !== "object") return null;
   const title = row.title || row.name || "";
-  const url = row.url || row.href || "";
+  const url   = row.url || row.href || "";
   return {
     title,
     url,
     source: row.source || row.publisher || row.org || "",
-    year: row.year || (row.date ? String(row.date).slice(0, 4) : ""),
-    date: row.date || "",
+    year:   row.year || (row.date ? String(row.date).slice(0, 4) : ""),
+    date:   row.date || "",
     description: (row.description && String(row.description).trim()) || fallbackDesc(title, url),
     category: row.category || row.cat || "",
   };
@@ -102,6 +104,8 @@ function bucketize(rows) {
   for (const k of Object.keys(buckets)) buckets[k].sort((a,b) => (a.title||'').localeCompare(b.title||''));
   return buckets;
 }
+
+/* -------------------- rendering -------------------- */
 function itemRow(it) {
   const meta = [];
   if (it.source) meta.push(it.source);
@@ -130,38 +134,45 @@ function renderPanels(mount, order, buckets) {
   return mount;
 }
 
-/* -------------------- desktop sizing: equal gaps around footer -------------------- */
-function sizeForDesktop(board) {
+/* -------------------- sizing (same behavior across viewports) -------------------- */
+/**
+ * We size a target panel height so inner lists get a solid maxHeight:
+ * - On >=1200px: compute from viewport so 3 rows fit comfortably.
+ * - On 768–1199px: derive a similar target (still inner-scrolling).
+ * - On <768px: use a stable height so each card scrolls, and the page can also scroll.
+ * Page scroll remains enabled at all widths.
+ */
+function sizePanels(board) {
   if (!board) return;
-  document.body.style.overflow = "hidden"; // page does not scroll
 
-  const footer = document.querySelector("footer.container");
-  const footerH = footer ? footer.getBoundingClientRect().height : 0;
+  const vw = window.innerWidth;
 
+  // Measure available height from board top to viewport bottom minus a small breathing room
   const boardTop = board.getBoundingClientRect().top;
   const viewportH = window.innerHeight;
+  const breath = 24; // leave some air before the footer region
 
-  // Center the footer between the grid and the page bottom
-  const GAP = 36;              // try 36px; tweak ±2px if needed for your display
-  const gapAboveFooter = GAP;
-  const gapBelowFooter = GAP;
-
-
-  // Board height so that: boardTop + boardH + gapAboveFooter + footerH + gapBelowFooter = viewportH
-  const avail = clamp(
-    viewportH - boardTop - footerH - gapAboveFooter - gapBelowFooter,
-    700,
-    1800
-  );
-
-  const rows = 3;
-  const rowGap = 20;
-  const rowH = Math.floor((avail - rowGap * (rows - 1)) / rows);
-
-  board.style.height = px(avail);
+  // Decide rows-per-view and target panel height
+  let targetH;
+  if (vw >= 1200) {
+    // 3 equal rows
+    const avail = clamp(viewportH - boardTop - breath, 700, 1800);
+    const rowGap = 20;
+    targetH = Math.floor((avail - rowGap * 2) / 3);
+    targetH = clamp(targetH, 280, 440);
+  } else if (vw >= 768) {
+    // 3-ish rows feel right on most laptops; keep inner scroll consistent
+    const avail = clamp(viewportH - boardTop - breath, 640, 1600);
+    const rowGap = 16;
+    targetH = Math.floor((avail - rowGap * 2) / 3);
+    targetH = clamp(targetH, 260, 400);
+  } else {
+    // Phones: keep a comfortable, scrollable card height
+    targetH = 320; // consistent behavior; page can still scroll
+  }
 
   board.querySelectorAll(":scope > .ref-panel").forEach(panel => {
-    panel.style.height = px(rowH);
+    panel.style.height = px(targetH);
 
     const cs = window.getComputedStyle(panel);
     const padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
@@ -169,19 +180,15 @@ function sizeForDesktop(board) {
     const titleH = title ? title.getBoundingClientRect().height : 0;
 
     const scroll = panel.querySelector(".ref-panel__scroll");
-    const extra = 8;
-    const maxH = rowH - padY - titleH - extra;
+    const extra = 10; // UL margin etc.
+    const maxH = targetH - padY - titleH - extra;
 
-    const MIN_SCROLL = 260;
+    const MIN_SCROLL = 220;
     scroll.style.maxHeight = px(Math.max(MIN_SCROLL, maxH));
   });
-
-  // Apply the equal gaps to layout elements
-  if (footer) footer.style.marginTop = px(gapAboveFooter);
-  // Gap below the footer is implicit from the height equation; ensure it's visible on all browsers:
-  document.documentElement.style.setProperty("--ref-gap-below-footer", px(gapBelowFooter));
 }
 
+/* -------------------- main -------------------- */
 (async function main() {
   try {
     const mount = findMount();
@@ -191,15 +198,8 @@ function sizeForDesktop(board) {
     const buckets = bucketize(rows);
     renderPanels(mount, PANEL_ORDER, buckets);
 
-    const onResize = () => {
-      if (window.innerWidth >= 980) sizeForDesktop(mount);
-      else {
-        document.body.style.overflow = "";
-        mount.style.height = "";
-        mount.querySelectorAll(":scope > .ref-panel").forEach(p => p.style.height = "");
-        mount.querySelectorAll(".ref-panel__scroll").forEach(s => s.style.maxHeight = "");
-      }
-    };
+    // We keep page scroll normal; only inner lists scroll.
+    const onResize = () => sizePanels(mount);
     onResize();
     window.addEventListener("resize", onResize);
     window.addEventListener("orientationchange", onResize);
