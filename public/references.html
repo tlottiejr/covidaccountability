@@ -16,36 +16,39 @@
   <!-- References page logic -->
   <script src="/assets/js/references-page.js" defer></script>
 
-  <!-- Page-only layout & spacing -->
+  <!-- Page-only layout & spacing (scoped to this page) -->
   <style>
-    /* Avoid empty-card flash */
-    #ref-board { visibility: hidden; opacity: 0; transition: opacity 120ms ease; min-height: 60vh; }
+    /* Avoid any empty-card flash */
+    #ref-board { visibility: hidden; opacity: 0; transition: opacity 120ms ease; }
     #ref-board.is-ready { visibility: visible; opacity: 1; }
 
-    /* Desktop grid matching the target layout */
+    /* Desktop grid matching the target layout: 2×2 + bottom-left */
     @media (min-width: 980px) {
       #ref-board {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: repeat(3, 1fr);
-        gap: 16px;                 /* slightly tighter vertical rhythm */
+        grid-auto-rows: auto;         /* let cards grow by content */
+        grid-template-rows: auto auto auto;
+        gap: 16px;
         align-content: start;
       }
       #ref-board .panel--general  { grid-column: 1; grid-row: 1; }
       #ref-board .panel--gov      { grid-column: 2; grid-row: 1; }
       #ref-board .panel--edu      { grid-column: 1; grid-row: 2; }
       #ref-board .panel--peer     { grid-column: 2; grid-row: 2; }
-      #ref-board .panel--preprint { grid-column: 1; grid-row: 3; }
+      #ref-board .panel--preprint { grid-column: 1; grid-row: 3; } /* right of row 3 intentionally empty */
     }
 
-    /* Tighten internal typography/spacing INSIDE the panels only */
-    #ref-board h3 { margin: 6px 0 8px; line-height: 1.25; }
-    #ref-board .ref-panel__scroll { /* ensure list starts close to header */ }
+    /* Remove any inner scrolling in the cards */
+    #ref-board .ref-panel__scroll { max-height: none !important; overflow: visible !important; }
+
+    /* Panel inner spacing (match target look) */
+    #ref-board h3 { margin: 6px 0 10px; line-height: 1.25; }
     #ref-board .ref-panel__list { margin: 0; padding-left: 1.1rem; }
-    #ref-board .ref-panel__item { margin: 0 0 8px; }
+    #ref-board .ref-panel__item { margin: 0 0 10px; }
     #ref-board .ref-panel__item:last-child { margin-bottom: 0; }
-    #ref-board .ref-panel__item > .small { margin-top: 2px; }
-    #ref-board .ref-panel__desc { margin: 2px 0 0; }
+    #ref-board .ref-meta { margin-top: 2px; font-style: italic; opacity: 0.85; }
+    #ref-board .ref-panel__desc { margin: 4px 0 0; }
 
     .legal.center { text-align: center; margin: 24px 0 0; }
     .legal.center a { font: inherit; }
@@ -73,4 +76,3 @@
   </footer>
 </body>
 </html>
-
