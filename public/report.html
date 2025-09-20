@@ -174,8 +174,112 @@
     <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
   </footer>
 
-  <!-- Page logic (CORRECT PATH) -->
+  <!-- Original page logic (if present in repo) -->
   <script src="/assets/report-template.js" defer></script>
+
+  <!-- Non-breaking bridge: ensure Generate works even if the external script doesn't bind -->
+  <script>
+    (function () {
+      const $ = (sel) => document.querySelector(sel);
+      const byId = (id) => document.getElementById(id);
+
+      function gatherFields() {
+        const val = (id) => (byId(id)?.value || "").trim();
+        const lines = [];
+        lines.push(`# Report Draft`);
+        lines.push(``);
+        lines.push(`State: ${val("rtState")}`);
+        lines.push(`Practitioner/Org: ${val("rtPractitioner")}`);
+        lines.push(`Date: ${val("rtDate")}`);
+        lines.push(`Location: ${val("rtLocation")}`);
+        lines.push(`Procedure/Product/Order: ${val("rtProduct")}`);
+        lines.push(`Harm/Outcome: ${val("rtOutcome")}`);
+        lines.push(``);
+        lines.push(`## Details`);
+        lines.push(val("rtDetails"));
+        lines.push(``);
+        lines.push(`## Evidence / Documentation (optional)`);
+        lines.push(val("rtEvidence"));
+        lines.push(``);
+        lines.push(`Witnesses (optional): ${val("rtWitnesses")}`);
+        lines.push(`Prior board case # (optional): ${val("rtPriorCase")}`);
+        lines.push(`Your name (optional): ${val("rtYourName")}`);
+        lines.push(`Your email (optional): ${val("rtYourEmail")}`);
+        return lines.join("\n");
+      }
+
+      async function copyToClipboard(text) {
+        try {
+          await navigator.clipboard.writeText(text);
+          return true;
+        } catch {
+          // Fallback: temporary textarea
+          const ta = document.createElement("textarea");
+          ta.value = text;
+          document.body.appendChild(ta);
+          ta.select();
+          try { document.execCommand("copy"); } catch {}
+          document.body.removeChild(ta);
+          return true;
+        }
+      }
+
+      function printAsPdf(text) {
+        // Simple printable window; user chooses "Save as PDF"
+        const w = window.open("", "_blank");
+        if (!w) return;
+        const esc = (s) => s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+        w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Report</title>
+          <style>
+            body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
+            pre { white-space: pre-wrap; word-wrap: break-word; }
+          </style></head><body><pre>${esc(text)}</pre></body></html>`);
+        w.document.close();
+        w.focus();
+        w.print();
+      }
+
+      function attachHandler() {
+        const btn =
+          byId("generate-btn") ||
+          byId("generate") ||
+          document.querySelector('[data-action="generate"]');
+
+        if (!btn) return;
+
+        // Avoid double-binding
+        if (btn.dataset.bound === "1") return;
+        btn.dataset.bound = "1";
+
+        btn.addEventListener("click", async () => {
+          // If the repo's original script exposes a handler, prefer it.
+          if (typeof window.generateReport === "function") {
+            window.generateReport();
+            return;
+          }
+
+          const text = gatherFields();
+          const savePdf = byId("rtSavePdf")?.checked || false;
+          const copyTxt = byId("rtCopyText")?.checked || false;
+
+          if (!savePdf && !copyTxt) {
+            // If no options chosen, default to copy (nice UX)
+            await copyToClipboard(text);
+            return;
+          }
+          if (copyTxt) await copyToClipboard(text);
+          if (savePdf) printAsPdf(text);
+        });
+      }
+
+      // Run after DOM is ready; also re-run after fonts
+      if (document.readyState === "complete" || document.readyState === "interactive") {
+        attachHandler();
+      } else {
+        document.addEventListener("DOMContentLoaded", attachHandler);
+      }
+      if (document.fonts && document.fonts.ready) document.fonts.ready.then(attachHandler).catch(()=>{});
+    })();
+  </script>
 </body>
 </html>
-
