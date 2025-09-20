@@ -1,16 +1,14 @@
-// public/assets/js/references-page.js — v7.7
-// - Explicit CSS grid placement via panel--* classes to match the target layout.
-// - Board remains hidden until render to avoid flash.
-// - Desktop sizing fills from board-top to viewport bottom; internal scroll per panel.
-// - Mobile stacks naturally.
+// public/assets/js/references-page.js — v7.8
+// Key fix: render panels as DIRECT children of #ref-board (grid container).
+// Result: exact 2×2 + bottom-left grid placement matches the target screenshot.
 
 const $ = (s, r = document) => r.querySelector(s);
 
 /* -------------------- mount discovery -------------------- */
-function findStatusAndMount() {
-  // Page uses no visible status element; mount is the board.
-  let mount = $("#ref-board") || $(".ref-board") || $("#references-card") || $("#main");
-  return { status: null, mount };
+function findMount() {
+  // Page uses #ref-board as the grid container
+  const mount = $("#ref-board") || $(".ref-board") || $("#references-card") || $("#main");
+  return mount;
 }
 
 /* -------------------- helpers -------------------- */
@@ -70,11 +68,11 @@ function itemRow(it) {
 }
 
 const PANEL_CONFIG = {
-  general:   { title: "General References",   cls: "panel--general"  },
-  gov:       { title: "Government & Legal",   cls: "panel--gov"      },
-  edu:       { title: "Medical Education & Ethics", cls: "panel--edu" },
-  peer:      { title: "Peer-reviewed Literature",  cls: "panel--peer" },
-  preprint:  { title: "Preprints & Working Papers", cls: "panel--preprint" },
+  general:   { title: "General References",             cls: "panel--general"  },
+  gov:       { title: "Government & Legal",             cls: "panel--gov"      },
+  edu:       { title: "Medical Education & Ethics",     cls: "panel--edu"      },
+  peer:      { title: "Peer-reviewed Literature",       cls: "panel--peer"     },
+  preprint:  { title: "Preprints & Working Papers",     cls: "panel--preprint" },
 };
 const PANEL_ORDER = ["general", "gov", "edu", "peer", "preprint"];
 
@@ -103,21 +101,23 @@ function bucketize(rows) {
     const cat = assignCategory(it);
     buckets[cat].push(it);
   });
-  for (const k of Object.keys(buckets)) {
-    buckets[k].sort(byTitle);
-  }
+  for (const k of Object.keys(buckets)) buckets[k].sort(byTitle);
   return buckets;
 }
 
+/**
+ * IMPORTANT: Panels are appended directly to the mount (#ref-board)
+ * so they are DIRECT grid items, allowing grid placement via CSS classes.
+ */
 function renderPanels(mount, order, buckets) {
-  const wrap = el("div", { class: "ref-board" });
+  // Ensure the mount has the ref-board class
+  mount.classList.add("ref-board");
   mount.innerHTML = "";
-  mount.appendChild(wrap);
 
   order.forEach(key => {
     const conf = PANEL_CONFIG[key];
     const items = (buckets[key] || []).slice();
-    wrap.appendChild(
+    mount.appendChild(
       el("section", { class: `ref-panel ${conf.cls}` },
         el("h3", {}, conf.title),
         el("div", { class: "ref-panel__scroll" },
@@ -126,43 +126,38 @@ function renderPanels(mount, order, buckets) {
       )
     );
   });
-  return wrap;
+  return mount;
 }
 
 /* -------------------- desktop sizing -------------------- */
-/**
- * Fill from board's top to viewport bottom, split into 3 equal rows.
- * On mobile, remove sizing (natural flow).
- */
 function sizeBoard(board) {
   if (!board) return;
-
   const isDesktop = window.innerWidth >= 980;
 
   if (!isDesktop) {
     document.body.style.overflow = "";
     board.style.height = "";
-    board.querySelectorAll(".ref-panel").forEach(p => p.style.height = "");
+    board.querySelectorAll(":scope > .ref-panel").forEach(p => p.style.height = "");
     board.querySelectorAll(".ref-panel__scroll").forEach(s => s.style.maxHeight = "");
     return;
   }
 
-  // Desktop: lock page scroll; panels scroll internally
+  // Desktop: internal panel scroll; page itself doesn't scroll
   document.body.style.overflow = "hidden";
 
   const boardTop = board.getBoundingClientRect().top;
   const viewportBottom = window.innerHeight;
-  const margin = 12; // breathing room for shadows
+  const margin = 12;
 
   const avail = clamp(viewportBottom - boardTop - margin, 760, 1700);
 
   const rows = 3;
-  const rowGap = 20; // match CSS gap for grid
+  const rowGap = 20; // matches grid gap in CSS
   const rowH = Math.floor((avail - rowGap * (rows - 1)) / rows);
 
   board.style.height = px(avail);
 
-  board.querySelectorAll(".ref-panel").forEach(panel => {
+  board.querySelectorAll(":scope > .ref-panel").forEach(panel => {
     panel.style.height = px(rowH);
 
     const cs = window.getComputedStyle(panel);
@@ -174,7 +169,7 @@ function sizeBoard(board) {
     const extra = 10;
     const maxH = rowH - padY - titleH - extra;
 
-    const MIN_SCROLL = 210; // tuned to expose bullets + meta + a snippet like the target
+    const MIN_SCROLL = 210;
     scroll.style.maxHeight = px(Math.max(MIN_SCROLL, maxH));
   });
 }
@@ -182,7 +177,7 @@ function sizeBoard(board) {
 /* -------------------- main -------------------- */
 (async function main() {
   try {
-    const { mount } = findStatusAndMount();
+    const mount = findMount();
     if (!mount) return;
 
     const rows = await getJSON("/assets/references.json");
@@ -191,9 +186,8 @@ function sizeBoard(board) {
 
     sizeBoard(board);
 
-    // Reveal (prevents any placeholder flash)
-    const host = $("#ref-board");
-    if (host) host.classList.add("is-ready");
+    // Reveal after render (prevents any flash)
+    mount.classList.add("is-ready");
 
     let raf = 0;
     const onResize = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => sizeBoard(board)); };
