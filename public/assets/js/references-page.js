@@ -1,5 +1,6 @@
-// public/assets/js/references-page.js — v10.3
-// Minor tweak: increase bottom gap so the grid ends evenly above the footer.
+// public/assets/js/references-page.js — v10.4
+// Equal footer spacing: reserve gap ABOVE and BELOW the footer so it sits centered
+// between the grid and the page edge. Desktop page does not scroll; cards scroll.
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -32,7 +33,7 @@ function el(tag, attrs = {}, ...children) {
   return node;
 }
 
-/* --- categorization + descriptions (unchanged from your working version) --- */
+/* --- categorization & fallbacks (same as your working version) --- */
 const CATEGORY_BY_HOST = [
   [/usmle|nbme|fsmb/, "edu"],
   [/ama-assn|acponline/, "general"],
@@ -47,7 +48,6 @@ const CATEGORY_BY_TITLE = [
   [/preprint|working paper|researchgate/i, "preprint"],
   [/ethics manual|ama code|acp|decision making/i, "general"]
 ];
-
 function fallbackDesc(title, url){
   let host = "";
   try { host = new URL(url).host.toLowerCase(); } catch {}
@@ -58,7 +58,6 @@ function fallbackDesc(title, url){
   if (host.includes("researchgate")) return "Research preprint or working paper.";
   return "Reference material related to COVID accountability.";
 }
-
 function normalize(row) {
   if (!row || typeof row !== "object") return null;
   const title = row.title || row.name || "";
@@ -85,7 +84,6 @@ function assignCategory(it) {
   for (const [re, cat] of CATEGORY_BY_TITLE) if (re.test(t)) return cat;
   return "general";
 }
-
 const PANEL_CONFIG = {
   general:   { title: "General References",             cls: "panel--general"  },
   gov:       { title: "Government & Legal",             cls: "panel--gov"      },
@@ -94,7 +92,6 @@ const PANEL_CONFIG = {
   preprint:  { title: "Preprints & Working Papers",     cls: "panel--preprint" },
 };
 const PANEL_ORDER = ["general", "gov", "edu", "peer", "preprint"];
-
 function bucketize(rows) {
   const buckets = { general: [], gov: [], edu: [], peer: [], preprint: [] };
   rows.forEach(r => {
@@ -105,7 +102,6 @@ function bucketize(rows) {
   for (const k of Object.keys(buckets)) buckets[k].sort((a,b) => (a.title||'').localeCompare(b.title||''));
   return buckets;
 }
-
 function itemRow(it) {
   const meta = [];
   if (it.source) meta.push(it.source);
@@ -116,7 +112,6 @@ function itemRow(it) {
     it.description ? el("p", { class: "ref-panel__desc" }, it.description) : null,
   );
 }
-
 function renderPanels(mount, order, buckets) {
   mount.classList.add("ref-board");
   mount.innerHTML = "";
@@ -135,7 +130,7 @@ function renderPanels(mount, order, buckets) {
   return mount;
 }
 
-/* -------------------- desktop sizing: cards scroll, page does not -------------------- */
+/* -------------------- desktop sizing: equal gaps around footer -------------------- */
 function sizeForDesktop(board) {
   if (!board) return;
   document.body.style.overflow = "hidden"; // page does not scroll
@@ -144,12 +139,18 @@ function sizeForDesktop(board) {
   const footerH = footer ? footer.getBoundingClientRect().height : 0;
 
   const boardTop = board.getBoundingClientRect().top;
-  const viewportBottom = window.innerHeight;
+  const viewportH = window.innerHeight;
 
-  // Increase this buffer for a slightly larger, even gap above the footer
-  const bottomPadding = 28;
+  // Equal spacing above and below the footer
+  const gapAboveFooter = 20;
+  const gapBelowFooter = 20;
 
-  const avail = clamp(viewportBottom - boardTop - footerH - bottomPadding, 700, 1800);
+  // Board height so that: boardTop + boardH + gapAboveFooter + footerH + gapBelowFooter = viewportH
+  const avail = clamp(
+    viewportH - boardTop - footerH - gapAboveFooter - gapBelowFooter,
+    700,
+    1800
+  );
 
   const rows = 3;
   const rowGap = 20;
@@ -172,6 +173,11 @@ function sizeForDesktop(board) {
     const MIN_SCROLL = 260;
     scroll.style.maxHeight = px(Math.max(MIN_SCROLL, maxH));
   });
+
+  // Apply the equal gaps to layout elements
+  if (footer) footer.style.marginTop = px(gapAboveFooter);
+  // Gap below the footer is implicit from the height equation; ensure it's visible on all browsers:
+  document.documentElement.style.setProperty("--ref-gap-below-footer", px(gapBelowFooter));
 }
 
 (async function main() {
