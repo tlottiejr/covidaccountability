@@ -102,7 +102,7 @@
     <h1>Prepare Your Report</h1>
     <p class="small">
       Use this information template to draft your experience before you file with the official state board.
-      <strong>Nothing you enter here is stored by this site.</strong> You can save a local PDF or copy the text.
+      <strong>Nothing you enter here is collected or stored by this site when using the information template.</strong> You can save a local PDF or copy the text.
     </p>
 
     <div class="grid grid-2">
@@ -111,28 +111,44 @@
         <h2>Information Template</h2>
         <div class="grid">
           <div>
-            <label for="rtState">State (for your filing)</label>
-            <input id="rtState" type="text" placeholder="e.g., Delaware (DE)"/>
+            <label for="rtDate">Date of Injection</label>
+            <input id="rtDate" type="date" placeholder="mm / dd / yyyy"/>
           </div>
           <div>
-            <label for="rtPractitioner">Practitioner / Organization</label>
+            <label for="rtDate">Date Symptoms Recognized</label>
+            <input id="rtDate" type="date" placeholder="mm / dd / yyyy"/>
+          </div>
+          <div>
+            <label for="rtDate">Date Treatment Sought</label>
+            <input id="rtDate" type="date" placeholder="mm / dd / yyyy"/>
+          </div>
+          <div>
+            <label for="rtPractitioner">Physician Name</label>
             <input id="rtPractitioner" type="text" placeholder="Name and role"/>
           </div>
           <div>
-            <label for="rtDate">Date of incident</label>
-            <input id="rtDate" type="date" placeholder="mm / dd / yyyy"/>
+            <label for="rtlicensenumber">License Number</label>
+            <input id="rtlicensenumber" type="text" placeholder="This can commonly be found at https://www.docinfo.org/"/>
+          </div>
+          <div>
+            <label for="rtLocation">Practice / Organization Name</label>
+            <input id="rtLocation" type="text" placeholder="Facility / city / state"/>
+          </div>
+          <div>
+            <label for="rtMedicalspecialty">Medical Specialty</label>
+            <input id="rtMedicalspecialty" type="text" placeholder="e.g., Delaware (DE)"/>
           </div>
           <div>
             <label for="rtLocation">Location</label>
             <input id="rtLocation" type="text" placeholder="Facility / city / state"/>
           </div>
           <div>
-            <label for="rtProduct">Procedure / Product / Order</label>
-            <input id="rtProduct" type="text" placeholder="What was administered or performed?"/>
+            <label for="rtProduct">Product</label>
+            <input id="rtProduct" type="text" placeholder="What was administered?"/>
           </div>
           <div>
-            <label for="rtOutcome">Harm / Outcome</label>
-            <input id="rtOutcome" type="text" placeholder="Symptoms, diagnosis, costs, time off, etc."/>
+            <label for="rtOutcome">Harm / Adverse Effect</label>
+            <input id="rtOutcome" type="text" placeholder="Symptoms or diagnosis given"/>
           </div>
           <div class="span-2">
             <label for="rtDetails">Details (what happened)</label>
