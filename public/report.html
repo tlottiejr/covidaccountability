@@ -20,20 +20,24 @@
     /* Optional actions: indicator on RIGHT, no blue glow/halo */
     #optional-actions { margin-top: 8px; }
     #optional-actions .oa-row { position: relative; }
-    #optional-actions .oa-input {
-      position: absolute; inset: 0; opacity: 0; pointer-events: none;
-    }
+
+    /* Make the “pill” only as wide as its content (not full-width) */
     #optional-actions .oa-card {
       position: relative;
-      display: block;
+      display: inline-block;             /* shrink-to-fit content width */
       border: 1px solid #c7d7ff;
       background: #ffffff;
       border-radius: 12px;
-      padding: 12px 44px 12px 14px;   /* room on RIGHT for indicator */
-      box-shadow: none !important;     /* no glow */
+      padding: 10px 36px 10px 12px;      /* tighter; keep room for indicator */
+      margin: 0;                          /* no extra width */
+      box-shadow: none !important;        /* no glow */
       cursor: pointer;
       transition: background .15s ease, border-color .15s ease;
+      max-width: 100%;                    /* responsive safety */
     }
+    /* keep rows stacked with a small gap */
+    #optional-actions .oa-row + .oa-row { margin-top: 10px; }
+
     #optional-actions .oa-card:hover {
       background: #f3f7ff;
       border-color: #b6c8ff;
@@ -44,25 +48,31 @@
       border-color: #8fb0ff;
       box-shadow: none !important;
     }
+
     #optional-actions .oa-title { font-weight: 600; }
     #optional-actions .oa-note  { display: block; font-size: .92rem; opacity: .75; margin-top: .2rem; }
-    #optional-actions .oa-row + .oa-row { margin-top: 10px; }
 
-    /* Right-side radio indicator */
+    /* Invisible checkbox spans row (keeps label clickable) */
+    #optional-actions .oa-input {
+      position: absolute; inset: 0; opacity: 0; pointer-events: none;
+    }
+
+    /* Right-side radio indicator, tighter to text */
     #optional-actions .oa-card::after {
       content: '';
       position: absolute;
-      right: 14px; top: 50%;
+      right: 10px; top: 50%;             /* closer to text */
       width: 18px; height: 18px;
       border-radius: 50%;
       border: 2px solid #2d5bff;
       transform: translateY(-50%);
       background: #fff;
-      box-shadow: none !important;     /* remove halo ring */
+      box-shadow: none !important;       /* remove halo ring */
     }
     #optional-actions input:checked + .oa-card::after {
       background: radial-gradient(circle at 50% 50%, #2d5bff 50%, transparent 51%);
     }
+
     /* Remove blue focus outline/glow after click */
     #optional-actions .oa-card:focus,
     #optional-actions .oa-card:focus-visible,
