@@ -1,0 +1,20 @@
+{
+  "date": "2025-09-20",
+  "totals": 8,
+  "byState": {
+    "NY": 2,
+    "KS": 1,
+    "FL": 2,
+    "AZ": 2,
+    "SD": 1
+  },
+  "byHost": {
+    "www.health.ny.gov": 1,
+    "www.op.nysed.gov": 1,
+    "www.ksbha.ks.gov": 1,
+    "complaint-portal.mqa.flhealthsource.gov": 2,
+    "azmd.gov": 1,
+    "azdo.gov": 1,
+    "www.sdbmoe.gov": 1
+  }
+}
