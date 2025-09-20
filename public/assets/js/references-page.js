@@ -1,4 +1,8 @@
-// public/assets/js/references-page.js — v7.4 (layout sizing tuned to match target screenshot)
+// public/assets/js/references-page.js — v7.5
+// - No placeholder flash: board hidden until rendered, then revealed.
+// - Taller rows: compute available height to viewport bottom (no footer subtraction).
+// - Slightly larger row gap and min scroll area to match the target screenshot.
+// - DOM structure aligned to site CSS.
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -18,18 +22,8 @@ function findStatusAndMount() {
     }
   }
 
-  let mount = null;
-  if (status) {
-    if (status.nextElementSibling && status.nextElementSibling.children.length === 0) {
-      mount = status.nextElementSibling;
-    } else {
-      mount = status.parentElement;
-    }
-  }
   // Fallback for this page (no visible status element): render into #ref-board
-  if (!mount) {
-    mount = $("#ref-board") || $(".ref-board") || $("#references-card") || $("#main");
-  }
+  let mount = $("#ref-board") || $(".ref-board") || $("#references-card") || $("#main");
   return { status, mount };
 }
 
@@ -151,16 +145,14 @@ function renderPanels(mount, order, buckets) {
 
 /* -------------------- desktop sizing -------------------- */
 /**
- * Make the board fill the viewport from the board's top to the footer,
- * split that space into 3 equal rows with a small gap, and give each
- * panel an internal scroll area. On mobile (<980px) we remove sizing.
+ * Make the board fill from its top to viewport bottom (no footer subtraction),
+ * split into 3 equal rows. On mobile, remove sizing.
  */
 function sizeBoard(board) {
   if (!board) return;
 
   const isDesktop = window.innerWidth >= 980;
 
-  // On mobile, let the page flow naturally.
   if (!isDesktop) {
     document.body.style.overflow = "";
     board.style.height = "";
@@ -169,29 +161,21 @@ function sizeBoard(board) {
     return;
   }
 
-  // Desktop: lock page scroll and compute exact available height
+  // Desktop: avoid page scroll; use internal panel scroll
   document.body.style.overflow = "hidden";
 
-  const footer = document.querySelector("footer");
-  const footerH = footer ? footer.getBoundingClientRect().height : 0;
-
-  // Distance from the top of the board to the bottom of the viewport
   const boardTop = board.getBoundingClientRect().top;
   const viewportBottom = window.innerHeight;
-  // Small breathing room so the card shadows show nicely
-  const margin = 24;
+  const margin = 12; // just enough breathing room for shadows
 
-  // Available pixels for the entire board
-  const avail = clamp(viewportBottom - boardTop - footerH - margin, 700, 1600);
+  const avail = clamp(viewportBottom - boardTop - margin, 760, 1800);
 
-  // 3 equal rows with a grid-like feel
   const rows = 3;
-  const rowGap = 20; // match CSS-ish spacing
+  const rowGap = 24;
   const rowH = Math.floor((avail - rowGap * (rows - 1)) / rows);
 
   board.style.height = px(avail);
 
-  // Compute each panel's inner scroll height precisely from its padding + title height
   board.querySelectorAll(".ref-panel").forEach(panel => {
     panel.style.height = px(rowH);
 
@@ -202,25 +186,31 @@ function sizeBoard(board) {
     const titleH = title ? title.getBoundingClientRect().height : 0;
 
     const scroll = panel.querySelector(".ref-panel__scroll");
-    // leave a little extra room for the UL top margin, etc.
     const extra = 10;
     const maxH = rowH - padY - titleH - extra;
 
-    scroll.style.maxHeight = px(Math.max(160, maxH));
+    scroll.style.maxHeight = px(Math.max(220, maxH));
   });
 }
 
 /* -------------------- main -------------------- */
 (async function main() {
+  let status;
   try {
-    const { status, mount } = findStatusAndMount();
+    const found = findStatusAndMount();
+    status = found.status;
+    const mount = found.mount;
     if (!mount) return;
 
     const rows = await getJSON("/assets/references.json");
     const buckets = bucketize(rows);
     const board = renderPanels(mount, PANEL_ORDER, buckets);
 
+    // Sizing & reveal
     sizeBoard(board);
+    // Reveal the hidden board now that content is ready
+    const host = $("#ref-board");
+    if (host) host.classList.add("is-ready");
 
     let raf = 0;
     const onResize = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => sizeBoard(board)); };
@@ -228,8 +218,7 @@ function sizeBoard(board) {
     window.addEventListener("orientationchange", onResize);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(onResize).catch(()=>{});
   } catch (e) {
-    // Non-blocking error surface; page remains usable
+    if (status) status.textContent = "Failed to load references.";
     console.warn(e);
   }
 })();
-
