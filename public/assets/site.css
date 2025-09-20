@@ -1,363 +1,173 @@
 @import url('https://fonts.googleapis.com/css2?family=Source+Sans+3:ital,opsz,wght@0,8..60,300..800;1,8..60,300..800&display=swap');
-
-/* public/assets/site.css — cohesive light theme */
-
-/* ---------- Design tokens ---------- */
 :root{
   --bg:#f7fbff;
   --panel:#ffffff;
   --text:#0b1220;
   --muted:#4b5563;
-
-  --accent:#2563eb;          /* brand blue */
-  --accent-2:#60a5fa;        /* lighter blue */
-  --accent-hover:#1e40af;    /* darker hover */
-
+  --accent:#2563eb;
+  --accent-2:#60a5fa;
+  --accent-hover:#1e40af;
   --radius:14px;
   --gap:16px;
-  --shadow:0 10px 25px rgba(2,6,23,.08);
+  --shadow:0 10px 25px rgba(37,99,235,0.06),0 4px 10px rgba(2,6,23,0.05);
+  --ring:0 0 0 3px rgba(37,99,235,0.18);
+  --space-1:4px;
+  --space-2:8px;
+  --space-3:12px;
+  --space-4:16px;
+  --space-5:20px;
+  --space-6:28px;
+  --space-7:36px;
+  --space-8:48px
 }
-
-/* ---------- Base ---------- */
 *{box-sizing:border-box}
-html,body{height:100%}
-html{font-size:17px}
+html,body{margin:0;padding:0}
+html{scroll-behavior:smooth}
 body{
-  margin:0;
-  font-family:"Source Sans 3", ui-sans-serif,system-ui,-apple-system,"Segoe UI",Roboto,Arial,"Noto Sans";
+  font-family:"Source Sans 3",system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,sans-serif;
   color:var(--text);
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-
-  /* Smooth long-page gradient (no mid-page seam). */
-  background:
-    linear-gradient(180deg,
-      #ffffff 0%,
-      #f6faff 32%,
-      #eef4ff 64%,
-      #eaf2ff 82%,
-      #e6f3ff 100%
-    ),
-    repeating-linear-gradient(180deg,
-      rgba(0,0,0,.004) 0,
-      rgba(0,0,0,0) 4px
-    );
-  background-attachment: fixed, scroll;
-  background-blend-mode: normal, soft-light;
+  background:linear-gradient(180deg,#f7fbff 0%,#eef6ff 12%,#edf4ff 35%,#f3f8ff 100%);
+  min-height:100vh
 }
-
-img{max-width:100%; height:auto}
-a{ color:#2253d9; text-underline-offset: 3px; text-decoration-thickness: 1px; }
-a:hover, a:focus{ color: var(--link-hover); text-decoration-thickness: 2px; }
-
-/* ---------- Global content width (match References page) ---------- */
-main, .container{
-  max-width:1100px;
-  margin:0 auto;
-  padding:18px;
+a{color:#1f4bed}
+a:hover{color:#183bb4}
+.container{
+  width:min(960px,calc(100% - 32px));
+  margin:0 auto
 }
-
-/* ---------- Top navigation (“hotbar”) ---------- */
-.top{
-  position:sticky; top:0; z-index:40;
-  background:rgba(255,255,255,.72);
-  backdrop-filter:saturate(120%) blur(8px);
-  box-shadow:0 4px 16px rgba(2,6,23,.06);
-}
-
-/* Simple centered flex row (one line) */
-.top .inner{
-  max-width:1100px;
-  margin:0 auto;
-  padding:10px 16px;
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:28px;
-}
-
-/* nav links – spacing + subtle glow underline on hover/active */
-.top .inner a{
-  position:relative;
-  display:inline-flex; align-items:center;
-  padding:8px 10px;
-  border-radius:10px;
-  text-decoration:none;           /* override global underline for nav */
-  color:var(--text);               /* nav uses text color, not blue */
-  transition:background .2s ease, color .2s ease, text-shadow .2s ease;
-  white-space:nowrap;              /* keep a single row */
-}
-.top .inner a:hover{background:rgba(2,6,23,.04)}
-.top .inner a:hover::after,
-.top .inner a[aria-current="page"]::after{
-  content:"";
-  position:absolute; left:8px; right:8px; bottom:4px;
-  height:3px; border-radius:3px;
-  background:linear-gradient(90deg, #2a6cf0 0%, #6aa8ff 100%);
-  box-shadow:0 4px 12px rgba(37,99,235,.35);
-}
-
-/* ---------- Layout helpers ---------- */
-.grid{display:grid; gap:var(--gap)}
-.grid-2{grid-template-columns: 1fr 1fr}
-.grid-3{grid-template-columns: repeat(3, 1fr)}
-@media (max-width:980px){
-  .grid-2, .grid-3{grid-template-columns:1fr}
-}
-
-/* ---------- Typography ---------- */
-h1{font-size:32px;margin:10px 0 18px}
-h2{font-size:24px;margin:18px 0 10px}
-h3{font-size:20px;margin:10px 0 8px}
-.h4{font-size:16px;font-weight:700;margin:0 0 8px}
-.small{font-size:14px;color:var(--muted)}
-
-.lead{ font-size:18px; line-height:1.6; color:var(--text); }
-
-/* ---------- Cards ---------- */
+.small{font-size:.95rem;color:#374151}
+.lead{font-size:1.125rem}
+.grid{display:grid;gap:var(--gap)}
+.grid.grid-2{grid-template-columns:1fr 1fr}
+.grid.grid-3{grid-template-columns:1fr 1fr 1fr}
+.grid .span-2{grid-column:span 2}
 .card{
   background:var(--panel);
   border-radius:var(--radius);
+  border:1px solid rgba(2,6,23,.10);
   box-shadow:var(--shadow);
-  padding:18px 18px;
-  border:1px solid rgba(15,23,42,.06);
+  padding:14px 16px
 }
-.card .muted{color:var(--muted)}
-.card + .card{ margin-top: var(--gap); }
-
-/* ---------- Buttons ---------- */
-.btn,
-.btn:link,
-.btn:visited{
-  display:inline-block;
-  padding:10px 14px;
-  border-radius:10px;
-  border:none;
-  cursor:pointer;
+.h1,h1{font-size:2.1rem;margin:.6rem 0 0 0;line-height:1.15}
+.h2,h2{font-size:1.65rem;margin:.4rem 0 0 0;line-height:1.22}
+.h3,h3{font-size:1.25rem;margin:.4rem 0 0 0;line-height:1.24}
+.h4,h4{font-size:1.1rem;margin:.4rem 0 0 0;line-height:1.25}
+p{margin:.75rem 0}
+ul{margin:.5rem 0 .5rem 1.2rem}
+li{margin:.35rem 0}
+hr{border:0;border-top:1px solid rgba(2,6,23,.12);margin:1rem 0}
+.btn{
+  -webkit-appearance:none;
+  appearance:none;
+  border-radius:12px;
+  padding:8px 14px;
   font-weight:600;
-  color:#fff;
-  background:linear-gradient(180deg, var(--accent-2), var(--accent));
-  box-shadow:0 6px 16px rgba(37,99,235,.20);
-  text-decoration:none; /* prevent double underline on anchors */
-  transition:filter .15s ease, color .15s ease, background .15s ease;
-}
-.btn:hover, .btn:focus{
-  filter:brightness(1.05);
-  outline:2px solid transparent;
-  outline-offset:2px;
-}
-.btn:disabled{opacity:.6; cursor:not-allowed}
-
-/* Secondary/outline (if used) */
-.btn-outline{
-  color:var(--accent);
+  line-height:1.2;
+  border:1px solid rgba(2,6,23,.15);
   background:#fff;
-  border:1px solid rgba(37,99,235,.35);
-  box-shadow:0 4px 10px rgba(2,6,23,.06);
+  color:#0b1220;
+  cursor:pointer;
+  box-shadow:0 4px 16px rgba(2,6,23,.06),0 1px 2px rgba(2,6,23,.04),0 0 0 0 rgba(37,99,235,0)
 }
-.btn-outline:hover{background:rgba(37,99,235,.05)}
-
-/* ---------- Forms ---------- */
-label{display:block; font-size:13px; color:var(--muted); margin-bottom:6px}
-input, select, textarea{
+.btn:hover{background:#f8fbff}
+.btn:focus-visible{outline:none;box-shadow:var(--ring)}
+.btn:active{transform:translateY(1px)}
+.btn-primary{
+  background:linear-gradient(180deg,#3b82f6 0%,#2563eb 100%);
+  color:#fff;
+  border:1px solid #2a62e3
+}
+.btn-primary:hover{background:linear-gradient(180deg,#4e8fff 0%,#2b63e8 100%)}
+.btn-primary:active{background:#2153c8}
+.btn-outline{background:#fff;border-color:#b9c7f6;color:#2343b8}
+.btn-outline:hover{background:#f6f9ff}
+input,select,textarea{
   width:100%;
   padding:10px 12px;
-  border-radius:10px;
-  border:1px solid rgba(15,23,42,.2);
+  border-radius:12px;
+  border:1px solid #d1d5db;
   background:#fff;
-  box-shadow: inset 0 1px 2px rgba(2,6,23,.04);
-  font:inherit;
+  color:#0b1220;
+  outline:none
 }
-select{appearance:none; background-image:linear-gradient(45deg, transparent 50%, #64748b 50%), linear-gradient(135deg, #64748b 50%, transparent 50%); background-position:calc(100% - 18px) 16px, calc(100% - 12px) 16px; background-size:6px 6px, 6px 6px; background-repeat:no-repeat}
-input:focus, select:focus, textarea:focus{ outline:2px solid #2a6cf0; outline-offset:2px }
-
-/* ---------- Footer / Legal links ---------- */
-footer, .site-footer{
-  display:flex; justify-content:center; align-items:center;
-  padding:28px 12px 40px;
-  color:var(--muted);
+select{padding-right:36px}
+textarea{resize:vertical}
+input:focus,select:focus,textarea:focus{box-shadow:var(--ring);border-color:#78a6ff}
+label{display:block;margin:.5rem 0 .35rem;color:#0b1220;font-weight:600}
+input::placeholder,textarea::placeholder{color:#6b7280}
+fieldset{border:0;padding:0;margin:0}
+legend{padding:0}
+header.site{
+  position:sticky;top:0;z-index:10;background:rgba(255,255,255,.7);backdrop-filter:saturate(140%) blur(8px);
+  border-bottom:1px solid rgba(2,6,23,.07)
 }
-
-/* Apply consistent spacing to ALL variants used across the site */
-.footer-links,
-.page-legal,
-.legal.center,
-.legal{
-  display:flex;
-  justify-content:center;
-  align-items:center;
-  gap:18px;                 /* spacing between items (matches References) */
+.nav{
+  display:flex;gap:18px;align-items:center;height:54px
 }
-
-.footer-links a,
-.page-legal a,
-.legal.center a,
-.legal a{
-  padding:2px 4px;          /* slightly larger click target */
+.nav a{
+  display:inline-flex;align-items:center;height:38px;padding:0 8px;border-radius:10px;text-decoration:none;color:#0b1220
 }
-
-.footer-links span,
-.page-legal span,
-.legal.center span,
-.legal span{
-  margin:0 2px;             /* spacing around the dot */
-  opacity:.6;
+.nav a:hover{background:rgba(2,6,23,.05)}
+.nav a[aria-current="page"]{position:relative}
+.nav a[aria-current="page"]::after{
+  content:"";position:absolute;left:8px;right:8px;bottom:-11px;height:3px;background:linear-gradient(180deg,#98b8ff 0%,#5a83f2 100%);border-radius:3px
 }
-
-/* ---------- Accessibility helpers ---------- */
-.visually-hidden{
-  position:absolute !important; height:1px; width:1px; overflow:hidden;
-  clip:rect(1px,1px,1px,1px); white-space:nowrap;
+.skip-link{
+  position:absolute;left:-10000px;top:auto;width:1px;height:1px;overflow:hidden
 }
-
-/* ---------- Reference page components (existing) ---------- */
+.skip-link:focus{position:static;width:auto;height:auto;padding:6px;border-radius:8px;background:#fff;box-shadow:var(--ring)}
+footer.container{padding:36px 0;text-align:center;color:#475569}
+footer.container a{color:#1f4bed}
+footer.container a:hover{color:#183bb4}
+.hero{
+  background:linear-gradient(180deg,#f7fbff 0%,#eef6ff 12%,#edf4ff 35%,#f3f8ff 100%);
+  padding:8px 0 4px 0;border-bottom:1px solid rgba(2,6,23,.07)
+}
+.hero .card p{margin:.5rem 0 0}
+.hero .btn{margin-top:10px}
 .ref-board{
-  display:grid; gap:var(--gap); grid-template-columns: 1.1fr .9fr; align-items:start;
+  display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)
 }
-.ref-board .ref-card{
-  padding:14px 16px; border-radius:12px; border:1px solid rgba(2,6,23,.10);
-  background:#fff; box-shadow: var(--shadow);
-}
-.ref-board .ref-card + .ref-card{ margin-top: var(--gap); }
-.ref-card h3{ margin-top:0; }
-
-.ref-panel{
-  padding:14px 16px; border-radius:12px; border:1px solid rgba(2,6,23,.10);
-  background:#fff; box-shadow: var(--shadow);
-}
-.ref-panel__scroll{ overflow:auto; padding-right:0.25rem; } /* height set by JS */
-.ref-panel__list{ margin:0; padding-left:1.25rem; } /* keep bullets */
-.ref-panel__item + .ref-panel__item{ margin-top:0.75rem; }
-.ref-panel__desc{ margin:0.25rem 0 0 0; }
-
-/* Responsive */
+.ref-card{padding:14px 16px;border-radius:12px;border:1px solid rgba(2,6,23,.10);background:#fff;box-shadow:var(--shadow)}
+.ref-panel__scroll{overflow:auto;padding-right:0.25rem}
+.ref-panel__list{margin:0;padding-left:1.2rem}
+.ref-panel__item{margin:.4rem 0}
+.ref-panel__desc{margin:.25rem 0 0 0}
 @media (max-width:980px){
-  .ref-board{ grid-template-columns:1fr; }
-  .ref-panel__scroll{ max-height:none; } /* natural page scroll on mobile */
+  .ref-board{grid-template-columns:1fr}
+  .ref-panel__scroll{max-height:none}
 }
-
-.page-legal {
-  text-align: center;
-  margin: 32px 0;
-}
-/* Who Can Report — list sizing (page-scoped, no regressions) */
-body#who ul,
-body#who ol {
-  font-size: 1rem;       /* match normal paragraph size */
-  line-height: 1.6;      /* same rhythm as body text */
-  margin-left: 1.25rem;  /* comfortable bullet indent */
-}
-
-body#who li + li {
-  margin-top: 6px;       /* a bit of breathing room between items */
-}
-/* Home page: center CTA buttons (scoped so other pages unaffected) */
-body#home .card .actions {
-  display: flex;
-  justify-content: center;
-}
-body#home .card .actions .btn,
-body#home .card .actions .btn-primary {
-  margin-left: 0;
-  margin-right: 0;
-}
-/* Home page: center the 3 hero buttons (no HTML changes) */
-body#home main.container > .card:first-of-type > :has(> .btn) {
-  display: flex;
-  justify-content: center;
-  gap: 10px;
-  flex-wrap: wrap;
-}
-body#home main.container > .card:first-of-type > :has(> .btn) .btn {
-  margin: 0;
-}
-
-/* Fallback for browsers without :has() support */
-@supports not (selector(:has(*))) {
-  body#home main.container > .card:first-of-type { text-align: center; }
-  body#home main.container > .card:first-of-type .btn { 
-    display: inline-block; 
-    margin: 0 8px; 
-  }
-  /* keep headings/paragraphs left-aligned */
-  body#home main.container > .card:first-of-type h2,
-  body#home main.container > .card:first-of-type p { text-align: left; }
+.page-legal{text-align:center;margin-top:24px}
+.page-legal a{color:#1f4bed}
+.page-legal a:hover{color:#183bb4}
+.hero-why{padding-top:2px}
+.hero-why .card{padding:18px 16px}
+.hero-refs .card{padding:18px 16px}
+.ref-actions{display:flex;gap:10px;flex-wrap:wrap}
+.ref-actions a.btn{white-space:nowrap}
+kbd{
+  font-family:ui-monospace,Menlo,Monaco,Consolas,Liberation Mono,monospace;
+  font-weight:600;border-radius:6px;border:1px solid rgba(2,6,23,.18);
+  padding:0 6px;background:#fff;box-shadow:0 1px 0 rgba(2,6,23,.04);font-size:.95rem
 }
 /* --- Report page layout (scoped) --- */
-
-/* Identify the report page's two-card grid and stack it */
-main.container > .grid.grid-2:has(#optional-actions) {
-  grid-template-columns: 1fr;     /* stack the two cards */
-  align-items: start;
+main.container>.grid.grid-2:has(#optional-actions){grid-template-columns:1fr;align-items:start}
+main.container>.grid.grid-2:has(#optional-actions)>.card{margin-top:0!important;height:auto}
+main.container>.grid.grid-2:has(#optional-actions)>.card:last-child{display:grid;gap:var(--gap);grid-template-columns:1fr}
+@media (min-width:900px){
+  main.container>.grid.grid-2:has(#optional-actions)>.card:last-child{grid-template-columns:1fr 1fr}
 }
-main.container > .grid.grid-2:has(#optional-actions) > .card {
-  margin-top: 0 !important;
-  height: auto;
-}
-
-/* Inside the bottom card, lay out Optional actions (left) and Tips (right) */
-main.container > .grid.grid-2:has(#optional-actions) > .card:last-child {
-  display: grid;
-  gap: var(--gap);
-  grid-template-columns: 1fr;     /* mobile: stack */
-}
-
-/* Desktop: two columns inside the bottom card */
-@media (min-width: 900px) {
-  main.container > .grid.grid-2:has(#optional-actions) > .card:last-child {
-    grid-template-columns: 1fr 1fr;
-  }
-}
-
-/* Place the two areas into columns */
-main.container > .grid.grid-2:has(#optional-actions) > .card:last-child #optional-actions {
-  grid-column: 1;
-}
-main.container > .grid.grid-2:has(#optional-actions) > .card:last-child #optional-actions ~ h2,
-main.container > .grid.grid-2:has(#optional-actions) > .card:last-child #optional-actions ~ ul {
-  grid-column: 2;
-}
-
-/* Tidy spacing for the Tips heading when it sits in column 2 */
-main.container > .grid.grid-2:has(#optional-actions) > .card:last-child #optional-actions ~ h2 {
-  margin-top: 4px;
-}
+main.container>.grid.grid-2:has(#optional-actions)>.card:last-child #optional-actions{grid-column:1}
+main.container>.grid.grid-2:has(#optional-actions)>.card:last-child #optional-actions~h2,
+main.container>.grid.grid-2:has(#optional-actions)>.card:last-child #optional-actions~ul{grid-column:2}
+main.container>.grid.grid-2:has(#optional-actions)>.card:last-child #optional-actions~h2{margin-top:4px}
 /* --- Report bottom card: precise desktop alignment --- */
-@media (min-width: 900px) {
-  /* Turn the bottom card into a 2x2 grid: headings on row 1, content on row 2 */
-  main.container > .grid.grid-2:has(#optional-actions) > .card:last-child {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    grid-auto-rows: auto;
-    align-items: start;
-    column-gap: var(--gap);
-    row-gap: var(--space-3);
+@media (min-width:900px){
+  main.container>.grid.grid-2:has(#optional-actions)>.card:last-child{
+    display:grid;grid-template-columns:1fr 1fr;grid-auto-rows:auto;align-items:start;column-gap:var(--gap);row-gap:var(--space-3)
   }
-
-  /* Left heading ("Optional actions") sits above its content */
-  main.container > .grid.grid-2:has(#optional-actions) > .card:last-child h2:has(+ #optional-actions) {
-    grid-column: 1;
-    grid-row: 1;
-    margin-top: 0;
-  }
-
-  /* Left content */
-  main.container > .grid.grid-2:has(#optional-actions) > .card:last-child #optional-actions {
-    grid-column: 1;
-    grid-row: 2;
-  }
-
-  /* Right heading ("Tips") */
-  main.container > .grid.grid-2:has(#optional-actions) > .card:last-child #optional-actions ~ h2 {
-    grid-column: 2;
-    grid-row: 1;
-    margin-top: 0;
-  }
-
-  /* Right list */
-  main.container > .grid.grid-2:has(#optional-actions) > .card:last-child #optional-actions ~ ul {
-    grid-column: 2;
-    grid-row: 2;
-    margin-top: 0;
-  }
+  main.container>.grid.grid-2:has(#optional-actions)>.card:last-child h2:has(+ #optional-actions){grid-column:1;grid-row:1;margin-top:0}
+  main.container>.grid.grid-2:has(#optional-actions)>.card:last-child #optional-actions{grid-column:1;grid-row:2}
+  main.container>.grid.grid-2:has(#optional-actions)>.card:last-child #optional-actions~h2{grid-column:2;grid-row:1;margin-top:0}
+  main.container>.grid.grid-2:has(#optional-actions)>.card:last-child #optional-actions~ul{grid-column:2;grid-row:2;margin-top:0}
 }
