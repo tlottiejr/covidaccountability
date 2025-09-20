@@ -1,129 +1,89 @@
 <!doctype html>
 <html lang="en">
-<!-- a11y helpers (same as other pages) -->
-<script src="/assets/js/ux-accessibility.js" defer></script>
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Report — COVIDAccountabilityNow</title>
+  <title>Prepare Your Report — COVIDAccountabilityNow</title>
 
+  <!-- Preconnects (unchanged) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  <!-- Site-wide styles + portal button look -->
+  <!-- Site styles (unchanged) -->
   <link rel="stylesheet" href="/assets/site.css"/>
   <link rel="stylesheet" href="/assets/portal.css"/>
 
-  <style>
-    /* ===========================
-       Optional Actions – selectable cards
-       (right-side selection dot, portal look & spacing)
-       =========================== */
-    #optional-actions { margin-top: 6px; }
-    #optional-actions .oa-row { margin: 10px 0; position: relative; }
+  <!-- Scoped override: make Optional actions match complaint-portal board selection -->
+  <style id="optional-actions-overrides">
+    /* Scope strictly to the Optional actions block on this page */
+    #optional-actions { margin-top: 8px; }
+    #optional-actions .oa-row { position: relative; }
 
-    /* Keep the native checkbox accessible but visually hidden.
-       Label handles clicks so entire card toggles. */
+    /* The hidden checkbox spans the row but is not clickable directly */
     #optional-actions .oa-input {
-      position: absolute;
-      opacity: 0;
-      inset: 0;             /* full row area clickable via the label */
-      pointer-events: none; /* label receives pointer events */
+      position: absolute; inset: 0; opacity: 0; pointer-events: none;
     }
 
-    /* The card users see/click */
+    /* Card look = complaint-portal selection card */
     #optional-actions .oa-card {
       position: relative;
       display: block;
-      border: 1px solid rgba(56,116,255,.35);
-      background: #f4f7ff;
-      border-radius: 14px;
-      padding: 12px 46px 12px 14px; /* room on RIGHT for the indicator */
-      box-shadow: 0 1px 2px rgba(0,0,0,.05);
-      transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
+      border: 1px solid #c7d7ff;         /* subtle border (no glow) */
+      background: #ffffff;                /* white by default */
+      border-radius: 12px;
+      padding: 12px 14px 12px 44px;       /* space on LEFT for indicator */
+      box-shadow: none !important;        /* kill any halo */
       cursor: pointer;
-      scrollbar-gutter: stable; /* prevent scrollbar overlap if text wraps */
+      transition: background .15s ease, border-color .15s ease;
+    }
+    #optional-actions .oa-card:hover {
+      background: #f3f7ff;               /* gentle hover like portal */
+      border-color: #b6c8ff;
+    }
+    /* Checked state: light blue background + slightly stronger border */
+    #optional-actions input:checked + .oa-card {
+      background: #eef4ff;
+      border-color: #8fb0ff;
+      box-shadow: none !important;
     }
 
-    /* Content rhythm inside each card */
+    /* Title + note text treatment (unchanged sizing) */
     #optional-actions .oa-title { font-weight: 600; }
     #optional-actions .oa-note  { display: block; font-size: .92rem; opacity: .75; margin-top: .2rem; }
 
-    /* Hover */
-    #optional-actions .oa-card:hover {
-      box-shadow: 0 4px 12px rgba(0,0,0,.10);
-      background: #eef4ff;
-    }
+    /* Space between rows */
+    #optional-actions .oa-row + .oa-row { margin-top: 10px; }
 
-    /* RIGHT-side indicator (unchecked) */
-    #optional-actions .oa-input + .oa-card::before {
-      content: "";
-      position: absolute;
-      right: 14px;           /* indicator on the right */
-      top: 50%;
-      transform: translateY(-50%);
-      width: 18px;
-      height: 18px;
-      border-radius: 50%;
-      border: 2px solid #8bb3ff;
-      background: #fff;
-      box-shadow: 0 0 0 2px rgba(63,132,248,.10) inset;
-      transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
-    }
-
-    /* Keyboard focus ring */
-    #optional-actions .oa-input:focus + .oa-card {
-      outline: 2px solid rgba(30,111,255,.35);
-      outline-offset: 2px;
-    }
-
-    /* Checked state: stronger card + filled dot */
-    #optional-actions .oa-input:checked + .oa-card {
-      background: #eaf3ff;
-      border-color: #1e6fff;
-      box-shadow: inset 0 0 0 3px rgba(30,111,255,.10), 0 1px 2px rgba(0,0,0,.05);
-    }
-    #optional-actions .oa-input:checked + .oa-card::before {
-      border-color: #1e6fff;
-      background:
-        radial-gradient(#1e6fff 0 50%, transparent 55%),
-        #fff;
-      box-shadow: 0 0 0 2px rgba(30,111,255,.25) inset;
-    }
-
-    /* Button area spacing (matches portal rhythm) */
-    #optional-actions .actions { margin-top: 12px; }
-  </style>
-    <style id="optional-actions-overrides">
-    /* Scope strictly to the Optional actions block on report.html */
-    #optional-actions .oa-card {
-      /* match portal option look: subtle border, no glow */
-      border: 1px solid #c7d7ff;
-      background: #f5f8ff;
-      box-shadow: none;            /* remove outer glow */
-    }
-    #optional-actions .oa-card:hover {
-      background: #eef4ff;         /* same hover tone as portal cards */
-      border-color: #b6c8ff;
-      box-shadow: 0 1px 2px rgba(0,0,0,.06); /* tiny depth, not a glow */
-    }
-    /* When the checkbox is checked, keep it subtle */
-    #optional-actions input:checked + .oa-card {
-      border-color: #8fb0ff;
-      background: #eef4ff;
-    }
-    /* Right-side circular indicator: remove the thick halo */
+    /* Radio-style indicator on the LEFT (to match portal cards) */
     #optional-actions .oa-card::after {
-      box-shadow: none;            /* removes blue ring halo */
+      content: '';
+      position: absolute;
+      left: 14px; top: 50%;
+      width: 18px; height: 18px;
+      border-radius: 50%;
+      border: 2px solid #2d5bff;
+      transform: translateY(-50%);
+      background: #fff;
+      box-shadow: none !important;       /* remove thick halo ring */
     }
-    /* Keyboard focus (accessibility) — thin outline, no glow */
+    #optional-actions input:checked + .oa-card::after {
+      background: radial-gradient(circle at 50% 50%, #2d5bff 50%, transparent 51%);
+    }
+
+    /* Keyboard focus (thin outline; no glow) */
     #optional-actions .oa-card:focus,
-    #optional-actions input:focus + .oa-card {
-      outline: 2px solid #7aa2ff;  /* thin focus outline */
+    #optional-actions .oa-card:focus-visible,
+    #optional-actions .oa-card:focus-within,
+    #optional-actions input:focus + .oa-card,
+    #optional-actions input:focus-visible + .oa-card {
+      outline: 2px solid #7aa2ff;
       outline-offset: 2px;
-      box-shadow: none;
+      box-shadow: none !important;
     }
   </style>
+
+  <!-- a11y helpers (unchanged) -->
+  <script src="/assets/js/ux-accessibility.js" defer></script>
 </head>
 <body>
   <div id="nav-root"></div>
@@ -137,175 +97,110 @@
     </p>
 
     <div class="grid grid-2">
+      <!-- LEFT: Information Template -->
       <section class="card">
         <h2>Information Template</h2>
         <div class="grid">
-          <div><label for="rtState">State (for your filing)</label><input id="rtState" type="text" placeholder="e.g., Delaware (DE)"/></div>
-          <div><label for="rtPractitioner">Practitioner / Organization</label><input id="rtPractitioner" type="text" placeholder="Name and role"/></div>
-          <div><label for="rtDate">Date of incident</label><input id="rtDate" type="date"/></div>
-          <div><label for="rtLocation">Location</label><input id="rtLocation" type="text" placeholder="Facility / city / state"/></div>
-          <div><label for="rtProduct">Procedure / Product / Order</label><input id="rtProduct" type="text" placeholder="What was administered or performed?"/></div>
-          <div><label for="rtOutcome">Harm / Outcome</label><input id="rtOutcome" type="text" placeholder="Symptoms, diagnosis, costs, time off, etc."/></div>
-          <div class="col-span-2"><label for="rtDetails">Details (what happened)</label><textarea id="rtDetails" placeholder="Describe what happened, in order. Include who said what, and when."></textarea></div>
-          <div class="col-span-2"><label for="rtEvidence">Evidence / Documentation (optional)</label><textarea id="rtEvidence" placeholder="List records, messages, lab results, images, bills, etc. Keep originals for your filing."></textarea></div>
-          <div><label for="rtWitnesses">Witnesses (optional)</label><input id="rtWitnesses" type="text" placeholder="Names and contact info"/></div>
-          <div><label for="rtPriorCase">Prior board case # (optional)</label><input id="rtPriorCase" type="text" placeholder="If you have already filed"/></div>
-          <div><label for="rtYourName">Your name (optional)</label><input id="rtYourName" type="text" placeholder="Your name"/></div>
-          <div><label for="rtYourEmail">Your email (optional)</label><input id="rtYourEmail" type="email" placeholder="you@example.com"/></div>
+          <div>
+            <label for="rtState">State (for your filing)</label>
+            <input id="rtState" type="text" placeholder="e.g., Delaware (DE)"/>
+          </div>
+          <div>
+            <label for="rtPractitioner">Practitioner / Organization</label>
+            <input id="rtPractitioner" type="text" placeholder="Name and role"/>
+          </div>
+          <div>
+            <label for="rtDate">Date of incident</label>
+            <input id="rtDate" type="date" placeholder="mm / dd / yyyy"/>
+          </div>
+          <div>
+            <label for="rtLocation">Location</label>
+            <input id="rtLocation" type="text" placeholder="Facility / city / state"/>
+          </div>
+          <div>
+            <label for="rtProduct">Procedure / Product / Order</label>
+            <input id="rtProduct" type="text" placeholder="What was administered or performed?"/>
+          </div>
+          <div>
+            <label for="rtOutcome">Harm / Outcome</label>
+            <input id="rtOutcome" type="text" placeholder="Symptoms, diagnosis, costs, time off, etc."/>
+          </div>
+          <div class="span-2">
+            <label for="rtDetails">Details (what happened)</label>
+            <textarea id="rtDetails" rows="7" placeholder="Describe what happened, in order. Include who said what, and when."></textarea>
+          </div>
+          <div class="span-2">
+            <label for="rtEvidence">Evidence / Documentation (optional)</label>
+            <textarea id="rtEvidence" rows="5" placeholder="List records, messages, lab results, images, bills, etc. Keep originals for your filing."></textarea>
+          </div>
+          <div>
+            <label for="rtWitnesses">Witnesses (optional)</label>
+            <input id="rtWitnesses" type="text" placeholder="Names and contact info"/>
+          </div>
+          <div>
+            <label for="rtPriorCase">Prior board case # (optional)</label>
+            <input id="rtPriorCase" type="text" placeholder="If you have already filed"/>
+          </div>
+          <div>
+            <label for="rtYourName">Your name (optional)</label>
+            <input id="rtYourName" type="text" placeholder="Your name"/>
+          </div>
+          <div>
+            <label for="rtYourEmail">Your email (optional)</label>
+            <input id="rtYourEmail" type="email" placeholder="you@example.com"/>
+          </div>
         </div>
       </section>
 
+      <!-- RIGHT: Tips + Optional actions -->
       <section class="card">
         <h2>Tips</h2>
-        <ul class="small">
+        <ul>
           <li>Be factual and chronological. Avoid speculation; stick to what you observed or have in records.</li>
           <li>If you don’t know an exact date/time, write your best estimate and say it’s approximate.</li>
           <li>Keep personal copies of all attachments. Boards usually request uploads on their official portals.</li>
           <li>After saving your draft, go to the <a href="/complaint-portal.html">Complaint Portal</a> to file with your state board.</li>
         </ul>
-      <h2 style="margin-top:20px;">Optional actions</h2>
-      <div id="optional-actions">
-        <!-- Save PDF -->
-        <div class="oa-row">
-          <input type="checkbox" id="rtSavePdf" class="oa-input" />
-          <label for="rtSavePdf" class="oa-card">
-            <span class="oa-title">Save a local copy (PDF)</span>
-            <span class="oa-note">A PDF is saved on your device only.</span>
-          </label>
-        </div>
 
-        <!-- Copy text -->
-        <div class="oa-row">
-          <input type="checkbox" id="rtCopyText" class="oa-input" />
-          <label for="rtCopyText" class="oa-card">
-            <span class="oa-title">Copy text to clipboard</span>
-            <span class="oa-note">Copies the generated report text.</span>
-          </label>
-        </div>
+        <h2 style="margin-top:20px;">Optional actions</h2>
 
-        <!-- Generate button -->
-        <div class="actions" style="margin-top:12px;">
-          <button type="button" id="generate-btn" class="btn btn-primary">Generate</button>
-        </div>
+        <div id="optional-actions">
+          <!-- Save PDF -->
+          <div class="oa-row">
+            <input type="checkbox" id="rtSavePdf" class="oa-input" />
+            <label for="rtSavePdf" class="oa-card">
+              <span class="oa-title">Save a local copy (PDF)</span>
+              <span class="oa-note">A PDF is saved on your device only.</span>
+            </label>
+          </div>
 
-        <p class="small" style="margin-top:12px">
-          We do not store your report content. Use the options above to save or copy your information locally, then file your report on the official state site.
-        </p>
-      </div>
+          <!-- Copy text -->
+          <div class="oa-row">
+            <input type="checkbox" id="rtCopyText" class="oa-input" />
+            <label for="rtCopyText" class="oa-card">
+              <span class="oa-title">Copy text to clipboard</span>
+              <span class="oa-note">Copies the generated report text.</span>
+            </label>
+          </div>
+
+          <!-- Generate button -->
+          <div class="actions" style="margin-top:12px;">
+            <button type="button" id="generate-btn" class="btn btn-primary">Generate</button>
+          </div>
+
+          <p class="small" style="margin-top:12px">
+            We do not store your report content. Use the options above to save or copy your information locally, then file your report on the official state site.
+          </p>
+        </div>
       </section>
     </div>
+
+    <p class="small center" style="margin:28px 0 8px">
+      <a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a>
+    </p>
   </main>
 
-  <footer class="container">
-    <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
-  </footer>
-
-  <!-- Original page logic (if present in repo) -->
+  <!-- Feature script (unchanged) -->
   <script src="/assets/report-template.js" defer></script>
-
-  <!-- Non-breaking bridge: ensure Generate works even if the external script doesn't bind -->
-  <script>
-    (function () {
-      const $ = (sel) => document.querySelector(sel);
-      const byId = (id) => document.getElementById(id);
-
-      function gatherFields() {
-        const val = (id) => (byId(id)?.value || "").trim();
-        const lines = [];
-        lines.push(`# Report Draft`);
-        lines.push(``);
-        lines.push(`State: ${val("rtState")}`);
-        lines.push(`Practitioner/Org: ${val("rtPractitioner")}`);
-        lines.push(`Date: ${val("rtDate")}`);
-        lines.push(`Location: ${val("rtLocation")}`);
-        lines.push(`Procedure/Product/Order: ${val("rtProduct")}`);
-        lines.push(`Harm/Outcome: ${val("rtOutcome")}`);
-        lines.push(``);
-        lines.push(`## Details`);
-        lines.push(val("rtDetails"));
-        lines.push(``);
-        lines.push(`## Evidence / Documentation (optional)`);
-        lines.push(val("rtEvidence"));
-        lines.push(``);
-        lines.push(`Witnesses (optional): ${val("rtWitnesses")}`);
-        lines.push(`Prior board case # (optional): ${val("rtPriorCase")}`);
-        lines.push(`Your name (optional): ${val("rtYourName")}`);
-        lines.push(`Your email (optional): ${val("rtYourEmail")}`);
-        return lines.join("\n");
-      }
-
-      async function copyToClipboard(text) {
-        try {
-          await navigator.clipboard.writeText(text);
-          return true;
-        } catch {
-          // Fallback: temporary textarea
-          const ta = document.createElement("textarea");
-          ta.value = text;
-          document.body.appendChild(ta);
-          ta.select();
-          try { document.execCommand("copy"); } catch {}
-          document.body.removeChild(ta);
-          return true;
-        }
-      }
-
-      function printAsPdf(text) {
-        // Simple printable window; user chooses "Save as PDF"
-        const w = window.open("", "_blank");
-        if (!w) return;
-        const esc = (s) => s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
-        w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Report</title>
-          <style>
-            body { font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial, sans-serif; margin: 24px; }
-            pre { white-space: pre-wrap; word-wrap: break-word; }
-          </style></head><body><pre>${esc(text)}</pre></body></html>`);
-        w.document.close();
-        w.focus();
-        w.print();
-      }
-
-      function attachHandler() {
-        const btn =
-          byId("generate-btn") ||
-          byId("generate") ||
-          document.querySelector('[data-action="generate"]');
-
-        if (!btn) return;
-
-        // Avoid double-binding
-        if (btn.dataset.bound === "1") return;
-        btn.dataset.bound = "1";
-
-        btn.addEventListener("click", async () => {
-          // If the repo's original script exposes a handler, prefer it.
-          if (typeof window.generateReport === "function") {
-            window.generateReport();
-            return;
-          }
-
-          const text = gatherFields();
-          const savePdf = byId("rtSavePdf")?.checked || false;
-          const copyTxt = byId("rtCopyText")?.checked || false;
-
-          if (!savePdf && !copyTxt) {
-            // If no options chosen, default to copy (nice UX)
-            await copyToClipboard(text);
-            return;
-          }
-          if (copyTxt) await copyToClipboard(text);
-          if (savePdf) printAsPdf(text);
-        });
-      }
-
-      // Run after DOM is ready; also re-run after fonts
-      if (document.readyState === "complete" || document.readyState === "interactive") {
-        attachHandler();
-      } else {
-        document.addEventListener("DOMContentLoaded", attachHandler);
-      }
-      if (document.fonts && document.fonts.ready) document.fonts.ready.then(attachHandler).catch(()=>{});
-    })();
-  </script>
 </body>
 </html>
