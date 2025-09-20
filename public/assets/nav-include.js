@@ -1,7 +1,7 @@
 // public/assets/nav-include.js
 // Consistent, non-flickering top nav with correct active underline on every page.
 // Renders synchronously (no fetch), normalizes clean URLs, and prevents reload
-// when clicking the currently active tab.
+// when clicking the currently active tab. Also normalizes footer/legal links.
 
 (function () {
   /**
@@ -31,7 +31,7 @@
       p = '/';
     }
 
-    // Strip .html extension to support clean-URL routing
+    // Strip .html extension (support clean-URL routing)
     if (p.toLowerCase().endsWith('.html')) {
       p = p.slice(0, -('.html'.length));
       if (p === '') p = '/';
@@ -100,36 +100,64 @@
     renderNav();
   }
 
-  // Normalize footer “Privacy · Disclaimer” sitewide (keeps your spacing and dot)
-  function normalizeFooter() {
-    const fl = document.querySelector('.footer-links');
-    if (!fl) return;
-    const links = fl.querySelectorAll('a');
+  // Normalize footer/legal blocks site-wide to "Privacy · Disclaimer" with spacing
+  function normalizeFooterBlocks() {
+    // 1) .footer-links (present on some pages)
+    const foot = document.querySelector('.footer-links');
+    if (foot) {
+      const links = foot.querySelectorAll('a');
+      if (links.length === 1) {
+        foot.innerHTML = '';
+        const a1 = document.createElement('a');
+        a1.href = '/privacy';
+        a1.textContent = 'Privacy';
+        const dot = document.createElement('span');
+        dot.textContent = '·';
+        dot.setAttribute('aria-hidden', 'true');
+        const a2 = document.createElement('a');
+        a2.href = '/disclaimer';
+        a2.textContent = 'Disclaimer';
+        foot.append(a1, dot, a2);
+      } else if (links.length === 2 && !foot.querySelector('span')) {
+        const dot = document.createElement('span');
+        dot.textContent = '·';
+        dot.setAttribute('aria-hidden', 'true');
+        links[0].after(dot);
+      }
+    }
 
-    // One combined link -> split into two with dot
-    if (links.length === 1) {
-      fl.innerHTML = '';
-      const a1 = document.createElement('a');
-      a1.href = '/privacy';
-      a1.textContent = 'Privacy';
-      const dot = document.createElement('span');
-      dot.textContent = '·';
-      dot.setAttribute('aria-hidden', 'true');
-      const a2 = document.createElement('a');
-      a2.href = '/disclaimer';
-      a2.textContent = 'Disclaimer';
-      fl.append(a1, dot, a2);
-    } else if (links.length === 2 && !fl.querySelector('span')) {
-      const dot = document.createElement('span');
-      dot.textContent = '·';
-      dot.setAttribute('aria-hidden', 'true');
-      links[0].after(dot);
+    // 2) .page-legal (seen at the bottom of many pages)
+    const legal = document.querySelector('.page-legal');
+    if (legal) {
+      // If it’s a single combined link like "Privacy:Disclaimer", replace it
+      const aTags = legal.querySelectorAll('a');
+      const textOnly = legal.textContent.trim();
+      const looksCombined = /privacy\s*:\s*disclaimer/i.test(textOnly);
+
+      if (aTags.length === 1 || looksCombined) {
+        legal.innerHTML = '';
+        const a1 = document.createElement('a');
+        a1.href = '/privacy';
+        a1.textContent = 'Privacy';
+        const dot = document.createElement('span');
+        dot.textContent = '·';
+        dot.setAttribute('aria-hidden', 'true');
+        const a2 = document.createElement('a');
+        a2.href = '/disclaimer';
+        a2.textContent = 'Disclaimer';
+        legal.append(a1, dot, a2);
+      } else if (aTags.length === 2 && !legal.querySelector('span')) {
+        const dot = document.createElement('span');
+        dot.textContent = '·';
+        dot.setAttribute('aria-hidden', 'true');
+        aTags[0].after(dot);
+      }
     }
   }
 
   if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', normalizeFooter);
+    document.addEventListener('DOMContentLoaded', normalizeFooterBlocks);
   } else {
-    normalizeFooter();
+    normalizeFooterBlocks();
   }
 })();
