@@ -178,20 +178,28 @@ footer, .site-footer{
   color:var(--muted);
 }
 
-/* Add consistent spacing both for .footer-links and for .page-legal blocks */
+/* Apply consistent spacing to ALL variants used across the site */
 .footer-links,
-.page-legal{
+.page-legal,
+.legal.center,
+.legal{
   display:flex;
   justify-content:center;
   align-items:center;
-  gap:18px;                 /* spacing between items */
+  gap:18px;                 /* spacing between items (matches References) */
 }
+
 .footer-links a,
-.page-legal a{
+.page-legal a,
+.legal.center a,
+.legal a{
   padding:2px 4px;          /* slightly larger click target */
 }
+
 .footer-links span,
-.page-legal span{
+.page-legal span,
+.legal.center span,
+.legal span{
   margin:0 2px;             /* spacing around the dot */
   opacity:.6;
 }
