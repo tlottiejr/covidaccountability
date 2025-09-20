@@ -80,3 +80,31 @@ body#portal select:focus-visible {
 /* Turnstile spacing (as in baseline) */
 body#portal .turnstile-box { min-height: 0; }
 body#portal .turnstile-box:empty { display: none; }
+/* === Complaint Portal: remove only the fieldset border lines (keep cards) === */
+
+/* Kill the fieldset box lines under the two legends */
+body#portal section.card[aria-labelledby="stateLegend"] fieldset,
+body#portal section.card[aria-labelledby="boardsLegend"] fieldset {
+  border: none !important;   /* removes the rectangle line */
+  padding: 0;                /* let internal spacing handle layout */
+}
+
+/* Make sure no pseudo “frame” reappears from theme styles */
+body#portal section.card[aria-labelledby="stateLegend"] fieldset::before,
+body#portal section.card[aria-labelledby="stateLegend"] fieldset::after,
+body#portal section.card[aria-labelledby="boardsLegend"] fieldset::before,
+body#portal section.card[aria-labelledby="boardsLegend"] fieldset::after {
+  content: none !important;
+}
+
+/* Keep legend spacing looking intentional without a border */
+body#portal section.card[aria-labelledby="stateLegend"] legend,
+body#portal section.card[aria-labelledby="boardsLegend"] legend {
+  margin-bottom: 8px;        /* tweak if you want tighter/looser */
+}
+
+/* Also stop any focus outline from showing on the whole fieldset */
+body#portal section.card[aria-labelledby="stateLegend"] fieldset:focus,
+body#portal section.card[aria-labelledby="boardsLegend"] fieldset:focus {
+  outline: none;
+}
