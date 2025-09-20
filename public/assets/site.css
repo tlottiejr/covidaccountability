@@ -251,3 +251,13 @@ body#who ol {
 body#who li + li {
   margin-top: 6px;       /* a bit of breathing room between items */
 }
+/* Home page: center CTA buttons (scoped so other pages unaffected) */
+body#home .card .actions {
+  display: flex;
+  justify-content: center;
+}
+body#home .card .actions .btn,
+body#home .card .actions .btn-primary {
+  margin-left: 0;
+  margin-right: 0;
+}
