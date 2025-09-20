@@ -1,61 +1,54 @@
 <!doctype html>
 <html lang="en">
+<script src="/assets/js/ux-accessibility.js" defer></script>
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>Prepare Your Report — COVIDAccountabilityNow</title>
+  <title>Prepare Your Report — COVID Accountability Now</title>
 
-  <!-- Preconnects (unchanged) -->
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
-  <!-- Site styles (unchanged) -->
   <link rel="stylesheet" href="/assets/site.css"/>
   <link rel="stylesheet" href="/assets/portal.css"/>
 
-  <!-- Scoped override: Optional actions style, indicator on RIGHT, no blue glow -->
-  <style id="optional-actions-overrides">
-    /* Scope strictly to Optional actions on this page */
+  <!-- Scoped overrides for this page only -->
+  <style>
+    /* Make both cards equal height in the two-column grid */
+    main.container > .grid.grid-2 { align-items: stretch; }
+    main.container > .grid.grid-2 > .card { height: 100%; }
+
+    /* Optional actions: indicator on RIGHT, no blue glow/halo */
     #optional-actions { margin-top: 8px; }
     #optional-actions .oa-row { position: relative; }
-
-    /* Invisible checkbox spans row (keeps label clickable) */
     #optional-actions .oa-input {
       position: absolute; inset: 0; opacity: 0; pointer-events: none;
     }
-
-    /* Card look = subtle border, no glow */
     #optional-actions .oa-card {
       position: relative;
       display: block;
-      border: 1px solid #c7d7ff;      /* pencil-like border */
-      background: #ffffff;             /* white by default */
+      border: 1px solid #c7d7ff;
+      background: #ffffff;
       border-radius: 12px;
-      padding: 12px 44px 12px 14px;    /* space on RIGHT for indicator */
-      box-shadow: none !important;     /* kill any halo */
+      padding: 12px 44px 12px 14px;   /* room on RIGHT for indicator */
+      box-shadow: none !important;     /* no glow */
       cursor: pointer;
       transition: background .15s ease, border-color .15s ease;
     }
     #optional-actions .oa-card:hover {
-      background: #f3f7ff;            /* gentle hover like portal */
+      background: #f3f7ff;
       border-color: #b6c8ff;
       box-shadow: none !important;
     }
-    /* Checked state: subtle highlight, no glow */
     #optional-actions input:checked + .oa-card {
       background: #eef4ff;
       border-color: #8fb0ff;
       box-shadow: none !important;
     }
-
-    /* Title + note */
     #optional-actions .oa-title { font-weight: 600; }
     #optional-actions .oa-note  { display: block; font-size: .92rem; opacity: .75; margin-top: .2rem; }
-
-    /* Spacing between rows */
     #optional-actions .oa-row + .oa-row { margin-top: 10px; }
 
-    /* Radio-style indicator on the RIGHT */
+    /* Right-side radio indicator */
     #optional-actions .oa-card::after {
       content: '';
       position: absolute;
@@ -65,13 +58,12 @@
       border: 2px solid #2d5bff;
       transform: translateY(-50%);
       background: #fff;
-      box-shadow: none !important;    /* remove halo ring */
+      box-shadow: none !important;     /* remove halo ring */
     }
     #optional-actions input:checked + .oa-card::after {
       background: radial-gradient(circle at 50% 50%, #2d5bff 50%, transparent 51%);
     }
-
-    /* Remove the blue focus line/glow after click */
+    /* Remove blue focus outline/glow after click */
     #optional-actions .oa-card:focus,
     #optional-actions .oa-card:focus-visible,
     #optional-actions .oa-card:focus-within,
@@ -81,12 +73,8 @@
       box-shadow: none !important;
     }
   </style>
-
-  <!-- a11y helpers (unchanged) -->
-  <script src="/assets/js/ux-accessibility.js" defer></script>
 </head>
 <body>
-  <!-- Shared nav include (unchanged) -->
   <div id="nav-root"></div>
   <script src="/assets/nav-include.js" defer></script>
 
@@ -153,17 +141,9 @@
         </div>
       </section>
 
-      <!-- RIGHT: Tips + Optional actions -->
+      <!-- RIGHT: Optional actions (now FIRST) + Tips -->
       <section class="card">
-        <h2>Tips</h2>
-        <ul>
-          <li>Be factual and chronological. Avoid speculation; stick to what you observed or have in records.</li>
-          <li>If you don’t know an exact date/time, write your best estimate and say it’s approximate.</li>
-          <li>Keep personal copies of all attachments. Boards usually request uploads on their official portals.</li>
-          <li>After saving your draft, go to the <a href="/complaint-portal.html">Complaint Portal</a> to file with your state board.</li>
-        </ul>
-
-        <h2 style="margin-top:20px;">Optional actions</h2>
+        <h2>Optional actions</h2>
 
         <div id="optional-actions">
           <!-- Save PDF -->
@@ -193,15 +173,24 @@
             We do not store your report content. Use the options above to save or copy your information locally, then file your report on the official state site.
           </p>
         </div>
+
+        <h2 style="margin-top:22px;">Tips</h2>
+        <ul>
+          <li>Be factual and chronological. Avoid speculation; stick to what you observed or have in records.</li>
+          <li>If you don’t know an exact date/time, write your best estimate and say it’s approximate.</li>
+          <li>Keep personal copies of all attachments. Boards usually request uploads on their official portals.</li>
+          <li>After saving your draft, go to the <a href="/complaint-portal.html">Complaint Portal</a> to file with your state board.</li>
+        </ul>
       </section>
     </div>
   </main>
 
-  <!-- Shared footer include (new to match rest of site) -->
-  <div id="footer-root"></div>
-  <script src="/assets/footer-include.js" defer></script>
+  <!-- Sitewide footer (same as other pages) -->
+  <footer class="container">
+    <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
+  </footer>
 
-  <!-- Feature script (unchanged) -->
+  <script src="/assets/nav-include.js" defer></script>
   <script src="/assets/report-template.js" defer></script>
 </body>
 </html>
