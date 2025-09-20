@@ -27,7 +27,7 @@
       #ref-board {
         display: grid;
         grid-template-columns: 1fr 1fr;
-        grid-template-rows: auto auto auto; /* heights are set via JS so rows match */
+        grid-template-rows: auto auto auto; /* heights set via JS */
         gap: 20px;
         align-content: start;
       }
@@ -40,6 +40,7 @@
 
     /* Internal scrolling (desktop): list scrolls, page does not */
     #ref-board .ref-panel__scroll { overflow: auto; }
+
     /* Panel inner spacing (match target look) */
     #ref-board h3 { margin: 6px 0 10px; line-height: 1.25; }
     #ref-board .ref-panel__list { margin: 0; padding-left: 1.1rem; }
@@ -47,6 +48,9 @@
     #ref-board .ref-panel__item:last-child { margin-bottom: 0; }
     #ref-board .ref-meta { margin-top: 2px; font-style: italic; opacity: 0.85; }
     #ref-board .ref-panel__desc { margin: 6px 0 0; }
+
+    /* Ensure even visual breathing room above the footer */
+    #references-card { margin-bottom: 24px; }
 
     .legal.center { text-align: center; margin: 24px 0 0; }
     .legal.center a { font: inherit; }
