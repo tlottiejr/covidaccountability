@@ -16,29 +16,36 @@
   <!-- References page logic -->
   <script src="/assets/js/references-page.js" defer></script>
 
-  <!-- Page-only layout: exact 2×2 grid + bottom-left card on desktop -->
+  <!-- Page-only layout & spacing -->
   <style>
-    /* Hide the board until JS has rendered to avoid the empty-card flash */
+    /* Avoid empty-card flash */
     #ref-board { visibility: hidden; opacity: 0; transition: opacity 120ms ease; min-height: 60vh; }
     #ref-board.is-ready { visibility: visible; opacity: 1; }
 
-    /* Desktop grid that matches the target screenshot */
+    /* Desktop grid matching the target layout */
     @media (min-width: 980px) {
       #ref-board {
         display: grid;
         grid-template-columns: 1fr 1fr;
         grid-template-rows: repeat(3, 1fr);
-        gap: 20px;                /* matches card spacing in your CSS */
+        gap: 16px;                 /* slightly tighter vertical rhythm */
         align-content: start;
       }
-      /* Place each panel explicitly */
       #ref-board .panel--general  { grid-column: 1; grid-row: 1; }
       #ref-board .panel--gov      { grid-column: 2; grid-row: 1; }
       #ref-board .panel--edu      { grid-column: 1; grid-row: 2; }
       #ref-board .panel--peer     { grid-column: 2; grid-row: 2; }
       #ref-board .panel--preprint { grid-column: 1; grid-row: 3; }
-      /* We intentionally leave grid-column 2, row 3 empty (as in the target). */
     }
+
+    /* Tighten internal typography/spacing INSIDE the panels only */
+    #ref-board h3 { margin: 6px 0 8px; line-height: 1.25; }
+    #ref-board .ref-panel__scroll { /* ensure list starts close to header */ }
+    #ref-board .ref-panel__list { margin: 0; padding-left: 1.1rem; }
+    #ref-board .ref-panel__item { margin: 0 0 8px; }
+    #ref-board .ref-panel__item:last-child { margin-bottom: 0; }
+    #ref-board .ref-panel__item > .small { margin-top: 2px; }
+    #ref-board .ref-panel__desc { margin: 2px 0 0; }
 
     .legal.center { text-align: center; margin: 24px 0 0; }
     .legal.center a { font: inherit; }
@@ -56,7 +63,7 @@
     <p class="small">Curated materials that support reporting and accountability.</p>
 
     <div class="card" id="references-card">
-      <!-- Empty mount; JS will populate and then reveal it -->
+      <!-- JS renders panels directly here, then reveals -->
       <div class="ref-board" id="ref-board"></div>
     </div>
   </main>
@@ -66,3 +73,4 @@
   </footer>
 </body>
 </html>
+
