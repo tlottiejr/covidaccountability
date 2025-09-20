@@ -13,7 +13,7 @@
   <link rel="stylesheet" href="/assets/site.css"/>
   <link rel="stylesheet" href="/assets/portal.css"/>
 
-  <!-- Scoped override: Optional actions match portal style, indicator on RIGHT, no blue glow -->
+  <!-- Scoped override: Optional actions style, indicator on RIGHT, no blue glow -->
   <style id="optional-actions-overrides">
     /* Scope strictly to Optional actions on this page */
     #optional-actions { margin-top: 8px; }
@@ -55,7 +55,7 @@
     /* Spacing between rows */
     #optional-actions .oa-row + .oa-row { margin-top: 10px; }
 
-    /* Radio-style indicator on the RIGHT (to match your request) */
+    /* Radio-style indicator on the RIGHT */
     #optional-actions .oa-card::after {
       content: '';
       position: absolute;
@@ -86,6 +86,7 @@
   <script src="/assets/js/ux-accessibility.js" defer></script>
 </head>
 <body>
+  <!-- Shared nav include (unchanged) -->
   <div id="nav-root"></div>
   <script src="/assets/nav-include.js" defer></script>
 
@@ -194,11 +195,11 @@
         </div>
       </section>
     </div>
-
-    <p class="small center" style="margin:28px 0 8px">
-      <a href="/privacy.html">Privacy</a> · <a href="/disclaimer.html">Disclaimer</a>
-    </p>
   </main>
+
+  <!-- Shared footer include (new to match rest of site) -->
+  <div id="footer-root"></div>
+  <script src="/assets/footer-include.js" defer></script>
 
   <!-- Feature script (unchanged) -->
   <script src="/assets/report-template.js" defer></script>
