@@ -1,32 +1,124 @@
-/* ===================================================================
-   Complaint Portal (scoped) — minimal, no regressions
-   Relies on global styles in site.css for cards, buttons, typography.
-   =================================================================== */
+/* Complaint Portal (scoped) — minimal, modern, and safe overrides */
 
-/* Center all card content on the portal page */
-body#portal .card { text-align: center; }
+/* Simple stack spacing kept from baseline */
+.stack > * + * { margin-top: 10px; }
 
-/* Center the card headers explicitly (wins over any earlier left-align) */
-body#portal .card > h2 {
-  text-align: center;
-  margin-left: auto;
-  margin-right: auto;
-  width: 100%;
+/* Page-scope design tokens */
+body#portal {
+  --portal-border: #d1d5db;                 /* matches select box border */
+  --portal-border-hover: #c8cfda;
+  --portal-accent: #2563eb;                 /* brand blue */
+  --portal-row-radius: 10px;
+  --portal-focus-inset: 0 0 0 2px rgba(2, 6, 23, 0.12) inset;
+  --portal-focus-ring:  0 0 0 2px rgba(37, 99, 235, 0.22);
 }
 
-/* --- Choose your state -------------------------------------------------- */
+/* Remove the section "lines" (card borders) for the first two sections only */
+body#portal section.card[aria-labelledby="stateLegend"],
+body#portal section.card[aria-labelledby="boardsLegend"] {
+  border: none;
+  box-shadow: var(--shadow);   /* keep card elevation without border line */
+}
 
-body#portal #state-select-wrap { text-align: center; }
+/* BOARD LIST LAYOUT (rendered by /assets/app.js into #boards) */
+body#portal #boards fieldset { border: none; padding: 0; margin: 0; }
+body#portal #boards { display: grid; gap: 8px; }
 
-/* Compact state dropdown (desktop), full-width on small screens */
+/* Each option is a boxed row; radio + text live inside the same box */
+body#portal #boards .board-option {
+  display: grid;
+  grid-template-columns: 26px 1fr;   /* blue dot | board text */
+  align-items: center;               /* dot vertically aligns with wrapped text */
+  gap: 10px;
+  padding: 10px 12px;
+  margin: 0 8px;                     /* breathing room within the fieldset */
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-row-radius);
+  background: #fff;
+  cursor: pointer;
+}
+
+/* Tidy the native radio */
+body#portal #boards .board-option > input[type="radio"] {
+  margin: 0;
+  justify-self: center;              /* center the blue dot in its column */
+}
+
+/* Board name + host */
+body#portal #boards .board-name { font-weight: 600; }
+body#portal #boards .board-host { display: block; color: var(--muted); font-size: 13px; }
+
+/* Optional badge (kept from baseline) */
+body#portal #boards .badge { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px; font-size: 12px; }
+body#portal #boards .badge-warn { background: rgba(220,38,38,.10); color: #b91c1c; border: 1px solid rgba(220,38,38,.25); }
+
+/* Hover affordance */
+body#portal #boards .board-option:hover { border-color: var(--portal-border-hover); }
+
+/* Selected state: subtle blue tint with a crisper border (dot stays inside) */
+body#portal #boards .board-option:has(> input[type="radio"]:checked) {
+  background: rgba(37, 99, 235, 0.06);
+  border-color: rgba(37, 99, 235, 0.45);
+}
+
+/* Keyboard focus: show highlight only on keyboard nav (not mouse click) */
+body#portal #boards .board-option:has(> input[type="radio"]:focus-visible) {
+  box-shadow: var(--portal-focus-inset), var(--portal-focus-ring);
+}
+
+/* Kill any outer fieldset outline that could span too wide */
+body#portal #boards:focus,
+body#portal #boards *:focus { outline: none; }
+
+/* State select — subtle focus only on keyboard */
+body#portal select:focus { outline: none; }
+body#portal select:focus-visible {
+  box-shadow: var(--portal-focus-inset), var(--portal-focus-ring);
+  border-radius: 8px;
+}
+
+/* Turnstile spacing (as in baseline) */
+body#portal .turnstile-box { min-height: 0; }
+body#portal .turnstile-box:empty { display: none; }
+/* === Complaint Portal: remove only the fieldset border lines (keep cards) === */
+
+/* Kill the fieldset box lines under the two legends */
+body#portal section.card[aria-labelledby="stateLegend"] fieldset,
+body#portal section.card[aria-labelledby="boardsLegend"] fieldset {
+  border: none !important;   /* removes the rectangle line */
+  padding: 0;                /* let internal spacing handle layout */
+}
+
+/* Make sure no pseudo “frame” reappears from theme styles */
+body#portal section.card[aria-labelledby="stateLegend"] fieldset::before,
+body#portal section.card[aria-labelledby="stateLegend"] fieldset::after,
+body#portal section.card[aria-labelledby="boardsLegend"] fieldset::before,
+body#portal section.card[aria-labelledby="boardsLegend"] fieldset::after {
+  content: none !important;
+}
+
+/* Keep legend spacing looking intentional without a border */
+body#portal section.card[aria-labelledby="stateLegend"] legend,
+body#portal section.card[aria-labelledby="boardsLegend"] legend {
+  margin-bottom: 8px;        /* tweak if you want tighter/looser */
+}
+
+/* Also stop any focus outline from showing on the whole fieldset */
+body#portal section.card[aria-labelledby="stateLegend"] fieldset:focus,
+body#portal section.card[aria-labelledby="boardsLegend"] fieldset:focus {
+  outline: none;
+}
+/* ===== Complaint Portal compact controls (scoped to this page) ===== */
+
+/* 1) Shrink the state dropdown to its content width (desktop),
+      still full-width on small screens */
 body#portal #stateSelect {
   display: inline-block;
-  width: auto;           /* shrink to content width */
-  min-width: 320px;      /* readable size */
+  width: auto;                 /* shrink to content */
+  min-width: 340px;            /* readable target size */
   max-width: 100%;
-  padding-right: 32px;   /* room for native chevron */
+  padding-right: 36px;         /* room for native chevron */
 }
-
 @media (max-width: 640px) {
   body#portal #stateSelect {
     width: 100%;
@@ -34,33 +126,69 @@ body#portal #stateSelect {
   }
 }
 
-/* --- Select a board in your state -------------------------------------- */
-
-body#portal #boards { text-align: center; }
-
-/* Make each board option a compact pill that hugs its content */
+/* 2) Board selection "bubble" hugs its content like a pill */
 body#portal #boards .board-option {
-  display: inline-grid !important;   /* keep radio + text; override block if any */
-  grid-template-columns: 24px 1fr;   /* radio | text */
+  display: inline-grid;        /* shrink-to-fit but preserve grid layout */
+  grid-template-columns: 26px 1fr;  /* radio dot | text (same as before) */
   width: fit-content;
   max-width: 100%;
-  min-width: 420px;                  /* controls pill width; tweak 400–460 if desired */
-  margin: 0 auto 10px;               /* center each pill, add spacing below */
-  padding-right: 10px;               /* tidy right edge */
+  min-width: 520px;            /* keep options visually even; adjust 500–560px if desired */
+  margin: 0 8px;               /* keep existing horizontal breathing room */
+  padding-right: 10px;         /* tidy right edge */
 }
 
 @media (max-width: 640px) {
   body#portal #boards .board-option {
-    width: 100%;
     min-width: 0;
+    width: 100%;               /* expand on small screens */
   }
 }
 
-/* --- Open board site ---------------------------------------------------- */
+/* === Complaint Portal: tighter board selection pill (CSS-only, scoped) === */
 
-body#portal #board-check {
-  display: flex;
-  justify-content: center;
+/* State dropdown stays compact on desktop */
+body#portal #stateSelect {
+  display: inline-block;
+  width: auto;
+  min-width: 320px;
+  max-width: 100%;
+  padding-right: 32px;
+}
+
+/* Board selection "bubble" — shrink to content width */
+body#portal #boards .board-option {
+  display: inline-grid !important;      /* override any block rule */
+  grid-template-columns: 24px 1fr;      /* radio | text */
+  width: fit-content;
+  max-width: 100%;
+  min-width: 420px;                      /* << controls width; lower to tighten */
+  margin: 0 8px;
+  padding-right: 10px;
+}
+
+/* Responsive: full width on small screens */
+@media (max-width: 640px) {
+  body#portal #stateSelect {
+    width: 100%;
+    min-width: 0;
+  }
+  body#portal #boards .board-option {
+    min-width: 0;
+    width: 100%;
+  }
+}
+/* === Complaint Portal: center content inside all cards (scoped) === */
+body#portal .card {
+  text-align: center;
+}
+
+/* Center controls inside each card */
+body#portal #state-select-wrap { text-align: center; }
+body#portal #stateSelect { display: inline-block; }        /* already compact; keeps centered */
+
+body#portal #boards { text-align: center; }
+body#portal #boards .board-option {                         /* our pill stays inline */
+  display: inline-grid !important;
 }
 
 body#portal .card .actions {
@@ -69,4 +197,22 @@ body#portal .card .actions {
   gap: 10px;
 }
 
-/* =================================================================== */
+body#portal #board-check {
+  display: flex;
+  justify-content: center;
+}
+/* Complaint Portal: center the card headers */
+body#portal .card > h2 {
+  text-align: center;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
+/* Complaint Portal: force-center the card section headers */
+body#portal main.container > .card > h2,
+body#portal .card h2 {
+  text-align: center !important;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
