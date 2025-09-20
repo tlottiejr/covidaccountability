@@ -72,3 +72,96 @@ body#portal .radio-label {
   display: block;
   line-height: 1.35;
 }
+/* ========= Complaint Portal: Board list polish (scoped) ========= */
+
+/* Reuse a single border token so it matches the dropdown */
+body#portal {
+  --portal-border: #d1d5db;                 /* same feel as the select box */
+  --portal-border-hover: #c8cfda;
+  --portal-radius: 12px;
+  --portal-row-radius: 10px;
+}
+
+/* 3.1 — Give the entire board list the same “boxed” look as the select */
+body#portal #boards {
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-radius);
+}
+
+/* Keep the inner container spaced from the outer border, if not already */
+body#portal #boards > .stack,
+body#portal #boards > .container,
+body#portal #boards > div {
+  padding-inline: 12px;
+}
+
+/* 3.2 — Each option becomes a boxed row; radio sits inside the box */
+body#portal #boards .radio-row,
+body#portal #boards label.radio-row {
+  display: grid;
+  grid-template-columns: 24px 1fr;          /* radio | text */
+  align-items: center;                      /* align blue dot with text */
+  gap: 10px;
+  padding: 12px 14px;
+  margin: 8px 8px;                          /* space between rows and outer border */
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-row-radius);
+  background: #fff;
+}
+
+/* If your markup uses <label> without .radio-row, this fallback catches it */
+body#portal #boards label:not(.radio-row)[for] {
+  display: grid;
+  grid-template-columns: 24px 1fr;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 14px;
+  margin: 8px 8px;
+  border: 1px solid var(--portal-border);
+  border-radius: var(--portal-row-radius);
+  background: #fff;
+}
+
+/* Subtle hover to match form controls */
+body#portal #boards .radio-row:hover,
+body#portal #boards label:not(.radio-row)[for]:hover {
+  border-color: var(--portal-border-hover);
+}
+
+/* Remove any old vertical nudge so dots center properly */
+body#portal #boards .radio,
+body#portal #boards input[type="radio"] {
+  margin: 0;                                /* kill default offset */
+}
+
+/* Focus style (keeps accessibility but avoids thick blue ring) */
+body#portal #boards .radio-row:focus-within,
+body#portal #boards label:not(.radio-row)[for]:focus-within {
+  box-shadow:
+    0 0 0 2px rgba(2, 6, 23, 0.12) inset,
+    0 0 0 2px rgba(37, 99, 235, 0.22);
+  outline: none;
+}
+
+/* Selected row gets a gentle tint so the blue dot sits “in the box” */
+body#portal #boards input[type="radio"]:checked ~ .radio-row,
+body#portal #boards input[type="radio"]:checked + label,
+body#portal #boards label:has(> input[type="radio"]:checked) {
+  background: rgba(37, 99, 235, 0.06);
+  border-color: rgba(37, 99, 235, 0.45);
+}
+
+/* If the browser lacks :has(), the first two lines above still style common DOM orders */
+
+/* 3.3 — Keep the rest of the page’s toned-down focus visuals */
+body#portal :focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
+}
+body#portal select:focus,
+body#portal button:focus {
+  box-shadow:
+    0 0 0 2px rgba(2, 6, 23, 0.18) inset,
+    0 0 0 2px rgba(37, 99, 235, 0.25);
+  border-radius: 8px;
+}
