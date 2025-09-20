@@ -1,12 +1,14 @@
-// public/assets/js/references-page.js — v7.9 (vertical rhythm tuned to match target)
+// public/assets/js/references-page.js — v9.0 (no inner scroll, footer reachable, descriptions + author styling)
 
 const $ = (s, r = document) => r.querySelector(s);
 
-/* -------------------- mount discovery -------------------- */
+/* -------------------- page mount -------------------- */
 function findMount() {
-  // Page uses #ref-board as the grid container
-  const mount = $("#ref-board") || $(".ref-board") || $("#references-card") || $("#main");
-  return mount;
+  // Grid container is #ref-board
+  return document.querySelector("#ref-board")
+      || document.querySelector(".ref-board")
+      || document.querySelector("#references-card")
+      || document.querySelector("#main");
 }
 
 /* -------------------- helpers -------------------- */
@@ -15,10 +17,7 @@ async function getJSON(url) {
   if (!res.ok) throw new Error(`Failed ${url}: ${res.status}`);
   return await res.json();
 }
-const clamp = (n, lo, hi) => Math.max(lo, Math.min(hi, n));
-const px = (n) => `${Math.round(n)}px`;
-
-function el(tag, attrs = {}, ...children) {
+const el = (tag, attrs = {}, ...children) => {
   const node = document.createElement(tag);
   for (const [k, v] of Object.entries(attrs)) {
     if (v == null) continue;
@@ -31,48 +30,72 @@ function el(tag, attrs = {}, ...children) {
     node.appendChild(typeof c === "string" ? document.createTextNode(c) : c);
   }
   return node;
+};
+
+/* -------------------- light enrichment for missing descriptions -------------------- */
+/* This does not mutate your JSON file; it only fills in when the JSON lacks "description". */
+const ENRICH_BY_TITLE_SUBSTR = [
+  [
+    "First Aid for the USMLE Step 1",
+    "Board-review overview of epidemiology and biostatistics concepts used in evidence appraisal."
+  ],
+  [
+    "Relative risk reduction: misinformative measure",
+    "Methodology commentary highlighting limitations of relative risk when communicating clinical trial results."
+  ],
+  [
+    "Communicating Risks & Benefits",
+    "Practical guide on presenting quantitative risk information to patients, including NNT/NNH."
+  ],
+  [
+    "NFIB v. OSHA",
+    "SCOTUS opinion addressing OSHA’s COVID-19 vaccination/testing ETS."
+  ],
+  [
+    "Safety and Efficacy of the BNT162b2",
+    "Pivotal randomized trial reporting early efficacy and safety outcomes for BNT162b2 (Pfizer-BioNTech)."
+  ],
+  [
+    "USMLE® Content Outline — Biostatistics",
+    "Official outline describing tested competencies in statistics, population health, and interpreting medical literature."
+  ],
+  [
+    "USMLE® Content Outline — Social Sciences",
+    "Defines examined social science domains for medical practice, professionalism, and ethics."
+  ],
+  [
+    "COVID-19 vaccine-associated mortality in the Southern Hemisphere",
+    "Working paper exploring associations between vaccination and mortality during the Southern Hemisphere data period."
+  ],
+  [
+    "Worldwide Bayesian Causal Impact Analysis",
+    "Large-scale causal impact analysis exploring relationships across 145 countries."
+  ]
+];
+
+function enrichDescription(title, currentDesc) {
+  if (currentDesc && String(currentDesc).trim()) return currentDesc;
+  const t = (title || "").toLowerCase();
+  for (const [needle, desc] of ENRICH_BY_TITLE_SUBSTR) {
+    if (t.includes(needle.toLowerCase())) return desc;
+  }
+  return currentDesc || ""; // leave blank if we have nothing reasonable
 }
 
-function byTitle(a, b) {
-  const A = (a.title || "").toLowerCase();
-  const B = (b.title || "").toLowerCase();
-  return A < B ? -1 : A > B ? 1 : 0;
-}
-
+/* -------------------- normalization + bucketing -------------------- */
 function normalize(row) {
   if (!row || typeof row !== "object") return null;
+  const title = row.title || row.name || "";
   return {
-    title: row.title || row.name || "",
+    title,
     url: row.url || row.href || "",
     source: row.source || row.publisher || row.org || "",
     year: row.year || (row.date ? String(row.date).slice(0, 4) : ""),
     date: row.date || "",
-    description: row.description || row.note || "",
+    description: enrichDescription(title, row.description || row.note || ""),
     category: row.category || row.cat || "",
   };
 }
-
-/* -------------------- rendering -------------------- */
-function itemRow(it) {
-  const meta = [];
-  if (it.source) meta.push(it.source);
-  if (it.year || it.date) meta.push(it.year || it.date);
-
-  return el("li", { class: "ref-panel__item" },
-    el("a", { href: it.url, target: "_blank", rel: "noopener" }, it.title || it.url),
-    meta.length ? el("div", { class: "small" }, meta.join(" · ")) : null,
-    it.description ? el("p", { class: "ref-panel__desc" }, it.description) : null,
-  );
-}
-
-const PANEL_CONFIG = {
-  general:   { title: "General References",             cls: "panel--general"  },
-  gov:       { title: "Government & Legal",             cls: "panel--gov"      },
-  edu:       { title: "Medical Education & Ethics",     cls: "panel--edu"      },
-  peer:      { title: "Peer-reviewed Literature",       cls: "panel--peer"     },
-  preprint:  { title: "Preprints & Working Papers",     cls: "panel--preprint" },
-};
-const PANEL_ORDER = ["general", "gov", "edu", "peer", "preprint"];
 
 function assignCategory(it) {
   const c = (it.category || "").toLowerCase();
@@ -91,25 +114,42 @@ function assignCategory(it) {
   return "general";
 }
 
+const PANEL_CONFIG = {
+  general:   { title: "General References",             cls: "panel--general"  },
+  gov:       { title: "Government & Legal",             cls: "panel--gov"      },
+  edu:       { title: "Medical Education & Ethics",     cls: "panel--edu"      },
+  peer:      { title: "Peer-reviewed Literature",       cls: "panel--peer"     },
+  preprint:  { title: "Preprints & Working Papers",     cls: "panel--preprint" },
+};
+const PANEL_ORDER = ["general", "gov", "edu", "peer", "preprint"];
+
 function bucketize(rows) {
   const buckets = { general: [], gov: [], edu: [], peer: [], preprint: [] };
   rows.forEach(r => {
     const it = normalize(r);
     if (!it || !it.url) return;
-    const cat = assignCategory(it);
-    buckets[cat].push(it);
+    buckets[assignCategory(it)].push(it);
   });
-  for (const k of Object.keys(buckets)) buckets[k].sort(byTitle);
+  for (const k of Object.keys(buckets)) buckets[k].sort((a,b) => (a.title||'').localeCompare(b.title||''));
   return buckets;
 }
 
-/**
- * Panels are appended directly to the mount (#ref-board) so they are DIRECT grid items.
- */
+/* -------------------- rendering -------------------- */
+function itemRow(it) {
+  const metaParts = [];
+  if (it.source) metaParts.push(it.source);
+  if (it.year || it.date) metaParts.push(it.year || it.date);
+
+  return el("li", { class: "ref-panel__item" },
+    el("a", { href: it.url, target: "_blank", rel: "noopener" }, it.title || it.url),
+    metaParts.length ? el("div", { class: "ref-meta small" }, metaParts.join(" · ")) : null,
+    it.description ? el("p", { class: "ref-panel__desc" }, it.description) : null,
+  );
+}
+
 function renderPanels(mount, order, buckets) {
   mount.classList.add("ref-board");
   mount.innerHTML = "";
-
   order.forEach(key => {
     const conf = PANEL_CONFIG[key];
     const items = (buckets[key] || []).slice();
@@ -125,52 +165,6 @@ function renderPanels(mount, order, buckets) {
   return mount;
 }
 
-/* -------------------- desktop sizing -------------------- */
-function sizeBoard(board) {
-  if (!board) return;
-  const isDesktop = window.innerWidth >= 980;
-
-  if (!isDesktop) {
-    document.body.style.overflow = "";
-    board.style.height = "";
-    board.querySelectorAll(":scope > .ref-panel").forEach(p => p.style.height = "");
-    board.querySelectorAll(".ref-panel__scroll").forEach(s => s.style.maxHeight = "");
-    return;
-  }
-
-  // Desktop: internal panel scroll; page itself doesn't scroll
-  document.body.style.overflow = "hidden";
-
-  const boardTop = board.getBoundingClientRect().top;
-  const viewportBottom = window.innerHeight;
-  const margin = 10; // minimal breathing room
-
-  const avail = clamp(viewportBottom - boardTop - margin, 760, 1700);
-
-  const rows = 3;
-  const rowGap = 16; // tighter vertical spacing (matches page CSS gap)
-  const rowH = Math.floor((avail - rowGap * (rows - 1)) / rows);
-
-  board.style.height = px(avail);
-
-  board.querySelectorAll(":scope > .ref-panel").forEach(panel => {
-    panel.style.height = px(rowH);
-
-    const cs = window.getComputedStyle(panel);
-    const padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
-    const title = panel.querySelector("h3");
-    const titleH = title ? title.getBoundingClientRect().height : 0;
-
-    const scroll = panel.querySelector(".ref-panel__scroll");
-    const extra = 6; // small allowance for UL margin
-    const maxH = rowH - padY - titleH - extra;
-
-    // Slightly larger min to expose source/year + first description line
-    const MIN_SCROLL = 230;
-    scroll.style.maxHeight = px(Math.max(MIN_SCROLL, maxH));
-  });
-}
-
 /* -------------------- main -------------------- */
 (async function main() {
   try {
@@ -179,17 +173,15 @@ function sizeBoard(board) {
 
     const rows = await getJSON("/assets/references.json");
     const buckets = bucketize(rows);
-    const board = renderPanels(mount, PANEL_ORDER, buckets);
+    renderPanels(mount, PANEL_ORDER, buckets);
 
-    sizeBoard(board);
-    mount.classList.add("is-ready"); // reveal after render
+    // Reveal after render (prevents any flash)
+    mount.classList.add("is-ready");
 
-    let raf = 0;
-    const onResize = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => sizeBoard(board)); };
-    window.addEventListener("resize", onResize);
-    window.addEventListener("orientationchange", onResize);
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(onResize).catch(()=>{});
+    // IMPORTANT: Do not lock body scroll; page must be scrollable to footer.
+    // (We intentionally removed any previous overflow-hidden and fixed-height logic.)
   } catch (e) {
     console.warn(e);
   }
 })();
+
