@@ -283,3 +283,42 @@ body#home main.container > .card:first-of-type > :has(> .btn) .btn {
   body#home main.container > .card:first-of-type h2,
   body#home main.container > .card:first-of-type p { text-align: left; }
 }
+/* --- Report page layout (scoped) --- */
+
+/* Identify the report page's two-card grid and stack it */
+main.container > .grid.grid-2:has(#optional-actions) {
+  grid-template-columns: 1fr;     /* stack the two cards */
+  align-items: start;
+}
+main.container > .grid.grid-2:has(#optional-actions) > .card {
+  margin-top: 0 !important;
+  height: auto;
+}
+
+/* Inside the bottom card, lay out Optional actions (left) and Tips (right) */
+main.container > .grid.grid-2:has(#optional-actions) > .card:last-child {
+  display: grid;
+  gap: var(--gap);
+  grid-template-columns: 1fr;     /* mobile: stack */
+}
+
+/* Desktop: two columns inside the bottom card */
+@media (min-width: 900px) {
+  main.container > .grid.grid-2:has(#optional-actions) > .card:last-child {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+/* Place the two areas into columns */
+main.container > .grid.grid-2:has(#optional-actions) > .card:last-child #optional-actions {
+  grid-column: 1;
+}
+main.container > .grid.grid-2:has(#optional-actions) > .card:last-child #optional-actions ~ h2,
+main.container > .grid.grid-2:has(#optional-actions) > .card:last-child #optional-actions ~ ul {
+  grid-column: 2;
+}
+
+/* Tidy spacing for the Tips heading when it sits in column 2 */
+main.container > .grid.grid-2:has(#optional-actions) > .card:last-child #optional-actions ~ h2 {
+  margin-top: 4px;
+}
