@@ -208,3 +208,11 @@ body#portal .card > h2 {
   margin-right: auto;
   width: 100%;
 }
+/* Complaint Portal: force-center the card section headers */
+body#portal main.container > .card > h2,
+body#portal .card h2 {
+  text-align: center !important;
+  margin-left: auto;
+  margin-right: auto;
+  width: 100%;
+}
