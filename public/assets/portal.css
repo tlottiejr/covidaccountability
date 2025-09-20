@@ -134,7 +134,7 @@ body#portal #boards .board-option {
   max-width: 100%;
   min-width: 520px;            /* keep options visually even; adjust 500–560px if desired */
   margin: 0 8px;               /* keep existing horizontal breathing room */
-  padding-right: 14px;         /* tidy right edge */
+  padding-right: 10px;         /* tidy right edge */
 }
 
 @media (max-width: 640px) {
