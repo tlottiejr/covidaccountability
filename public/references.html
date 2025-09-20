@@ -13,6 +13,9 @@
   <!-- Shared a11y helpers -->
   <script src="/assets/js/ux-accessibility.js" defer></script>
 
+  <!-- References page logic -->
+  <script src="/assets/js/references-page.js" defer></script>
+
   <!-- Page-scoped tweaks for internal scroll panes -->
   <style>
     @media (min-width: 980px){
@@ -34,6 +37,7 @@
     <p class="small">Curated materials that support reporting and accountability.</p>
 
     <div class="card" id="references-card">
+      <!-- The script will replace the contents of #ref-board with the rendered panels -->
       <div class="ref-board" id="ref-board" style="min-height:60vh">
         <div class="ref-panel">
           <h3>General References</h3>
@@ -65,6 +69,7 @@
       </div>
     </div>
   </main>
+
   <footer class="container">
     <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
   </footer>
