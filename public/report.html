@@ -13,71 +13,71 @@
   <link rel="stylesheet" href="/assets/site.css"/>
   <link rel="stylesheet" href="/assets/portal.css"/>
 
-  <!-- Scoped override: make Optional actions match complaint-portal board selection -->
+  <!-- Scoped override: Optional actions match portal style, indicator on RIGHT, no blue glow -->
   <style id="optional-actions-overrides">
-    /* Scope strictly to the Optional actions block on this page */
+    /* Scope strictly to Optional actions on this page */
     #optional-actions { margin-top: 8px; }
     #optional-actions .oa-row { position: relative; }
 
-    /* The hidden checkbox spans the row but is not clickable directly */
+    /* Invisible checkbox spans row (keeps label clickable) */
     #optional-actions .oa-input {
       position: absolute; inset: 0; opacity: 0; pointer-events: none;
     }
 
-    /* Card look = complaint-portal selection card */
+    /* Card look = subtle border, no glow */
     #optional-actions .oa-card {
       position: relative;
       display: block;
-      border: 1px solid #c7d7ff;         /* subtle border (no glow) */
-      background: #ffffff;                /* white by default */
+      border: 1px solid #c7d7ff;      /* pencil-like border */
+      background: #ffffff;             /* white by default */
       border-radius: 12px;
-      padding: 12px 14px 12px 44px;       /* space on LEFT for indicator */
-      box-shadow: none !important;        /* kill any halo */
+      padding: 12px 44px 12px 14px;    /* space on RIGHT for indicator */
+      box-shadow: none !important;     /* kill any halo */
       cursor: pointer;
       transition: background .15s ease, border-color .15s ease;
     }
     #optional-actions .oa-card:hover {
-      background: #f3f7ff;               /* gentle hover like portal */
+      background: #f3f7ff;            /* gentle hover like portal */
       border-color: #b6c8ff;
+      box-shadow: none !important;
     }
-    /* Checked state: light blue background + slightly stronger border */
+    /* Checked state: subtle highlight, no glow */
     #optional-actions input:checked + .oa-card {
       background: #eef4ff;
       border-color: #8fb0ff;
       box-shadow: none !important;
     }
 
-    /* Title + note text treatment (unchanged sizing) */
+    /* Title + note */
     #optional-actions .oa-title { font-weight: 600; }
     #optional-actions .oa-note  { display: block; font-size: .92rem; opacity: .75; margin-top: .2rem; }
 
-    /* Space between rows */
+    /* Spacing between rows */
     #optional-actions .oa-row + .oa-row { margin-top: 10px; }
 
-    /* Radio-style indicator on the LEFT (to match portal cards) */
+    /* Radio-style indicator on the RIGHT (to match your request) */
     #optional-actions .oa-card::after {
       content: '';
       position: absolute;
-      left: 14px; top: 50%;
+      right: 14px; top: 50%;
       width: 18px; height: 18px;
       border-radius: 50%;
       border: 2px solid #2d5bff;
       transform: translateY(-50%);
       background: #fff;
-      box-shadow: none !important;       /* remove thick halo ring */
+      box-shadow: none !important;    /* remove halo ring */
     }
     #optional-actions input:checked + .oa-card::after {
       background: radial-gradient(circle at 50% 50%, #2d5bff 50%, transparent 51%);
     }
 
-    /* Keyboard focus (thin outline; no glow) */
+    /* Remove the blue focus line/glow after click */
     #optional-actions .oa-card:focus,
     #optional-actions .oa-card:focus-visible,
     #optional-actions .oa-card:focus-within,
     #optional-actions input:focus + .oa-card,
     #optional-actions input:focus-visible + .oa-card {
-      outline: 2px solid #7aa2ff;
-      outline-offset: 2px;
+      outline: none !important;
       box-shadow: none !important;
     }
   </style>
