@@ -225,3 +225,10 @@ body#portal section.card legend.h4 {
   margin-left: auto;
   margin-right: auto;
 }
+/* Center the hostname under each board name within the selection pill */
+body#portal #boards .board-option .board-name,
+body#portal #boards .board-option .board-host {
+  grid-column: 2;          /* stay in the text column */
+  justify-self: center;    /* center horizontally within that column */
+  text-align: center;      /* center multi-line text too */
+}
