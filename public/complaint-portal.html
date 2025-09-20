@@ -1,57 +1,68 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="utf-8"/>
-    <meta name="viewport" content="width=device-width, initial-scale=1"/>
-    <title>Complaint Portal — COVID Accountability Now</title>
+<script src="/assets/js/ux-accessibility.js" defer></script>
+<head>
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Complaint Portal — COVID Accountability Now</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="/assets/site.css"/>
+  <link rel="stylesheet" href="/assets/portal.css"/>
+  <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
+  <script src="/assets/js/portal-deeplink.js" defer></script>
+</head>
+<body>
+  <div id="nav-root"></div>
+  <script src="/assets/nav-include.js" defer></script>
 
-    <!-- a11y helpers -->
-    <script src="/assets/js/ux-accessibility.js" defer></script>
+  <main class="container" id="main">
+    <h1>Complaint Portal</h1>
+    <p class="small">
+      Select your state and the appropriate board. We’ll open the official site in a new tab.
+      Your report content is prepared locally and not stored by us.
+    </p>
 
-    <!-- perf + css -->
-    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="/assets/site.css"/>
-    <link rel="stylesheet" href="/assets/portal.css"/>
+    <div id="sr-status" class="visually-hidden" role="status" aria-live="polite"></div>
 
-    <!-- turnstile + page logic -->
-    <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
-    <script src="/assets/js/portal-deeplink.js" defer></script>
-  </head>
-  <body id="portal">
-    <div id="nav-root"></div>
-    <script src="/assets/nav-include.js" defer></script>
+    <section class="card" aria-labelledby="stateLegend">
+      <fieldset class="stack">
+        <legend id="stateLegend" class="h4">Choose your state</legend>
+        <label for="stateSelect" class="visually-hidden">State</label>
+        <select id="stateSelect" name="state" autocomplete="address-level1" aria-describedby="stateHelp">
+          <option value="">— Select your state —</option>
+        </select>
+        <p id="stateHelp" class="small">
+          We maintain links to official complaint portals. After choosing a state, pick a board.
+        </p>
+      </fieldset>
+    </section>
 
-    <main class="container">
-      <h1>Find Your Medical Board</h1>
+    <section class="card" aria-labelledby="boardsLegend">
+      <fieldset class="stack">
+        <legend id="boardsLegend" class="h4">Select a board in your state</legend>
+        <div id="boards" role="radiogroup" aria-labelledby="boardsLegend"></div>
+      </fieldset>
+    </section>
 
-      <!-- 1) Choose state -->
-      <section class="card">
-        <label for="state" class="small muted">Select your state</label>
-        <select id="state" name="state"></select>
+    <section class="card" aria-labelledby="openLegend">
+      <h2 id="openLegend" class="h4">Open board site</h2>
+      <div class="stack">
+        <div class="turnstile-box" aria-label="Human verification">
+          <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8" data-theme="light"></div>
+        </div>
 
-        <!-- actions row (open portal, copy link, etc.) -->
-        <div id="actions" class="row"></div>
-      </section>
+        <button id="openBtn" class="btn" type="button" disabled aria-disabled="true" aria-describedby="openHelp">
+          Open selected board page
+        </button>
+      </div>
+    </section>
+  </main>
 
-      <!-- 2) Choose board (script fills this; we expose BOTH common targets to avoid regressions) -->
-      <section class="card">
-        <h2>Select a board in your state</h2>
+  <footer class="container">
+    <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
+  </footer>
 
-        <!-- Some versions of the script target a UL#boards; others a DIV#board-list. Provide both safely. -->
-        <div id="board-list"></div>
-        <ul id="boards" class="board-options"></ul>
-      </section>
-
-      <!-- 3) Open board site / Turnstile -->
-      <section class="card">
-        <h2>Open board site</h2>
-        <div id="cf-turnstile-container"></div>
-      </section>
-    </main>
-
-    <footer class="container">
-      <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
-    </footer>
-  </body>
+  <script src="/assets/app.js" type="module"></script>
+</body>
 </html>
