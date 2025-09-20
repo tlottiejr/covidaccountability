@@ -11,59 +11,105 @@
   <link rel="stylesheet" href="/assets/portal.css"/>
   <script src="https://challenges.cloudflare.com/turnstile/v0/api.js" async defer></script>
   <script src="/assets/js/portal-deeplink.js" defer></script>
+
+  <!-- Page-scoped fixes: remove blue fieldset outline and align buttons -->
+  <style>
+    /* 1) Remove the browser focus ring from the fieldset container only.
+       Keep accessible focus on the actual radio inputs. */
+    #portal fieldset:focus,
+    #portal fieldset:focus-within {
+      outline: none !important;
+      box-shadow: none !important;
+    }
+
+    /* 2) Make radio options line up cleanly and clickable across the row */
+    #portal .board-list,
+    #portal .board-options {
+      list-style: none;
+      margin: 0;
+      padding: 0;
+    }
+    /* common patterns used in our templates: li > label > input[type=radio] */
+    #portal .board-list li,
+    #portal .board-options li {
+      margin: 6px 0;
+    }
+    #portal .board-list li label,
+    #portal .board-options li label {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+      padding: 8px 10px;
+      border-radius: 12px;
+      cursor: pointer;
+    }
+    /* keep radios aligned with text baseline */
+    #portal input[type="radio"] {
+      margin-top: 3px;
+      /* prevent any unexpected width that could cause a blue rectangle */
+      width: auto;
+    }
+    /* Keep focus visible on the actual control, not the whole fieldset */
+    #portal input[type="radio"]:focus-visible + * {
+      outline: 2px solid var(--accent);
+      outline-offset: 2px;
+      border-radius: 10px;
+    }
+
+    /* 3) Align action buttons consistently under the selection area */
+    #actions {
+      display: flex;
+      gap: 12px;
+      align-items: center;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+    #actions .btn { margin: 0; }
+
+    /* guard against any card/fieldset adding its own outline */
+    #portal .card:focus,
+    #portal .card:focus-within {
+      outline: none;
+      box-shadow: none;
+    }
+  </style>
 </head>
-<body>
+<body id="portal">
   <div id="nav-root"></div>
   <script src="/assets/nav-include.js" defer></script>
 
-  <main class="container" id="main">
-    <h1>Complaint Portal</h1>
-    <p class="small">
-      Select your state and the appropriate board. We’ll open the official site in a new tab.
-      Your report content is prepared locally and not stored by us.
-    </p>
+  <main class="container">
+    <h1>Find Your Medical Board</h1>
 
-    <div id="sr-status" class="visually-hidden" role="status" aria-live="polite"></div>
+    <section class="card">
+      <div class="grid">
+        <label for="state">Select your state</label>
+        <select id="state" name="state"></select>
 
-    <section class="card" aria-labelledby="stateLegend">
-      <fieldset class="stack">
-        <legend id="stateLegend" class="h4">Choose your state</legend>
-        <label for="stateSelect" class="visually-hidden">State</label>
-        <select id="stateSelect" name="state" autocomplete="address-level1" aria-describedby="stateHelp">
-          <option value="">— Select your state —</option>
-        </select>
-        <p id="stateHelp" class="small">
-          We maintain links to official complaint portals. After choosing a state, pick a board.
-        </p>
-      </fieldset>
-    </section>
-
-    <section class="card" aria-labelledby="boardsLegend">
-      <fieldset class="stack">
-        <legend id="boardsLegend" class="h4">Select a board in your state</legend>
-        <div id="boards" role="radiogroup" aria-labelledby="boardsLegend"></div>
-      </fieldset>
-    </section>
-
-    <section class="card" aria-labelledby="openLegend">
-      <h2 id="openLegend" class="h4">Open board site</h2>
-      <div class="stack">
-        <div class="turnstile-box" aria-label="Human verification">
-          <div class="cf-turnstile" data-sitekey="0x4AAAAAABvLQFU4_EpvFJZ8" data-theme="light"></div>
-        </div>
-
-        <button id="openBtn" class="btn" type="button" disabled aria-disabled="true" aria-describedby="openHelp">
-          Open selected board page
-        </button>
+        <!-- Actions row populated by portal-deeplink.js -->
+        <div id="actions" class="row"></div>
       </div>
+    </section>
+
+    <section class="card">
+      <h2>Select a board in your state</h2>
+
+      <!-- The fieldset/radio list is built by portal-deeplink.js.
+           We keep the markup it generates; the CSS above handles the visuals. -->
+      <div id="board-list"></div>
+    </section>
+
+    <section class="card">
+      <h2>Open board site</h2>
+      <!-- Cloudflare Turnstile widget renders here -->
+      <div id="cf-turnstile-container"></div>
     </section>
   </main>
 
   <footer class="container">
     <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
   </footer>
-
-  <script src="/assets/app.js" type="module"></script>
 </body>
 </html>
+
 
