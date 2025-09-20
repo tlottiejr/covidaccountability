@@ -1,95 +1,26 @@
-/* public/assets/portal.css */
+/* Portal-specific a11y polish (kept separate to avoid site-wide changes) */
 
-/* Keep existing site look */
-:root {
-  /* rely on site.css variables for colors, radius, etc. */
-}
+.stack > * + * { margin-top: 10px; }
 
-/* Layout for the portal cards (inherits .card from site.css) */
-#portal .card {
-  margin: 18px 0;
-}
+#boards { display: grid; gap: 8px; }
+.radio-row { display: grid; grid-template-columns: 20px 1fr; align-items: start; gap: 10px; }
 
-/* Inputs */
-#portal select {
-  width: 100%;
-  padding: 10px 12px;
-  border-radius: var(--radius, 14px);
-}
+.radio { margin-top: 3px; cursor: pointer; }
+.radio-label { cursor: pointer; }
+.radio-title { font-weight: 600; }
+.radio-sub { display: block; color: var(--muted); font-size: 13px; }
 
-/* Remove blue focus rectangle on fieldset containers while preserving focus on actual controls */
-#portal fieldset:focus,
-#portal fieldset:focus-within,
-#portal .card:focus,
-#portal .card:focus-within {
-  outline: none;
-  box-shadow: none;
-}
+.badge { display: inline-block; margin-left: 6px; padding: 1px 6px; border-radius: 999px; font-size: 12px; }
+.badge-warn { background: rgba(220,38,38,.10); color: #b91c1c; border: 1px solid rgba(220,38,38,.25); }
 
-/* Board list (radio options). We support either UL#boards or content injected into DIV#board-list */
-#portal .board-options {
-  list-style: none;
-  margin: 8px 0 0 0;
-  padding: 0;
-}
-#portal .board-options li {
-  margin: 6px 0;
-}
-
-/* If script injects labels, keep them nicely aligned */
-#portal .board-options li label {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  cursor: pointer;
-}
-
-/* Radio alignment */
-#portal input[type="radio"] {
-  margin-top: 3px;
-}
-
-/* Accessible focus on the label/text next to the radio, not the whole card */
-#portal input[type="radio"]:focus-visible + * {
-  outline: 2px solid var(--accent, #2563eb);
+/* Clear, consistent focus rings */
+select:focus,
+input[type="radio"]:focus + label,
+button:focus {
+  outline: 2px solid #2a6cf0;
   outline-offset: 2px;
-  border-radius: 10px;
 }
 
-/* Actions row: align buttons consistently and wrap on small screens */
-#actions {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-top: 10px;
-}
-#actions .btn { margin: 0; }
-
-/* If script renders into #board-list instead of UL#boards,
-   ensure items inside display with the same rhythm */
-#board-list .board-options,
-#board-list ul {
-  list-style: none;
-  margin: 8px 0 0 0;
-  padding: 0;
-}
-#board-list .board-options li,
-#board-list ul li {
-  margin: 6px 0;
-}
-#board-list label {
-  display: flex;
-  align-items: flex-start;
-  gap: 10px;
-  padding: 8px 10px;
-  border-radius: 12px;
-  cursor: pointer;
-}
-
-/* Turnstile container breathing room */
-#cf-turnstile-container {
-  margin-top: 8px;
-}
+/* Turnstile box spacing (only if it renders) */
+.turnstile-box { min-height: 0; }
+.turnstile-box:empty { display:none; }
