@@ -141,9 +141,11 @@ function sizeForDesktop(board) {
   const boardTop = board.getBoundingClientRect().top;
   const viewportH = window.innerHeight;
 
-  // Equal spacing above and below the footer
-  const gapAboveFooter = 32;
-  const gapBelowFooter = 32;
+  // Center the footer between the grid and the page bottom
+  const GAP = 36;              // try 36px; tweak ±2px if needed for your display
+  const gapAboveFooter = GAP;
+  const gapBelowFooter = GAP;
+
 
   // Board height so that: boardTop + boardH + gapAboveFooter + footerH + gapBelowFooter = viewportH
   const avail = clamp(
