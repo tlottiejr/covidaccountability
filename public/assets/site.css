@@ -261,3 +261,25 @@ body#home .card .actions .btn-primary {
   margin-left: 0;
   margin-right: 0;
 }
+/* Home page: center the 3 hero buttons (no HTML changes) */
+body#home main.container > .card:first-of-type > :has(> .btn) {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+body#home main.container > .card:first-of-type > :has(> .btn) .btn {
+  margin: 0;
+}
+
+/* Fallback for browsers without :has() support */
+@supports not (selector(:has(*))) {
+  body#home main.container > .card:first-of-type { text-align: center; }
+  body#home main.container > .card:first-of-type .btn { 
+    display: inline-block; 
+    margin: 0 8px; 
+  }
+  /* keep headings/paragraphs left-aligned */
+  body#home main.container > .card:first-of-type h2,
+  body#home main.container > .card:first-of-type p { text-align: left; }
+}
