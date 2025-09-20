@@ -1,275 +1,275 @@
 {
-  "generatedAt": "2025-09-19T07:29:23.151Z",
+  "generatedAt": "2025-09-20T07:26:37.535Z",
   "items": [
     {
-      "title": "USMLE® Content Outline — Biostatistics, Epidemiology/Population Health, & Interpretation of the Medical Literature (p. 37)",
-      "url": "https://www.usmle.org/sites/default/files/2022-01/USMLE_Content_Outline_0.pdf",
-      "status": 200,
-      "finalUrl": "https://www.usmle.org/sites/default/files/2022-01/USMLE_Content_Outline_0.pdf",
-      "redirected": false,
-      "error": false,
-      "checkedAt": "2025-09-19T07:29:23.435Z"
-    },
-    {
-      "title": "USMLE® Content Outline — Social Sciences (p. 39)",
-      "url": "https://www.usmle.org/sites/default/files/2022-01/USMLE_Content_Outline_0.pdf",
-      "status": 200,
-      "finalUrl": "https://www.usmle.org/sites/default/files/2022-01/USMLE_Content_Outline_0.pdf",
-      "redirected": false,
-      "error": false,
-      "checkedAt": "2025-09-19T07:29:23.510Z"
-    },
-    {
-      "title": "First Aid for the USMLE Step 1 — Public Health Sciences: Epidemiology & Biostatistics (p. 260)",
-      "url": "https://archive.org/details/fa-2022/mode/2up",
-      "status": 200,
-      "finalUrl": "https://archive.org/details/fa-2022/mode/2up",
-      "redirected": false,
-      "error": false,
-      "checkedAt": "2025-09-19T07:29:24.216Z"
-    },
-    {
-      "title": "First Aid for the USMLE Step 1 — Public Health Sciences: Ethics (pp. 268–269)",
-      "url": "https://archive.org/details/fa-2022/mode/2up",
-      "status": 200,
-      "finalUrl": "https://archive.org/details/fa-2022/mode/2up",
-      "redirected": false,
-      "error": false,
-      "checkedAt": "2025-09-19T07:29:24.800Z"
-    },
-    {
-      "title": "Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine",
-      "url": "https://www.nejm.org/doi/full/10.1056/NEJMoa2034577",
-      "status": 403,
-      "finalUrl": "https://www.nejm.org/doi/full/10.1056/NEJMoa2034577",
-      "redirected": false,
-      "error": true,
-      "checkedAt": "2025-09-19T07:29:24.904Z"
-    },
-    {
-      "title": "Relative risk reduction: misinformative measure in clinical trials and COVID-19 vaccine efficacy",
-      "url": "https://doi.org/10.1016/j.dialog.2022.100074",
-      "status": 200,
-      "finalUrl": "https://linkinghub.elsevier.com/retrieve/pii/S2772653322000740",
-      "redirected": true,
-      "error": false,
-      "checkedAt": "2025-09-19T07:29:25.456Z"
-    },
-    {
-      "title": "Misleading Use of Risk Ratios",
-      "url": "https://doi.org/10.1016/S0140-6736(05)61024-0",
-      "status": 200,
-      "finalUrl": "https://linkinghub.elsevier.com/retrieve/pii/S0140673605610240",
-      "redirected": true,
-      "error": false,
-      "checkedAt": "2025-09-19T07:29:25.733Z"
-    },
-    {
-      "title": "Serious adverse events of special interest following mRNA COVID-19 vaccination in randomized trials in adults",
-      "url": "https://doi.org/10.1016/j.vaccine.2022.08.036",
-      "status": 200,
-      "finalUrl": "https://linkinghub.elsevier.com/retrieve/pii/S0264410X22010283",
-      "redirected": true,
-      "error": false,
-      "checkedAt": "2025-09-19T07:29:25.942Z"
-    },
-    {
-      "title": "MKSAP 19 — Interpreting & Applying the Medical Literature",
-      "url": "https://www.acponline.org/featured-products/acp-mksap",
-      "status": 200,
-      "finalUrl": "https://www.acponline.org/featured-products/acp-mksap",
-      "redirected": false,
-      "error": false,
-      "checkedAt": "2025-09-19T07:29:26.028Z"
-    },
-    {
-      "title": "Shared Decision-Making: NICE Guidelines summary",
-      "url": "https://www.aafp.org/pubs/afp/issues/2022/0800/practice-guidelines-shared-decision-making.html",
-      "status": 200,
-      "finalUrl": "https://www.aafp.org/pubs/afp/issues/2022/0800/practice-guidelines-shared-decision-making.html",
-      "redirected": false,
-      "error": false,
-      "checkedAt": "2025-09-19T07:29:26.522Z"
-    },
-    {
-      "title": "Communicating Risks & Benefits — Absolute risk, relative risk, and NNT",
-      "url": "https://www.fda.gov/media/81597/download",
-      "status": 404,
-      "finalUrl": "https://www.fda.gov/apology_objects/abuse-detection-apology.html",
-      "redirected": true,
-      "error": true,
-      "checkedAt": "2025-09-19T07:29:26.895Z"
-    },
-    {
-      "title": "The SHARE Approach — Communicating Numbers to Your Patients (Tool 5)",
-      "url": "https://www.ahrq.gov/sites/default/files/wysiwyg/professionals/education/curriculum-tools/shareddecisionmaking/tools/tool-5/share-tool5.pdf",
-      "status": 404,
-      "finalUrl": "https://www.ahrq.gov/sites/default/files/wysiwyg/professionals/education/curriculum-tools/shareddecisionmaking/tools/tool-5/share-tool5.pdf",
-      "redirected": false,
-      "error": true,
-      "checkedAt": "2025-09-19T07:29:28.831Z"
-    },
-    {
-      "title": "ACP Ethics Manual — Seventh Edition",
+      "title": "American College of Physicians Ethics Manual: Seventh Edition",
       "url": "https://www.acpjournals.org/doi/10.7326/M18-2160",
       "status": 403,
       "finalUrl": "https://www.acpjournals.org/doi/10.7326/M18-2160",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-19T07:29:29.023Z"
+      "checkedAt": "2025-09-20T07:26:37.963Z"
     },
     {
-      "title": "AMA Code of Medical Ethics — Opinion 2.1.1: Informed Consent",
+      "title": "AMA Code of Medical Ethics — Opinion 2.1.1 Informed Consent",
       "url": "https://code-medical-ethics.ama-assn.org/ethics-opinions/informed-consent",
       "status": 200,
       "finalUrl": "https://code-medical-ethics.ama-assn.org/ethics-opinions/informed-consent",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-19T07:29:29.101Z"
+      "checkedAt": "2025-09-20T07:26:38.268Z"
     },
     {
-      "title": "PREP Act — Questions and Answers",
-      "url": "https://aspr.hhs.gov/legal/PREPact/Pages/PREP-Act-Question-and-Answers.aspx",
-      "status": 403,
-      "finalUrl": "https://aspr.hhs.gov/legal/PREPact/Pages/PREP-Act-Question-and-Answers.aspx",
-      "redirected": false,
-      "error": true,
-      "checkedAt": "2025-09-19T07:29:29.155Z"
-    },
-    {
-      "title": "AMA — Physicians’ Responsibilities in Disaster Response & Preparedness (Opinion 8.3)",
+      "title": "AMA Code of Medical Ethics — Opinion 8.3 Physicians’ Responsibilities in Disaster Response & Preparedness",
       "url": "https://code-medical-ethics.ama-assn.org/ethics-opinions/physicians-responsibilities-disaster-response-preparedness",
       "status": 200,
       "finalUrl": "https://code-medical-ethics.ama-assn.org/ethics-opinions/physicians-responsibilities-disaster-response-preparedness",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-19T07:29:29.318Z"
+      "checkedAt": "2025-09-20T07:26:38.458Z"
     },
     {
-      "title": "State of Texas v. Pfizer Inc. — Petition",
-      "url": "https://www.texasattorneygeneral.gov/sites/default/files/images/press/Pfizer%20Vaccine%20Petition%20Filed.pdf",
+      "title": "AHRQ: Communicating Numbers to Your Patients (SHARE Approach Tool 5)",
+      "url": "https://www.ahrq.gov/health-literacy/improve/precautions/tool5.html",
       "status": 200,
-      "finalUrl": "https://www.texasattorneygeneral.gov/sites/default/files/images/press/Pfizer%20Vaccine%20Petition%20Filed.pdf",
+      "finalUrl": "https://www.ahrq.gov/health-literacy/improve/precautions/tool5.html",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-19T07:29:29.493Z"
+      "checkedAt": "2025-09-20T07:26:38.525Z"
     },
     {
-      "title": "State of Kansas v. Pfizer Inc. — Complaint",
-      "url": "https://ag.ks.gov/docs/default-source/documents/2024-06-15-pfizer-complaint-(002).pdf?sfvrsn=eb8bbe1a_8",
+      "title": "ABMS Statement Supporting Role of Medical Professionals in Preventing COVID-19 Misinformation",
+      "url": "https://www.abms.org/news-events/abms-statement-supporting-role-of-medical-professionals-in-preventing-covid-19-misinformation/",
       "status": 404,
-      "finalUrl": "https://ag.ks.gov/docs/default-source/documents/2024-06-15-pfizer-complaint-(002).pdf?sfvrsn=eb8bbe1a_8",
+      "finalUrl": "https://www.abms.org/newsroom/abms-statement-supporting-role-of-medical-professionals-in-preventing-covid-19-misinformation/",
+      "redirected": true,
+      "error": true,
+      "checkedAt": "2025-09-20T07:26:39.232Z"
+    },
+    {
+      "title": "Beattie K. Worldwide Bayesian Causal Impact Analysis of Vaccine Administration (145 Countries)",
+      "url": "https://www.researchgate.net/publication/349302824_Worldwide_Bayesian_Causal_Impact_Analysis_of_Vaccine_Administration_145_Countries",
+      "status": 403,
+      "finalUrl": "https://www.researchgate.net/publication/349302824_Worldwide_Bayesian_Causal_Impact_Analysis_of_Vaccine_Administration_145_Countries",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-19T07:29:29.672Z"
+      "checkedAt": "2025-09-20T07:26:39.354Z"
     },
     {
-      "title": "ABMS Statement on Preventing COVID-19 Misinformation",
-      "url": "https://www.abms.org/wp-content/uploads/2021/09/ABMS-Statement-Supporting-Role-of-Medical-Professionals-In-Preventing-COVID-19-Misinformation.pdf",
-      "status": 200,
-      "finalUrl": "https://www.abms.org/wp-content/uploads/2021/09/ABMS-Statement-Supporting-Role-of-Medical-Professionals-In-Preventing-COVID-19-Misinformation.pdf",
+      "title": "Brown RB. Relative risk reduction: Misinformative measure in clinical trials and COVID-19 vaccine efficacy",
+      "url": "https://www.sciencedirect.com/science/article/pii/S2772707622000071",
+      "status": 404,
+      "finalUrl": "https://www.sciencedirect.com/science/article/pii/S2772707622000071",
       "redirected": false,
-      "error": false,
-      "checkedAt": "2025-09-19T07:29:29.994Z"
+      "error": true,
+      "checkedAt": "2025-09-20T07:26:39.739Z"
     },
     {
-      "title": "Request for Information — Impact of Health Misinformation (COVID-19)",
-      "url": "https://www.federalregister.gov/documents/2022/03/07/2022-04777/impact-of-health-misinformation-in-the-digital-information-environment-in-the-united-states",
+      "title": "Clinical Decision Making & Interpreting the Medical Literature (MKSAP 19)",
+      "url": "https://go.acponline.org/mksap19",
+      "status": 403,
+      "finalUrl": "https://annals.org/aim",
+      "redirected": true,
+      "error": true,
+      "checkedAt": "2025-09-20T07:26:40.284Z"
+    },
+    {
+      "title": "Fact Sheet: Actions After Public Health Emergency Transition",
+      "url": "https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/09/fact-sheet-actions-after-public-health-emergency-transition/",
+      "status": 404,
+      "finalUrl": "https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/09/fact-sheet-actions-after-public-health-emergency-transition/",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-20T07:26:40.518Z"
+    },
+    {
+      "title": "Fagerlin A, et al. Absolute risk, relative risk, and NNT (Communicating Risks & Benefits)",
+      "url": "https://www.fda.gov/drugs/development-approval-process-drugs/communicating-risks-and-benefits-helping-patients-make-informed-decisions",
+      "status": 404,
+      "finalUrl": "https://www.fda.gov/apology_objects/abuse-detection-apology.html",
+      "redirected": true,
+      "error": true,
+      "checkedAt": "2025-09-20T07:26:40.652Z"
+    },
+    {
+      "title": "Final Report on Lessons Learned and the Path Forward",
+      "url": "https://selectsubcommitteeoncoronavirus-crisis.house.gov/",
+      "status": 0,
+      "finalUrl": "",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-20T07:26:40.717Z"
+    },
+    {
+      "title": "Fraiman J, et al. Serious adverse events of special interest following mRNA COVID-19 vaccination",
+      "url": "https://www.sciencedirect.com/science/article/pii/S0264410X22010205",
+      "status": 404,
+      "finalUrl": "https://www.sciencedirect.com/science/article/pii/S0264410X22010205",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-20T07:26:40.984Z"
+    },
+    {
+      "title": "HHS OSG: Impact of Health Misinformation RFI",
+      "url": "https://www.federalregister.gov/documents/2022/05/02/2022-09469/request-for-information-on-the-impact-of-health-misinformation-in-the-digital-information-environment",
       "status": 200,
       "finalUrl": "https://unblock.federalregister.gov/",
       "redirected": true,
       "error": false,
-      "checkedAt": "2025-09-19T07:29:30.048Z"
+      "checkedAt": "2025-09-20T07:26:41.432Z"
     },
     {
-      "title": "FSMB — Professional Expectations Regarding Medical Misinformation and Disinformation",
-      "url": "https://www.fsmb.org/siteassets/advocacy/policies/ethics-committee-report-misinformation-april-2022-final.pdf",
-      "status": 200,
-      "finalUrl": "https://www.fsmb.org/siteassets/advocacy/policies/ethics-committee-report-misinformation-april-2022-final.pdf",
-      "redirected": false,
-      "error": false,
-      "checkedAt": "2025-09-19T07:29:30.323Z"
-    },
-    {
-      "title": "AMA adopts policy to address public health disinformation",
-      "url": "https://www.ama-assn.org/press-center/press-releases/ama-adopts-new-policy-aimed-addressing-public-health-disinformation",
-      "status": 200,
-      "finalUrl": "https://www.ama-assn.org/press-center/ama-press-releases/ama-adopts-new-policy-aimed-addressing-public-health-disinformation",
-      "redirected": true,
-      "error": false,
-      "checkedAt": "2025-09-19T07:29:30.784Z"
-    },
-    {
-      "title": "Spatiotemporal variation of excess all-cause mortality during the COVID period",
-      "url": "https://correlation-canada.org/covid-excess-mortality-125-countries/",
-      "status": 200,
-      "finalUrl": "https://correlation-canada.org/covid-excess-mortality-125-countries/",
-      "redirected": false,
-      "error": false,
-      "checkedAt": "2025-09-19T07:29:30.915Z"
-    },
-    {
-      "title": "COVID-19 vaccine-associated mortality in the Southern Hemisphere",
-      "url": "https://www.researchgate.net/publication/372394612_COVID-19_vaccine-associated_mortality_in_the_Southern_Hemisphere",
-      "status": 403,
-      "finalUrl": "https://www.researchgate.net/publication/372394612_COVID-19_vaccine-associated_mortality_in_the_Southern_Hemisphere",
+      "title": "Kansas v. Pfizer Inc. (Complaint)",
+      "url": "https://ag.ks.gov/media-center/news-releases/2024/01/05/ag-kobach-files-lawsuit-against-pfizer-for-misleading-the-public-on-covid-19-vaccine",
+      "status": 404,
+      "finalUrl": "https://ag.ks.gov/media-center/news-releases/2024/01/05/ag-kobach-files-lawsuit-against-pfizer-for-misleading-the-public-on-covid-19-vaccine",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-19T07:29:31.061Z"
+      "checkedAt": "2025-09-20T07:26:41.869Z"
     },
     {
-      "title": "Worldwide Bayesian Causal Impact Analysis of Vaccine Administration (145 Countries)",
-      "url": "https://www.researchgate.net/publication/349272103_Worldwide_Bayesian_Causal_Impact_Analysis_of_Vaccine_Administration_on_Deaths_and_Cases_Associated_with_COVID-19_A_BigData_Analysis_of_145_Countries",
-      "status": 403,
-      "finalUrl": "https://www.researchgate.net/publication/349272103_Worldwide_Bayesian_Causal_Impact_Analysis_of_Vaccine_Administration_on_Deaths_and_Cases_Associated_with_COVID-19_A_BigData_Analysis_of_145_Countries",
-      "redirected": false,
-      "error": true,
-      "checkedAt": "2025-09-19T07:29:31.099Z"
-    },
-    {
-      "title": "Trust in Physicians and Hospitals During the COVID-19 Pandemic — 50-State Survey",
-      "url": "https://doi.org/10.1001/jamanetworkopen.2024.24984",
-      "status": 403,
-      "finalUrl": "https://jamanetwork.com/journals/jamanetworkopen/fullarticle/2821693",
-      "redirected": true,
-      "error": true,
-      "checkedAt": "2025-09-19T07:29:31.162Z"
-    },
-    {
-      "title": "NFIB v. OSHA (2022) — Supreme Court Opinion",
+      "title": "NFIB v. OSHA — Supreme Court Opinion",
       "url": "https://www.supremecourt.gov/opinions/21pdf/21a244_hgci.pdf",
       "status": 200,
       "finalUrl": "https://www.supremecourt.gov/opinions/21pdf/21a244_hgci.pdf",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-19T07:29:31.406Z"
+      "checkedAt": "2025-09-20T07:26:42.061Z"
     },
     {
-      "title": "Fact Sheet: Actions Taken after Public Health Emergency Transition",
-      "url": "https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/09/fact-sheet-actions-taken-by-the-biden-harris-administration-to-ensure-continued-covid-19-protections-and-surge-preparedness-after-public-health-emergency-transition/",
-      "status": 404,
-      "finalUrl": "https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/09/fact-sheet-actions-taken-by-the-biden-harris-administration-to-ensure-continued-covid-19-protections-and-surge-preparedness-after-public-health-emergency-transition/",
+      "title": "Perlis RH, et al. Trust in Physicians and Hospitals During the COVID-19 Pandemic",
+      "url": "https://jamanetworkopen.jamanetwork.com/article.aspx?doi=10.1001/jamanetworkopen.2024.0000",
+      "status": 403,
+      "finalUrl": "https://jamanetwork.com/article.aspx?doi=10.1001/jamanetworkopen.2024.0000",
+      "redirected": true,
+      "error": true,
+      "checkedAt": "2025-09-20T07:26:42.385Z"
+    },
+    {
+      "title": "Polack FP, et al. Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine",
+      "url": "https://www.nejm.org/doi/full/10.1056/NEJMoa2034577",
+      "status": 403,
+      "finalUrl": "https://www.nejm.org/doi/full/10.1056/NEJMoa2034577",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-19T07:29:31.444Z"
+      "checkedAt": "2025-09-20T07:26:42.540Z"
     },
     {
-      "title": "Final Report — COVID Select Committee (Lessons Learned & Path Forward)",
-      "url": "https://oversight.house.gov/release/final-report-covid-select-concludes-2-year-investigation-issues-500-page-final-report-on-lessons-learned-and-the-path-forward/",
-      "status": 200,
-      "finalUrl": "https://oversight.house.gov/release/final-report-covid-select-concludes-2-year-investigation-issues-500-page-final-report-on-lessons-learned-and-the-path-forward/",
+      "title": "PREP Act — Questions & Answers",
+      "url": "https://aspr.hhs.gov/legal/PREPact/Pages/qa.aspx",
+      "status": 403,
+      "finalUrl": "https://aspr.hhs.gov/legal/PREPact/Pages/qa.aspx",
       "redirected": false,
-      "error": false,
-      "checkedAt": "2025-09-19T07:29:31.580Z"
+      "error": true,
+      "checkedAt": "2025-09-20T07:26:42.927Z"
     },
     {
-      "title": "Failure of Care Standard Involving Pfizer BNT162b2 modRNA",
-      "url": "https://www.thegms.co/podcasts/care-standard-failure/",
+      "title": "Public Health Sciences: Epidemiology & Biostatistics (First Aid Step 1)",
+      "url": "https://firstaidteam.com/",
+      "status": 503,
+      "finalUrl": "https://firstaidteam.com/",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-20T07:26:43.256Z"
+    },
+    {
+      "title": "Public Health Sciences: Ethics (First Aid Step 1)",
+      "url": "https://firstaidteam.com/",
+      "status": 503,
+      "finalUrl": "https://firstaidteam.com/",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-20T07:26:43.381Z"
+    },
+    {
+      "title": "Rancourt D, et al. COVID-19 vaccine-associated mortality in the Southern Hemisphere",
+      "url": "https://www.researchgate.net/publication/375966230",
+      "status": 403,
+      "finalUrl": "https://www.researchgate.net/publication/375966230",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-20T07:26:43.427Z"
+    },
+    {
+      "title": "Rancourt D, et al. Spatiotemporal variation of excess all-cause mortality in the world during the COVID period",
+      "url": "https://correlation-canada.org/",
       "status": 200,
-      "finalUrl": "https://www.thegms.co/podcasts/care-standard-failure/",
+      "finalUrl": "https://correlation-canada.org/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-19T07:29:31.853Z"
+      "checkedAt": "2025-09-20T07:26:44.329Z"
+    },
+    {
+      "title": "Shared Decision-Making: NICE Guidelines (summary)",
+      "url": "https://www.nice.org.uk/guidance/ng197",
+      "status": 200,
+      "finalUrl": "https://www.nice.org.uk/guidance/ng197",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-20T07:26:44.905Z"
+    },
+    {
+      "title": "State of Texas v. Pfizer Inc. (Complaint)",
+      "url": "https://www.texasattorneygeneral.gov/news/releases/attorney-general-ken-paxton-sues-pfizer-deceiving-public-about-covid-19-vaccines",
+      "status": 404,
+      "finalUrl": "https://www.texasattorneygeneral.gov/news/releases/attorney-general-ken-paxton-sues-pfizer-deceiving-public-about-covid-19-vaccines",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-20T07:27:08.603Z"
+    },
+    {
+      "title": "Stadel B, et al. Misleading Use of Risk Ratios",
+      "url": "https://www.thelancet.com/",
+      "status": 403,
+      "finalUrl": "https://www.thelancet.com/",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-20T07:27:09.008Z"
+    },
+    {
+      "title": "USMLE® Content Outline — Biostatistics, Epidemiology/Population Health & Interpretation of the Medical Literature (p. 37)",
+      "url": "https://www.usmle.org/",
+      "status": 200,
+      "finalUrl": "https://www.usmle.org/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-20T07:27:09.309Z"
+    },
+    {
+      "title": "USMLE® Content Outline — Social Sciences (p. 39)",
+      "url": "https://www.usmle.org/",
+      "status": 200,
+      "finalUrl": "https://www.usmle.org/",
+      "redirected": false,
+      "error": false,
+      "checkedAt": "2025-09-20T07:27:09.374Z"
+    },
+    {
+      "title": "Vella D. Failure of Care Standard Involving Pfizer BNT162b2 modRNA",
+      "url": "https://www.gmedscience.org/article/1329",
+      "status": 0,
+      "finalUrl": "",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-20T07:27:09.673Z"
+    },
+    {
+      "title": "Vella D. Failure of Care Standard Involving Pfizer BNT162b2 modRNA (Podcast page)",
+      "url": "https://gmsciencepodcast.com/",
+      "status": 0,
+      "finalUrl": "",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-20T07:27:09.790Z"
+    },
+    {
+      "title": "White House: Actions After Public Health Emergency (Fact Sheet)",
+      "url": "https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/09/fact-sheet-actions-after-public-health-emergency-transition/",
+      "status": 404,
+      "finalUrl": "https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/09/fact-sheet-actions-after-public-health-emergency-transition/",
+      "redirected": false,
+      "error": true,
+      "checkedAt": "2025-09-20T07:27:09.821Z"
     }
   ]
 }
