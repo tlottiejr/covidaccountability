@@ -16,11 +16,30 @@
   <!-- References page logic -->
   <script src="/assets/js/references-page.js" defer></script>
 
-  <!-- Page-only tweaks -->
+  <!-- Page-only layout: exact 2×2 grid + bottom-left card on desktop -->
   <style>
     /* Hide the board until JS has rendered to avoid the empty-card flash */
     #ref-board { visibility: hidden; opacity: 0; transition: opacity 120ms ease; min-height: 60vh; }
     #ref-board.is-ready { visibility: visible; opacity: 1; }
+
+    /* Desktop grid that matches the target screenshot */
+    @media (min-width: 980px) {
+      #ref-board {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        grid-template-rows: repeat(3, 1fr);
+        gap: 20px;                /* matches card spacing in your CSS */
+        align-content: start;
+      }
+      /* Place each panel explicitly */
+      #ref-board .panel--general  { grid-column: 1; grid-row: 1; }
+      #ref-board .panel--gov      { grid-column: 2; grid-row: 1; }
+      #ref-board .panel--edu      { grid-column: 1; grid-row: 2; }
+      #ref-board .panel--peer     { grid-column: 2; grid-row: 2; }
+      #ref-board .panel--preprint { grid-column: 1; grid-row: 3; }
+      /* We intentionally leave grid-column 2, row 3 empty (as in the target). */
+    }
+
     .legal.center { text-align: center; margin: 24px 0 0; }
     .legal.center a { font: inherit; }
   </style>
