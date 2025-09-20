@@ -142,8 +142,8 @@ function sizeForDesktop(board) {
   const viewportH = window.innerHeight;
 
   // Equal spacing above and below the footer
-  const gapAboveFooter = 20;
-  const gapBelowFooter = 20;
+  const gapAboveFooter = 32;
+  const gapBelowFooter = 32;
 
   // Board height so that: boardTop + boardH + gapAboveFooter + footerH + gapBelowFooter = viewportH
   const avail = clamp(
