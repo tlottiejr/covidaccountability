@@ -108,3 +108,38 @@ body#portal section.card[aria-labelledby="stateLegend"] fieldset:focus,
 body#portal section.card[aria-labelledby="boardsLegend"] fieldset:focus {
   outline: none;
 }
+/* ===== Complaint Portal compact controls (scoped to this page) ===== */
+
+/* 1) Shrink the state dropdown to its content width (desktop),
+      still full-width on small screens */
+body#portal #stateSelect {
+  display: inline-block;
+  width: auto;                 /* shrink to content */
+  min-width: 340px;            /* readable target size */
+  max-width: 100%;
+  padding-right: 36px;         /* room for native chevron */
+}
+@media (max-width: 640px) {
+  body#portal #stateSelect {
+    width: 100%;
+    min-width: 0;
+  }
+}
+
+/* 2) Board selection "bubble" hugs its content like a pill */
+body#portal #boards .board-option {
+  display: inline-grid;        /* shrink-to-fit but preserve grid layout */
+  grid-template-columns: 26px 1fr;  /* radio dot | text (same as before) */
+  width: fit-content;
+  max-width: 100%;
+  min-width: 520px;            /* keep options visually even; adjust 500–560px if desired */
+  margin: 0 8px;               /* keep existing horizontal breathing room */
+  padding-right: 14px;         /* tidy right edge */
+}
+
+@media (max-width: 640px) {
+  body#portal #boards .board-option {
+    min-width: 0;
+    width: 100%;               /* expand on small screens */
+  }
+}
