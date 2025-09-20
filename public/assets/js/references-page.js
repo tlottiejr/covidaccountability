@@ -1,6 +1,4 @@
-// public/assets/js/references-page.js — v7.8
-// Key fix: render panels as DIRECT children of #ref-board (grid container).
-// Result: exact 2×2 + bottom-left grid placement matches the target screenshot.
+// public/assets/js/references-page.js — v7.9 (vertical rhythm tuned to match target)
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -106,11 +104,9 @@ function bucketize(rows) {
 }
 
 /**
- * IMPORTANT: Panels are appended directly to the mount (#ref-board)
- * so they are DIRECT grid items, allowing grid placement via CSS classes.
+ * Panels are appended directly to the mount (#ref-board) so they are DIRECT grid items.
  */
 function renderPanels(mount, order, buckets) {
-  // Ensure the mount has the ref-board class
   mount.classList.add("ref-board");
   mount.innerHTML = "";
 
@@ -147,12 +143,12 @@ function sizeBoard(board) {
 
   const boardTop = board.getBoundingClientRect().top;
   const viewportBottom = window.innerHeight;
-  const margin = 12;
+  const margin = 10; // minimal breathing room
 
   const avail = clamp(viewportBottom - boardTop - margin, 760, 1700);
 
   const rows = 3;
-  const rowGap = 20; // matches grid gap in CSS
+  const rowGap = 16; // tighter vertical spacing (matches page CSS gap)
   const rowH = Math.floor((avail - rowGap * (rows - 1)) / rows);
 
   board.style.height = px(avail);
@@ -166,10 +162,11 @@ function sizeBoard(board) {
     const titleH = title ? title.getBoundingClientRect().height : 0;
 
     const scroll = panel.querySelector(".ref-panel__scroll");
-    const extra = 10;
+    const extra = 6; // small allowance for UL margin
     const maxH = rowH - padY - titleH - extra;
 
-    const MIN_SCROLL = 210;
+    // Slightly larger min to expose source/year + first description line
+    const MIN_SCROLL = 230;
     scroll.style.maxHeight = px(Math.max(MIN_SCROLL, maxH));
   });
 }
@@ -185,9 +182,7 @@ function sizeBoard(board) {
     const board = renderPanels(mount, PANEL_ORDER, buckets);
 
     sizeBoard(board);
-
-    // Reveal after render (prevents any flash)
-    mount.classList.add("is-ready");
+    mount.classList.add("is-ready"); // reveal after render
 
     let raf = 0;
     const onResize = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => sizeBoard(board)); };
