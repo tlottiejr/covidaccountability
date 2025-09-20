@@ -24,3 +24,51 @@ button:focus {
 /* Turnstile box spacing (only if it renders) */
 .turnstile-box { min-height: 0; }
 .turnstile-box:empty { display:none; }
+/* ===== Complaint Portal-only scoped overrides ===== */
+
+/* 2.1 — Tone down the heavy global blue ring, but keep visible focus */
+body#portal :focus {
+  /* Neutralize the global bright ring */
+  outline: 2px solid transparent;   /* out-prioritizes global :focus rules */
+  outline-offset: 2px;
+}
+
+/* Provide a subtle, accessible focus style for key controls */
+body#portal select:focus,
+body#portal button:focus,
+body#portal input[type="radio"]:focus + label {
+  box-shadow:
+    0 0 0 2px rgba(2, 6, 23, 0.18) inset,     /* faint inner */
+    0 0 0 2px rgba(37, 99, 235, 0.25);        /* soft brand halo */
+  border-radius: 8px;
+}
+
+/* Keep a small native cue on the radio itself for keyboard users */
+body#portal input[type="radio"]:focus {
+  outline: 2px solid rgba(37, 99, 235, 0.5);
+  outline-offset: 1px;
+}
+
+/* 2.2 — Align the blue selection "button" next to board links */
+body#portal #boards {
+  /* no-op here; rules are below for row layout */
+}
+
+/* Center the radio circle vertically with its text block */
+body#portal .radio-row {
+  grid-template-columns: 22px 1fr;  /* consistent gutter for the radio */
+  align-items: center;              /* <— alignment fix */
+  gap: 10px;
+}
+
+/* Remove manual nudge; let grid centering do the work */
+body#portal .radio {
+  margin-top: 0;                    /* was 3px; now true center alignment */
+  cursor: pointer;
+}
+
+/* Make the label hit-area generous without shifting layout */
+body#portal .radio-label {
+  display: block;
+  line-height: 1.35;
+}
