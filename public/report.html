@@ -9,6 +9,48 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="/assets/site.css"/>
   <link rel="stylesheet" href="/assets/portal.css" />
+  <style>
+    /* Optional Actions – portal-style selectable cards */
+    #optional-actions { margin-top: 6px; }
+    #optional-actions .oa-row { margin: 10px 0; position: relative; }
+    /* hide the native checkbox but keep it accessible */
+    #optional-actions .oa-input {
+      position: absolute;
+      opacity: 0;
+      inset: 0;             /* full row area clickable via the label */
+      pointer-events: none; /* label handles clicks */
+    }
+    /* the card you see/click */
+    #optional-actions .oa-card {
+      display: block;
+      border: 1px solid rgba(56, 116, 255, 0.35);
+      background: #f4f7ff;
+      border-radius: 14px;
+      padding: 12px 14px;
+      transition: box-shadow .15s ease, border-color .15s ease, background .15s ease;
+      box-shadow: 0 1px 2px rgba(0,0,0,.05);
+      cursor: pointer;
+    }
+    /* text rhythm inside the card */
+    #optional-actions .oa-title { font-weight: 600; }
+    #optional-actions .oa-note  { display: block; font-size: .92rem; opacity: .75; margin-top: .2rem; }
+    /* hover/active/checked states */
+    #optional-actions .oa-card:hover {
+      box-shadow: 0 4px 12px rgba(0,0,0,.10);
+      background: #eef4ff;
+    }
+    #optional-actions .oa-input:focus + .oa-card {
+      outline: 2px solid rgba(56,116,255,.25);
+      outline-offset: 2px;
+    }
+    #optional-actions .oa-input:checked + .oa-card {
+      background: #eef6ff;
+      border-color: #3f84f8;
+      box-shadow: inset 0 0 0 3px rgba(63,132,248,.15);
+    }
+    /* keep scrollbars from overlapping text on narrow screens if the card overflows */
+    #optional-actions .oa-card { scrollbar-gutter: stable; padding-right: 8px; }
+  </style>
 </head>
 <body>
   <div id="nav-root"></div>
@@ -54,8 +96,28 @@
     <section class="card" style="margin-top: 18px;">
       <h2>Optional actions</h2>
       <div class="grid">
-        <label><input type="checkbox" id="rtSavePdf"/> Save a local copy (PDF)</label>
-        <label><input type="checkbox" id="rtCopyText"/> Copy text to clipboard</label>
+        <div id="optional-actions">
+        <!-- Save PDF -->
+        <div class="oa-row">
+          <input type="checkbox" id="rtSavePdf" class="oa-input" />
+          <label for="opt-save-pdf" class="oa-card">
+            <span class="oa-title">Save a local copy (PDF)</span>
+            <span class="oa-note">A PDF is saved on your device only.</span>
+          </label>
+        </div>
+        <!-- Copy text -->
+        <div class="oa-row">
+          <input type="checkbox" id="rtCopyText" class="oa-input" />
+          <label for="opt-copy" class="oa-card">
+            <span class="oa-title">Copy text to clipboard</span>
+            <span class="oa-note">Copies the generated report text.</span>
+          </label>
+        </div>
+        <!-- Your existing Generate button (already updated) -->
+        <div class="actions" style="margin-top:12px">
+          <button type="button" id="generate-btn" class="btn btn-primary">Generate</button>
+        </div>
+      </div>
         <div><button type="button" id="rtGenerateBt" class="btn btn-primary">Generate</button></div>
       </div>
       <p class="small" style="margin-top:12px;">
