@@ -16,7 +16,8 @@
     yourEmail: $('#rtYourEmail'),
     savePdf: $('#rtSavePdf'),
     copyText: $('#rtCopyText'),
-    generateBtn: document.querySelector('#generate-btn, #rtGenerateBtn, [data-action="generate"]')
+    // Bind to the actual button id; keep backward-compatibility with older ids
+    generateBtn: document.querySelector('#generate-btn, #rtGenerateBtn, [data-action="generate"]'),
   };
 
   function buildModel() {
@@ -35,9 +36,9 @@
       priorCase: (els.priorCase?.value || '').trim(),
       reporter: {
         name: (els.yourName?.value || '').trim(),
-        email: (els.yourEmail?.value || '').trim()
+        email: (els.yourEmail?.value || '').trim(),
       },
-      notice: "This PDF/text is generated locally. The site does not store your report."
+      notice: 'This draft is generated locally. We do not store your report.',
     };
   }
 
@@ -59,12 +60,15 @@
       'Evidence/Documentation:',
       m.evidence || '',
       '',
+      'Other:',
       `Witnesses: ${m.witnesses}`,
       `Prior board case #: ${m.priorCase}`,
       '',
       'Reporter:',
       `  Name: ${m.reporter.name}`,
-      `  Email: ${m.reporter.email}`
+      `  Email: ${m.reporter.email}`,
+      '',
+      m.notice,
     ];
     return lines.join('\n');
   }
@@ -72,22 +76,29 @@
   function loadScript(src) {
     return new Promise((resolve, reject) => {
       const s = document.createElement('script');
-      s.src = src; s.async = true; s.onload = resolve; s.onerror = reject;
+      s.src = src;
+      s.async = true;
+      s.onload = resolve;
+      s.onerror = reject;
       document.head.appendChild(s);
     });
   }
 
+  // === Only dependency: load jsPDF from a LOCAL file to avoid CSP/CDN issues ===
   async function getJsPDF() {
-    if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
-    await loadScript('https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js');
-    if (window.jspdf && window.jspdf.jsPDF) return window.jspdf.jsPDF;
+    if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
+    // Local vendor file (add it at /public/assets/vendor/jspdf.umd.min.js)
+    await loadScript('/assets/vendor/jspdf.umd.min.js');
+    if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
     throw new Error('jsPDF failed to load');
   }
 
   async function downloadPdf(filename, m) {
     const jsPDF = await getJsPDF();
     const doc = new jsPDF({ unit: 'pt', format: 'letter' });
-    const margin = 48, pageW = doc.internal.pageSize.getWidth(), pageH = doc.internal.pageSize.getHeight();
+    const margin = 48;
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
     const maxW = pageW - margin * 2;
     let y = margin;
 
@@ -119,36 +130,48 @@
     add('Evidence/Documentation', { bold: true });
     add(m.evidence || ''); y += 6;
 
-    add('Witnesses', { bold: true });
-    add(m.witnesses || ''); y += 6;
-
-    add('Prior board case #', { bold: true });
-    add(m.priorCase || ''); y += 6;
+    add('Other', { bold: true });
+    add(`Witnesses: ${m.witnesses}`);
+    add(`Prior board case #: ${m.priorCase}`); y += 6;
 
     add('Reporter', { bold: true });
     add(`Name: ${m.reporter.name}`);
-    add(`Email: ${m.reporter.email}`);
+    add(`Email: ${m.reporter.email}`); y += 10;
 
-    doc.setFont('helvetica', 'italic'); doc.setFontSize(9);
-    doc.text('This PDF is generated locally. The site does not store your report.', margin, pageH - margin);
+    add(m.notice, { size: 9, leading: 13 });
+
     doc.save(filename);
   }
 
   async function copyToClipboard(text) {
-    try { await navigator.clipboard.writeText(text); return true; }
-    catch {
+    try {
+      await navigator.clipboard.writeText(text);
+      return true;
+    } catch {
       try {
         const ta = document.createElement('textarea');
-        ta.value = text; ta.style.position = 'fixed'; ta.style.left = '-9999px';
-        document.body.appendChild(ta); ta.focus(); ta.select();
-        const ok = document.execCommand('copy'); ta.remove();
+        ta.value = text;
+        ta.setAttribute('readonly', '');
+        ta.style.position = 'fixed';
+        ta.style.top = '-9999px';
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand('copy');
+        ta.remove();
         return ok;
-      } catch { return false; }
+      } catch {
+        return false;
+      }
     }
   }
 
   els.generateBtn?.addEventListener('click', async () => {
-    if (!els.savePdf?.checked && !els.copyText?.checked) { alert('Select at least one option: Save PDF or Copy text.'); return; }
+    if (!els.savePdf?.checked && !els.copyText?.checked) {
+      alert('Select at least one option: Save PDF or Copy text.');
+      return;
+    }
+
     const model = buildModel();
     const ts = new Date(model.generatedAt).toISOString().replace(/[:.]/g, '-');
     const base = (model.state || 'report').replace(/\s+/g, '-');
@@ -156,8 +179,13 @@
 
     let parts = [];
     if (els.savePdf?.checked) {
-      try { await downloadPdf(file, model); parts.push('saved PDF'); }
-      catch (e) { console.error('PDF generation failed:', e); parts.push('PDF failed'); }
+      try {
+        await downloadPdf(file, model);
+        parts.push('saved PDF');
+      } catch (e) {
+        console.error('PDF generation failed:', e);
+        parts.push('PDF failed');
+      }
     }
     if (els.copyText?.checked) {
       const ok = await copyToClipboard(toText(model));
