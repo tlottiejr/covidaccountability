@@ -50,6 +50,48 @@
     }
     /* keep scrollbars from overlapping text on narrow screens if the card overflows */
     #optional-actions .oa-card { scrollbar-gutter: stable; padding-right: 8px; }
+    /* --- Optional Actions: clear selected state indicator --- */
+    #optional-actions .oa-card {
+      position: relative;
+      padding: 12px 46px 12px 14px; /* room for the check icon on the right */
+    }
+    
+    /* Unchecked icon shell */
+    #optional-actions .oa-input + .oa-card::before {
+      content: "";
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      border: 2px solid #8bb3ff;
+      background: #fff;
+      box-shadow: 0 0 0 2px rgba(63,132,248,0.10) inset;
+      transition: border-color .15s ease, background .15s ease, box-shadow .15s ease;
+    }
+    
+    /* Checked: filled blue dot (high-contrast), bolder card */
+    #optional-actions .oa-input:checked + .oa-card {
+      background: #eaf3ff;
+      border-color: #1e6fff;
+      box-shadow: inset 0 0 0 3px rgba(30,111,255,0.10), 0 1px 2px rgba(0,0,0,.05);
+    }
+    
+    #optional-actions .oa-input:checked + .oa-card::before {
+      border-color: #1e6fff;
+      background:
+        radial-gradient(#1e6fff 0 50%, transparent 55%) /* inner fill */
+        , #fff;
+      box-shadow: 0 0 0 2px rgba(30,111,255,0.25) inset;
+    }
+    
+    /* Keyboard focus (visible even if not checked) */
+    #optional-actions .oa-input:focus + .oa-card {
+      outline: 2px solid rgba(30,111,255,.35);
+      outline-offset: 2px;
+    }
   </style>
 </head>
 <body>
@@ -118,7 +160,6 @@
           <button type="button" id="generate-btn" class="btn btn-primary">Generate</button>
         </div>
       </div>
-        <div><button type="button" id="rtGenerateBt" class="btn btn-primary">Generate</button></div>
       </div>
       <p class="small" style="margin-top:12px;">
         We do not store your report content. Use the options above to save or copy your information locally, then file your report on the official state site.
