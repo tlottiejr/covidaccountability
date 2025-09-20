@@ -13,9 +13,9 @@
 
   <!-- Scoped overrides for this page only -->
   <style>
-    /* Make both cards equal height in the two-column grid */
-    main.container > .grid.grid-2 { align-items: stretch; }
-    main.container > .grid.grid-2 > .card { height: 100%; }
+    /* Align both cards at the exact same top line */
+    main.container > .grid.grid-2 { align-items: start; }
+    main.container > .grid.grid-2 > .card { margin-top: 0 !important; height: 100%; }
 
     /* Optional actions: indicator on RIGHT, no blue glow/halo */
     #optional-actions { margin-top: 8px; }
@@ -141,7 +141,7 @@
         </div>
       </section>
 
-      <!-- RIGHT: Optional actions (now FIRST) + Tips -->
+      <!-- RIGHT: Optional actions (first) + Tips -->
       <section class="card">
         <h2>Optional actions</h2>
 
@@ -185,7 +185,7 @@
     </div>
   </main>
 
-  <!-- Sitewide footer (same as other pages) -->
+  <!-- Sitewide footer -->
   <footer class="container">
     <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
   </footer>
