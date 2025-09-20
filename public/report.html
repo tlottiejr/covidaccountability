@@ -24,16 +24,18 @@
     /* Make the “pill” only as wide as its content (not full-width) */
     #optional-actions .oa-card {
       position: relative;
-      display: inline-block;             /* shrink-to-fit content width */
+      display: inline-block;          /* keeps the compact pill look */
       border: 1px solid #c7d7ff;
       background: #ffffff;
       border-radius: 12px;
-      padding: 10px 36px 10px 12px;      /* tighter; keep room for indicator */
-      margin: 0;                          /* no extra width */
-      box-shadow: none !important;        /* no glow */
+      padding: 12px 40px 12px 16px;   /* +2px all around for breathing room */
+      margin: 0;
+      box-shadow: none !important;
       cursor: pointer;
       transition: background .15s ease, border-color .15s ease;
-      max-width: 100%;                    /* responsive safety */
+      width: fit-content;             /* shrink to content… */
+      max-width: 100%;
+      min-width: 520px;               /* …but make both pills equal width */
     }
     /* keep rows stacked with a small gap */
     #optional-actions .oa-row + .oa-row { margin-top: 10px; }
@@ -61,7 +63,7 @@
     #optional-actions .oa-card::after {
       content: '';
       position: absolute;
-      right: 10px; top: 50%;             /* closer to text */
+      right: 12px; top: 50%;             /* closer to text */
       width: 18px; height: 18px;
       border-radius: 50%;
       border: 2px solid #2d5bff;
