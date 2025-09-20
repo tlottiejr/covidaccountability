@@ -3,10 +3,11 @@
 const $ = (sel) => document.querySelector(sel);
 
 const checks = [
-  { id: "home",      label: "Home",                 url: "/",                            type: "GET" },
-  { id: "css",       label: "CSS bundle",           url: "/assets/css/site.css",         type: "GET" },
+  { id: "home",      label: "Home",                   url: "/",                            type: "GET" },
+  // NOTE: fixed path: /assets/site.css (not /assets/css/site.css)
+  { id: "css",       label: "CSS bundle",             url: "/assets/site.css",             type: "GET" },
   { id: "refs_js",   label: "References JS (if any)", url: "/assets/js/references-page.js", type: "GET" },
-  { id: "favicon",   label: "Favicon",              url: "/favicon.ico",                 type: "GET" },
+  { id: "favicon",   label: "Favicon",                url: "/favicon.ico",                 type: "GET" },
 ];
 
 function fmt(ms) {
@@ -14,50 +15,66 @@ function fmt(ms) {
 }
 
 async function probe({ id, label, url, type = "GET" }) {
-  const t0 = performance.now();
+  const start = performance.now();
   try {
-    const res = await fetch(url, { method: type, cache: "no-store", redirect: "follow" });
-    const t1 = performance.now();
-    const ok = res.ok;
-    return { id, label, url, ok, status: res.status, time: t1 - t0 };
-  } catch (e) {
-    const t1 = performance.now();
-    return { id, label, url, ok: false, status: "ERR", time: t1 - t0, err: e?.message || String(e) };
+    const res = await fetch(url, { method: type, cache: "no-store" });
+    const t = performance.now() - start;
+    return {
+      id,
+      label,
+      ok: res.ok,
+      status: res.status,
+      ms: t,
+      url
+    };
+  } catch (err) {
+    const t = performance.now() - start;
+    return {
+      id,
+      label,
+      ok: false,
+      status: "NETWORK",
+      ms: t,
+      url
+    };
   }
 }
 
-function cardHTML(r) {
-  const color = r.ok ? "var(--ok, #1f7a1f)" : "var(--err, #a52828)";
-  const badge = r.ok ? "OK" : "FAIL";
-  return `
-  <div class="card p-3">
-    <div class="flex-between">
+function renderRow({ id, label, ok, ms, status, url }) {
+  const item = document.createElement("div");
+  item.className = "card small";
+  item.setAttribute("data-ok", ok ? "true" : "false");
+  item.innerHTML = `
+    <div class="row">
       <div>
-        <div class="h5">${r.label}</div>
-        <div class="text-sm mono">${r.url}</div>
+        <div class="h5">${label}</div>
+        <div class="small muted"><code>${url}</code></div>
       </div>
-      <div class="badge" style="background:${color};color:white;padding:4px 8px;border-radius:999px">${badge}</div>
+      <div style="text-align:right;">
+        <div class="h5" aria-label="Latency">${fmt(ms)}</div>
+        <div class="small ${ok ? "good" : "bad"}" aria-label="HTTP status">${ok ? "OK" : status}</div>
+      </div>
     </div>
-    <div class="text-sm mt-2 mono">status: ${r.status} · time: ${fmt(r.time)}</div>
-    ${r.err ? `<div class="text-sm mt-1 mono" style="color:${color}">error: ${r.err}</div>` : ``}
-  </div>`;
+  `;
+  return item;
 }
 
 async function run() {
-  // Environment panel
-  const env = {
-    userAgent: navigator.userAgent,
-    language: navigator.language,
-    platform: navigator.platform,
-    viewport: `${window.innerWidth}x${window.innerHeight}`,
-    tz: Intl.DateTimeFormat().resolvedOptions().timeZone || "n/a",
-    when: new Date().toISOString()
-  };
-  $("#env_body").textContent = JSON.stringify(env, null, 2);
+  const container = $("#healthStatus");
+  container.textContent = ""; // clear
 
-  // Probes
+  // Parallel probes, then stable render
   const results = await Promise.all(checks.map(probe));
-  $("#probes").innerHTML = results.map(cardHTML).join("");
+  results.forEach((r) => container.appendChild(renderRow(r)));
+
+  // Render JSON sources
+  const sourcesEl = $("#sources");
+  try {
+    const sources = await (await fetch("/assets/health/index.json", { cache: "no-store" })).json();
+    sourcesEl.textContent = JSON.stringify(sources, null, 2);
+  } catch (e) {
+    sourcesEl.textContent = "Failed to load /assets/health/index.json";
+  }
 
   // CSP (very light heuristic): see if a CSP meta tag exists OR (preferred) we’re on HTTPS and
   // Cloudflare Pages sent CSP via headers (we can’t read headers in JS, so we just nudge here).
