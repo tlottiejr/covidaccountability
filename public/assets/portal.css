@@ -177,3 +177,27 @@ body#portal #boards .board-option {
     width: 100%;
   }
 }
+/* === Complaint Portal: center content inside all cards (scoped) === */
+body#portal .card {
+  text-align: center;
+}
+
+/* Center controls inside each card */
+body#portal #state-select-wrap { text-align: center; }
+body#portal #stateSelect { display: inline-block; }        /* already compact; keeps centered */
+
+body#portal #boards { text-align: center; }
+body#portal #boards .board-option {                         /* our pill stays inline */
+  display: inline-grid !important;
+}
+
+body#portal .card .actions {
+  display: flex;
+  justify-content: center;
+  gap: 10px;
+}
+
+body#portal #board-check {
+  display: flex;
+  justify-content: center;
+}
