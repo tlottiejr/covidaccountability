@@ -240,3 +240,14 @@ footer, .site-footer{
   text-align: center;
   margin: 32px 0;
 }
+/* Who Can Report — list sizing (page-scoped, no regressions) */
+body#who ul,
+body#who ol {
+  font-size: 1rem;       /* match normal paragraph size */
+  line-height: 1.6;      /* same rhythm as body text */
+  margin-left: 1.25rem;  /* comfortable bullet indent */
+}
+
+body#who li + li {
+  margin-top: 6px;       /* a bit of breathing room between items */
+}
