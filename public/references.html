@@ -16,11 +16,11 @@
   <!-- References page logic -->
   <script src="/assets/js/references-page.js" defer></script>
 
-  <!-- Page-scoped tweaks for internal scroll panes -->
+  <!-- Page-only tweaks -->
   <style>
-    @media (min-width: 980px){
-      html, body { overflow: hidden; height: 100%; }
-    }
+    /* Hide the board until JS has rendered to avoid the empty-card flash */
+    #ref-board { visibility: hidden; opacity: 0; transition: opacity 120ms ease; min-height: 60vh; }
+    #ref-board.is-ready { visibility: visible; opacity: 1; }
     .legal.center { text-align: center; margin: 24px 0 0; }
     .legal.center a { font: inherit; }
   </style>
@@ -37,36 +37,8 @@
     <p class="small">Curated materials that support reporting and accountability.</p>
 
     <div class="card" id="references-card">
-      <!-- The script will replace the contents of #ref-board with the rendered panels -->
-      <div class="ref-board" id="ref-board" style="min-height:60vh">
-        <div class="ref-panel">
-          <h3>General References</h3>
-          <div class="ref-panel__scroll" id="list-general">
-            <ul class="ref-panel__list"></ul>
-          </div>
-        </div>
-
-        <div class="ref-panel">
-          <h3>Government &amp; Legal</h3>
-          <div class="ref-panel__scroll" id="list-government">
-            <ul class="ref-panel__list"></ul>
-          </div>
-        </div>
-
-        <div class="ref-panel">
-          <h3>Medical Education &amp; Ethics</h3>
-          <div class="ref-panel__scroll" id="list-ethics">
-            <ul class="ref-panel__list"></ul>
-          </div>
-        </div>
-
-        <div class="ref-panel">
-          <h3>Peer-reviewed Literature</h3>
-          <div class="ref-panel__scroll" id="list-peer">
-            <ul class="ref-panel__list"></ul>
-          </div>
-        </div>
-      </div>
+      <!-- Empty mount; JS will populate and then reveal it -->
+      <div class="ref-board" id="ref-board"></div>
     </div>
   </main>
 
