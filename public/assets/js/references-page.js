@@ -1,8 +1,4 @@
-// public/assets/js/references-page.js — v7.5
-// - No placeholder flash: board hidden until rendered, then revealed.
-// - Taller rows: compute available height to viewport bottom (no footer subtraction).
-// - Slightly larger row gap and min scroll area to match the target screenshot.
-// - DOM structure aligned to site CSS.
+// public/assets/js/references-page.js — v7.6 (desktop row sizing tuned to match target screenshot)
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -145,8 +141,9 @@ function renderPanels(mount, order, buckets) {
 
 /* -------------------- desktop sizing -------------------- */
 /**
- * Make the board fill from its top to viewport bottom (no footer subtraction),
- * split into 3 equal rows. On mobile, remove sizing.
+ * Fill from board's top to viewport bottom, split into 3 rows with
+ * tuned gaps/min-heights to match the target screenshot.
+ * On mobile (<980px) we remove all sizing.
  */
 function sizeBoard(board) {
   if (!board) return;
@@ -161,21 +158,32 @@ function sizeBoard(board) {
     return;
   }
 
-  // Desktop: avoid page scroll; use internal panel scroll
+  // Desktop: lock page scroll; panels will scroll internally.
   document.body.style.overflow = "hidden";
 
+  // Use the references card as the visual container boundary if present.
+  const card = $("#references-card");
+  // Top of board relative to viewport
   const boardTop = board.getBoundingClientRect().top;
+  // Bottom-of-viewport is our lower bound; leave a small margin so card shadows breathe.
   const viewportBottom = window.innerHeight;
-  const margin = 12; // just enough breathing room for shadows
+  const shadowMargin = 10;
 
-  const avail = clamp(viewportBottom - boardTop - margin, 760, 1800);
+  // Compute available vertical pixels for the entire board area
+  let avail = viewportBottom - boardTop - shadowMargin;
 
+  // Clamp to sane range (prevents oversizing on very tall screens)
+  avail = clamp(avail, 740, 1700);
+
+  // Three equal rows, with a visual gap tuned to your target
   const rows = 3;
-  const rowGap = 24;
+  const rowGap = 18; // slightly tighter than before
   const rowH = Math.floor((avail - rowGap * (rows - 1)) / rows);
 
   board.style.height = px(avail);
 
+  // Calculate inner scroll heights precisely so bullets + descriptions show,
+  // matching the target snapshot.
   board.querySelectorAll(".ref-panel").forEach(panel => {
     panel.style.height = px(rowH);
 
@@ -186,10 +194,12 @@ function sizeBoard(board) {
     const titleH = title ? title.getBoundingClientRect().height : 0;
 
     const scroll = panel.querySelector(".ref-panel__scroll");
-    const extra = 10;
+    const extra = 8; // UL top margin etc.
     const maxH = rowH - padY - titleH - extra;
 
-    scroll.style.maxHeight = px(Math.max(220, maxH));
+    // Minimum to ensure ~3–4 items + meta + a description snippet are visible
+    const MIN_SCROLL = 200;
+    scroll.style.maxHeight = px(Math.max(MIN_SCROLL, maxH));
   });
 }
 
@@ -208,9 +218,8 @@ function sizeBoard(board) {
 
     // Sizing & reveal
     sizeBoard(board);
-    // Reveal the hidden board now that content is ready
     const host = $("#ref-board");
-    if (host) host.classList.add("is-ready");
+    if (host) host.classList.add("is-ready"); // avoids placeholder flash
 
     let raf = 0;
     const onResize = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => sizeBoard(board)); };
