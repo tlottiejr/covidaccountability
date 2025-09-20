@@ -6,68 +6,70 @@
   <title>References • COVID Accountability Now</title>
 
   <!-- Global CSS -->
-  <link rel="stylesheet" href="/assets/site.css?v=8" />
+  <link rel="stylesheet" href="/assets/site.css" />
 
-  <!-- Shared JS -->
+  <!-- Shared a11y helpers -->
   <script src="/assets/js/ux-accessibility.js" defer></script>
 
-  <!-- Page-scoped tweaks (only for this page) -->
+  <!-- Page-scoped tweaks for internal scroll panes -->
   <style>
-    /* Keep page fixed height on desktop — panels scroll internally */
     @media (min-width: 980px){
       html, body { overflow: hidden; height: 100%; }
     }
-
-    /* Ensure exactly one legal row is centered and consistent */
     .legal.center { text-align: center; margin: 24px 0 0; }
-    .legal.center a { font: inherit; }  /* inherit size from site defaults (same as other pages) */
-
-    /* If a stray, old legal row remains in deployed HTML, hide it as a guardrail */
-    #references-card + p.small,
-    #references-card + p.legal { display: none !important; }
+    .legal.center a { font: inherit; }
   </style>
 </head>
-<body class="references-page">
-  <a class="skip-to-content" href="#main">Skip to content</a>
+<body>
 
-  <!-- Header (brand hidden on this page per your request) -->
-  <header class="top">
-    <div class="inner">
-      <div class="brand" aria-hidden="true" style="display:none"></div>
-      <nav aria-label="Main">
-        <a href="/index.html">Home</a>
-        <a href="/about.html">About Us</a>
-        <a href="/our-story.html">Our Story</a>
-        <a href="/why-report.html">Why Report</a>
-        <a href="/who-can-report.html">Who Can Report</a>
-        <a href="/references.html" aria-current="page">References</a>
-        <a href="/donate.html">Donate</a>
-      </nav>
-      <div></div>
-    </div>
+  <header class="site-header">
+    <div id="nav-root"></div>
+    <script src="/assets/nav-include.js" defer></script>
   </header>
 
   <main id="main" class="container">
     <h1>References</h1>
     <p class="small">Curated materials that support reporting and accountability.</p>
 
-    <!-- Panels container: the JS builds the 4 scrollable columns here -->
     <div class="card" id="references-card">
-      <p data-ref-status>Loading...</p>
-      <div></div>
+      <div class="ref-board" id="ref-board" style="min-height:60vh">
+        <div class="ref-panel">
+          <h3>General References</h3>
+          <div class="ref-panel__scroll" id="list-general">
+            <ul class="ref-panel__list"></ul>
+          </div>
+        </div>
+
+        <div class="ref-panel">
+          <h3>Government &amp; Legal</h3>
+          <div class="ref-panel__scroll" id="list-government">
+            <ul class="ref-panel__list"></ul>
+          </div>
+        </div>
+
+        <div class="ref-panel">
+          <h3>Medical Education &amp; Ethics</h3>
+          <div class="ref-panel__scroll" id="list-ethics">
+            <ul class="ref-panel__list"></ul>
+          </div>
+        </div>
+
+        <div class="ref-panel">
+          <h3>Peer-reviewed Literature</h3>
+          <div class="ref-panel__scroll" id="list-peer">
+            <ul class="ref-panel__list"></ul>
+          </div>
+        </div>
+      </div>
     </div>
 
-    <!-- centered legal links (match all other pages) -->
-    <p class="page-legal">
-      <a href="/privacy.html">Privacy</a>
-      &nbsp;·&nbsp;
-      <a href="/disclaimer.html">Disclaimer</a>
+    <p class="legal center">
+      <a href="/privacy">Privacy</a>
+      <span aria-hidden="true">·</span>
+      <a href="/disclaimer">Disclaimer</a>
     </p>
   </main>
 
-  <footer style="height:0; padding:0; margin:0; overflow:hidden;"></footer>
-
-  <!-- Build the panels -->
-  <script type="module" src="/assets/js/references-page.js?v=8"></script>
+  <script src="/assets/js/references-page.js" type="module"></script>
 </body>
 </html>
