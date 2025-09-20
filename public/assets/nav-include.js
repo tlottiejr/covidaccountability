@@ -102,9 +102,8 @@
 
   // Normalize footer/legal blocks site-wide to "Privacy · Disclaimer" with spacing
   function normalizeFooterBlocks() {
-    // 1) .footer-links (present on some pages)
-    const foot = document.querySelector('.footer-links');
-    if (foot) {
+    // 1) .footer-links (present on some pages) — there may be multiple
+    document.querySelectorAll('.footer-links').forEach(foot => {
       const links = foot.querySelectorAll('a');
       if (links.length === 1) {
         foot.innerHTML = '';
@@ -124,11 +123,10 @@
         dot.setAttribute('aria-hidden', 'true');
         links[0].after(dot);
       }
-    }
+    });
 
-    // 2) .page-legal (seen at the bottom of many pages)
-    const legal = document.querySelector('.page-legal');
-    if (legal) {
+    // 2) Any “legal” block variant used across pages
+    document.querySelectorAll('.page-legal, .legal.center, .legal').forEach(legal => {
       // If it’s a single combined link like "Privacy:Disclaimer", replace it
       const aTags = legal.querySelectorAll('a');
       const textOnly = legal.textContent.trim();
@@ -152,7 +150,7 @@
         dot.setAttribute('aria-hidden', 'true');
         aTags[0].after(dot);
       }
-    }
+    });
   }
 
   if (document.readyState === 'loading') {
@@ -161,3 +159,4 @@
     normalizeFooterBlocks();
   }
 })();
+
