@@ -1,7 +1,8 @@
-// public/assets/js/references-page.js — v7.3 (aligned to site CSS/classes)
+// public/assets/js/references-page.js — v7.4 (layout sizing tuned to match target screenshot)
 
 const $ = (s, r = document) => r.querySelector(s);
 
+/* -------------------- mount discovery -------------------- */
 function findStatusAndMount() {
   let status =
     $("[data-ref-status]") ||
@@ -32,6 +33,7 @@ function findStatusAndMount() {
   return { status, mount };
 }
 
+/* -------------------- helpers -------------------- */
 async function getJSON(url) {
   const res = await fetch(url, { cache: "no-store" });
   if (!res.ok) throw new Error(`Failed ${url}: ${res.status}`);
@@ -74,6 +76,7 @@ function normalize(row) {
   };
 }
 
+/* -------------------- rendering -------------------- */
 function itemRow(it) {
   const meta = [];
   if (it.source) meta.push(it.source);
@@ -146,45 +149,68 @@ function renderPanels(mount, order, buckets) {
   return wrap;
 }
 
-/* Desktop sizing: keep whole page fixed height; panels scroll internally */
+/* -------------------- desktop sizing -------------------- */
+/**
+ * Make the board fill the viewport from the board's top to the footer,
+ * split that space into 3 equal rows with a small gap, and give each
+ * panel an internal scroll area. On mobile (<980px) we remove sizing.
+ */
 function sizeBoard(board) {
   if (!board) return;
 
-  const header = document.querySelector("header.top") || document.querySelector("header");
-  const footer = document.querySelector(".page-legal") || document.querySelector("footer");
-
-  const headerH = header ? header.getBoundingClientRect().height : 0;
-  const footerH = footer ? footer.getBoundingClientRect().height : 0;
-
   const isDesktop = window.innerWidth >= 980;
-  document.body.style.overflow = isDesktop ? "hidden" : "";
 
+  // On mobile, let the page flow naturally.
   if (!isDesktop) {
+    document.body.style.overflow = "";
     board.style.height = "";
+    board.querySelectorAll(".ref-panel").forEach(p => p.style.height = "");
     board.querySelectorAll(".ref-panel__scroll").forEach(s => s.style.maxHeight = "");
     return;
   }
 
-  // 3 rows with generous card height (matches “good” screenshot)
-  const paddingAround = 32;
-  const avail = clamp(window.innerHeight - headerH - footerH - paddingAround, 640, 1400);
-  const rowGap = 20;
+  // Desktop: lock page scroll and compute exact available height
+  document.body.style.overflow = "hidden";
+
+  const footer = document.querySelector("footer");
+  const footerH = footer ? footer.getBoundingClientRect().height : 0;
+
+  // Distance from the top of the board to the bottom of the viewport
+  const boardTop = board.getBoundingClientRect().top;
+  const viewportBottom = window.innerHeight;
+  // Small breathing room so the card shadows show nicely
+  const margin = 24;
+
+  // Available pixels for the entire board
+  const avail = clamp(viewportBottom - boardTop - footerH - margin, 700, 1600);
+
+  // 3 equal rows with a grid-like feel
   const rows = 3;
+  const rowGap = 20; // match CSS-ish spacing
   const rowH = Math.floor((avail - rowGap * (rows - 1)) / rows);
 
   board.style.height = px(avail);
 
+  // Compute each panel's inner scroll height precisely from its padding + title height
   board.querySelectorAll(".ref-panel").forEach(panel => {
     panel.style.height = px(rowH);
+
+    const cs = window.getComputedStyle(panel);
+    const padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
+
     const title = panel.querySelector("h3");
-    const scroll = panel.querySelector(".ref-panel__scroll");
     const titleH = title ? title.getBoundingClientRect().height : 0;
-    const paddingY = 24; // card internal padding
-    const maxH = rowH - titleH - paddingY;
-    scroll.style.maxHeight = px(Math.max(120, maxH));
+
+    const scroll = panel.querySelector(".ref-panel__scroll");
+    // leave a little extra room for the UL top margin, etc.
+    const extra = 10;
+    const maxH = rowH - padY - titleH - extra;
+
+    scroll.style.maxHeight = px(Math.max(160, maxH));
   });
 }
 
+/* -------------------- main -------------------- */
 (async function main() {
   try {
     const { status, mount } = findStatusAndMount();
@@ -202,7 +228,8 @@ function sizeBoard(board) {
     window.addEventListener("orientationchange", onResize);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(onResize).catch(()=>{});
   } catch (e) {
-    if (typeof status !== "undefined" && status) status.textContent = "Failed to load references.";
+    // Non-blocking error surface; page remains usable
     console.warn(e);
   }
 })();
+
