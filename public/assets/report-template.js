@@ -16,7 +16,7 @@
     yourEmail: $('#rtYourEmail'),
     savePdf: $('#rtSavePdf'),
     copyText: $('#rtCopyText'),
-    generateBtn: $('#rtGenerateBtn')
+    generateBtn: document.querySelector('#generate-btn, #rtGenerateBtn, [data-action="generate"]')
   };
 
   function buildModel() {
