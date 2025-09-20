@@ -1,6 +1,5 @@
-// public/assets/js/references-page.js — v10.2
-// Desktop: page does NOT scroll; cards scroll internally; footer visible.
-// Stronger categorization so all panels populate based on title/host.
+// public/assets/js/references-page.js — v10.3
+// Minor tweak: increase bottom gap so the grid ends evenly above the footer.
 
 const $ = (s, r = document) => r.querySelector(s);
 
@@ -33,20 +32,7 @@ function el(tag, attrs = {}, ...children) {
   return node;
 }
 
-// Add a generic description if missing based on host
-function fallbackDesc(title, url){
-  let host = "";
-  try { host = new URL(url).host.toLowerCase(); } catch {}
-  if (host.includes("ama-assn")) return "AMA ethical guidance or policy resource.";
-  if (host.includes("usmle")) return "Official USMLE outline or reference content.";
-  if (host.includes("nejm")||host.includes("jama")||host.includes("thelancet")||host.includes("bmj"))
-    return "Peer-reviewed journal article.";
-  if (host.includes("whitehouse")||host.includes("fda.gov")||host.includes("hhs")||host.includes("ahrq")||host.includes("supremecourt")||host.includes("federalregister")||host.includes("ag "))
-    return "Government or legal document.";
-  if (host.includes("researchgate")) return "Research preprint or working paper.";
-  return "Reference material related to COVID accountability.";
-}
-
+/* --- categorization + descriptions (unchanged from your working version) --- */
 const CATEGORY_BY_HOST = [
   [/usmle|nbme|fsmb/, "edu"],
   [/ama-assn|acponline/, "general"],
@@ -54,7 +40,6 @@ const CATEGORY_BY_HOST = [
   [/nejm|jama|thelancet|bmj|nature|science|dialoguesinhealth/, "peer"],
   [/medrxiv|researchgate|preprint/i, "preprint"],
 ];
-
 const CATEGORY_BY_TITLE = [
   [/content outline|usmle|ethics.*first aid|biostatistics|epidemiology/i, "edu"],
   [/supreme court|opinion|complaint|attorney general|white house|federal register|fact sheet|prep act/i, "gov"],
@@ -62,6 +47,17 @@ const CATEGORY_BY_TITLE = [
   [/preprint|working paper|researchgate/i, "preprint"],
   [/ethics manual|ama code|acp|decision making/i, "general"]
 ];
+
+function fallbackDesc(title, url){
+  let host = "";
+  try { host = new URL(url).host.toLowerCase(); } catch {}
+  if (host.includes("ama-assn")) return "AMA ethical guidance or policy resource.";
+  if (host.includes("usmle")) return "Official USMLE outline or reference content.";
+  if (host.match(/nejm|jama|thelancet|bmj/)) return "Peer-reviewed journal article.";
+  if (host.match(/whitehouse|fda\.gov|hhs|ahrq|supremecourt|federalregister|ag\./)) return "Government or legal document.";
+  if (host.includes("researchgate")) return "Research preprint or working paper.";
+  return "Reference material related to COVID accountability.";
+}
 
 function normalize(row) {
   if (!row || typeof row !== "object") return null;
@@ -77,7 +73,6 @@ function normalize(row) {
     category: row.category || row.cat || "",
   };
 }
-
 function assignCategory(it) {
   const c = (it.category || "").toLowerCase();
   if (c) return (c.includes("gov")||c.includes("legal"))?"gov":
@@ -140,6 +135,7 @@ function renderPanels(mount, order, buckets) {
   return mount;
 }
 
+/* -------------------- desktop sizing: cards scroll, page does not -------------------- */
 function sizeForDesktop(board) {
   if (!board) return;
   document.body.style.overflow = "hidden"; // page does not scroll
@@ -150,7 +146,9 @@ function sizeForDesktop(board) {
   const boardTop = board.getBoundingClientRect().top;
   const viewportBottom = window.innerHeight;
 
-  const bottomPadding = 14; // visual gap above footer
+  // Increase this buffer for a slightly larger, even gap above the footer
+  const bottomPadding = 28;
+
   const avail = clamp(viewportBottom - boardTop - footerH - bottomPadding, 700, 1800);
 
   const rows = 3;
@@ -171,7 +169,7 @@ function sizeForDesktop(board) {
     const extra = 8;
     const maxH = rowH - padY - titleH - extra;
 
-    const MIN_SCROLL = 260; // show more lines + description
+    const MIN_SCROLL = 260;
     scroll.style.maxHeight = px(Math.max(MIN_SCROLL, maxH));
   });
 }
