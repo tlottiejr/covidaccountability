@@ -143,3 +143,37 @@ body#portal #boards .board-option {
     width: 100%;               /* expand on small screens */
   }
 }
+
+/* === Complaint Portal: tighter board selection pill (CSS-only, scoped) === */
+
+/* State dropdown stays compact on desktop */
+body#portal #stateSelect {
+  display: inline-block;
+  width: auto;
+  min-width: 320px;
+  max-width: 100%;
+  padding-right: 32px;
+}
+
+/* Board selection "bubble" — shrink to content width */
+body#portal #boards .board-option {
+  display: inline-grid !important;      /* override any block rule */
+  grid-template-columns: 24px 1fr;      /* radio | text */
+  width: fit-content;
+  max-width: 100%;
+  min-width: 420px;                      /* << controls width; lower to tighten */
+  margin: 0 8px;
+  padding-right: 10px;
+}
+
+/* Responsive: full width on small screens */
+@media (max-width: 640px) {
+  body#portal #stateSelect {
+    width: 100%;
+    min-width: 0;
+  }
+  body#portal #boards .board-option {
+    min-width: 0;
+    width: 100%;
+  }
+}
