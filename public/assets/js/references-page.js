@@ -1,26 +1,16 @@
-// public/assets/js/references-page.js — v7.6 (desktop row sizing tuned to match target screenshot)
+// public/assets/js/references-page.js — v7.7
+// - Explicit CSS grid placement via panel--* classes to match the target layout.
+// - Board remains hidden until render to avoid flash.
+// - Desktop sizing fills from board-top to viewport bottom; internal scroll per panel.
+// - Mobile stacks naturally.
 
 const $ = (s, r = document) => r.querySelector(s);
 
 /* -------------------- mount discovery -------------------- */
 function findStatusAndMount() {
-  let status =
-    $("[data-ref-status]") ||
-    $("#references-status") ||
-    $(".references .status") ||
-    $(".status");
-
-  if (!status) {
-    const tw = document.createTreeWalker(document.body, NodeFilter.SHOW_ELEMENT);
-    while (tw.nextNode()) {
-      const txt = (tw.currentNode.textContent || "").trim().toLowerCase();
-      if (txt === "loading..." || txt === "loading…") { status = tw.currentNode; break; }
-    }
-  }
-
-  // Fallback for this page (no visible status element): render into #ref-board
+  // Page uses no visible status element; mount is the board.
   let mount = $("#ref-board") || $(".ref-board") || $("#references-card") || $("#main");
-  return { status, mount };
+  return { status: null, mount };
 }
 
 /* -------------------- helpers -------------------- */
@@ -80,11 +70,11 @@ function itemRow(it) {
 }
 
 const PANEL_CONFIG = {
-  general:   { title: "General References" },
-  gov:       { title: "Government & Legal" },
-  edu:       { title: "Medical Education & Ethics" },
-  peer:      { title: "Peer-reviewed Literature" },
-  preprint:  { title: "Preprints & Working Papers" },
+  general:   { title: "General References",   cls: "panel--general"  },
+  gov:       { title: "Government & Legal",   cls: "panel--gov"      },
+  edu:       { title: "Medical Education & Ethics", cls: "panel--edu" },
+  peer:      { title: "Peer-reviewed Literature",  cls: "panel--peer" },
+  preprint:  { title: "Preprints & Working Papers", cls: "panel--preprint" },
 };
 const PANEL_ORDER = ["general", "gov", "edu", "peer", "preprint"];
 
@@ -128,7 +118,7 @@ function renderPanels(mount, order, buckets) {
     const conf = PANEL_CONFIG[key];
     const items = (buckets[key] || []).slice();
     wrap.appendChild(
-      el("section", { class: "ref-panel" },
+      el("section", { class: `ref-panel ${conf.cls}` },
         el("h3", {}, conf.title),
         el("div", { class: "ref-panel__scroll" },
           el("ul", { class: "ref-panel__list" }, ...items.map(itemRow))
@@ -141,9 +131,8 @@ function renderPanels(mount, order, buckets) {
 
 /* -------------------- desktop sizing -------------------- */
 /**
- * Fill from board's top to viewport bottom, split into 3 rows with
- * tuned gaps/min-heights to match the target screenshot.
- * On mobile (<980px) we remove all sizing.
+ * Fill from board's top to viewport bottom, split into 3 equal rows.
+ * On mobile, remove sizing (natural flow).
  */
 function sizeBoard(board) {
   if (!board) return;
@@ -158,68 +147,53 @@ function sizeBoard(board) {
     return;
   }
 
-  // Desktop: lock page scroll; panels will scroll internally.
+  // Desktop: lock page scroll; panels scroll internally
   document.body.style.overflow = "hidden";
 
-  // Use the references card as the visual container boundary if present.
-  const card = $("#references-card");
-  // Top of board relative to viewport
   const boardTop = board.getBoundingClientRect().top;
-  // Bottom-of-viewport is our lower bound; leave a small margin so card shadows breathe.
   const viewportBottom = window.innerHeight;
-  const shadowMargin = 10;
+  const margin = 12; // breathing room for shadows
 
-  // Compute available vertical pixels for the entire board area
-  let avail = viewportBottom - boardTop - shadowMargin;
+  const avail = clamp(viewportBottom - boardTop - margin, 760, 1700);
 
-  // Clamp to sane range (prevents oversizing on very tall screens)
-  avail = clamp(avail, 740, 1700);
-
-  // Three equal rows, with a visual gap tuned to your target
   const rows = 3;
-  const rowGap = 18; // slightly tighter than before
+  const rowGap = 20; // match CSS gap for grid
   const rowH = Math.floor((avail - rowGap * (rows - 1)) / rows);
 
   board.style.height = px(avail);
 
-  // Calculate inner scroll heights precisely so bullets + descriptions show,
-  // matching the target snapshot.
   board.querySelectorAll(".ref-panel").forEach(panel => {
     panel.style.height = px(rowH);
 
     const cs = window.getComputedStyle(panel);
     const padY = (parseFloat(cs.paddingTop) || 0) + (parseFloat(cs.paddingBottom) || 0);
-
     const title = panel.querySelector("h3");
     const titleH = title ? title.getBoundingClientRect().height : 0;
 
     const scroll = panel.querySelector(".ref-panel__scroll");
-    const extra = 8; // UL top margin etc.
+    const extra = 10;
     const maxH = rowH - padY - titleH - extra;
 
-    // Minimum to ensure ~3–4 items + meta + a description snippet are visible
-    const MIN_SCROLL = 200;
+    const MIN_SCROLL = 210; // tuned to expose bullets + meta + a snippet like the target
     scroll.style.maxHeight = px(Math.max(MIN_SCROLL, maxH));
   });
 }
 
 /* -------------------- main -------------------- */
 (async function main() {
-  let status;
   try {
-    const found = findStatusAndMount();
-    status = found.status;
-    const mount = found.mount;
+    const { mount } = findStatusAndMount();
     if (!mount) return;
 
     const rows = await getJSON("/assets/references.json");
     const buckets = bucketize(rows);
     const board = renderPanels(mount, PANEL_ORDER, buckets);
 
-    // Sizing & reveal
     sizeBoard(board);
+
+    // Reveal (prevents any placeholder flash)
     const host = $("#ref-board");
-    if (host) host.classList.add("is-ready"); // avoids placeholder flash
+    if (host) host.classList.add("is-ready");
 
     let raf = 0;
     const onResize = () => { cancelAnimationFrame(raf); raf = requestAnimationFrame(() => sizeBoard(board)); };
@@ -227,7 +201,6 @@ function sizeBoard(board) {
     window.addEventListener("orientationchange", onResize);
     if (document.fonts && document.fonts.ready) document.fonts.ready.then(onResize).catch(()=>{});
   } catch (e) {
-    if (status) status.textContent = "Failed to load references.";
     console.warn(e);
   }
 })();
