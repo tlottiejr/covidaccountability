@@ -21,23 +21,22 @@
     #optional-actions { margin-top: 8px; }
     #optional-actions .oa-row { position: relative; }
 
-    /* Make the “pill” only as wide as its content (not full-width) */
+    /* Compact, even pills (shrink-to-fit, but consistent width) */
     #optional-actions .oa-card {
       position: relative;
-      display: inline-block;          /* keeps the compact pill look */
+      display: inline-block;            /* compact pill */
       border: 1px solid #c7d7ff;
       background: #ffffff;
       border-radius: 12px;
-      padding: 12px 40px 12px 16px;   /* +2px all around for breathing room */
+      padding: 12px 40px 12px 16px;     /* balanced padding */
       margin: 0;
-      box-shadow: none !important;
+      box-shadow: none !important;      /* no glow */
       cursor: pointer;
       transition: background .15s ease, border-color .15s ease;
-      width: fit-content;             /* shrink to content… */
+      width: fit-content;
       max-width: 100%;
-      min-width: 520px;               /* …but make both pills equal width */
+      min-width: 520px;                 /* keep both pills same width */
     }
-    /* keep rows stacked with a small gap */
     #optional-actions .oa-row + .oa-row { margin-top: 10px; }
 
     #optional-actions .oa-card:hover {
@@ -59,17 +58,17 @@
       position: absolute; inset: 0; opacity: 0; pointer-events: none;
     }
 
-    /* Right-side radio indicator, tighter to text */
+    /* Right-side radio indicator */
     #optional-actions .oa-card::after {
       content: '';
       position: absolute;
-      right: 12px; top: 50%;             /* closer to text */
+      right: 12px; top: 50%;
       width: 18px; height: 18px;
       border-radius: 50%;
       border: 2px solid #2d5bff;
       transform: translateY(-50%);
       background: #fff;
-      box-shadow: none !important;       /* remove halo ring */
+      box-shadow: none !important;     /* remove halo ring */
     }
     #optional-actions input:checked + .oa-card::after {
       background: radial-gradient(circle at 50% 50%, #2d5bff 50%, transparent 51%);
@@ -83,6 +82,15 @@
     #optional-actions input:focus-visible + .oa-card {
       outline: none !important;
       box-shadow: none !important;
+    }
+
+    /* NEW: Center the Generate button in Optional actions */
+    #optional-actions .actions {
+      display: flex;
+      justify-content: center;
+    }
+    #optional-actions .actions .btn {
+      margin: 0;
     }
   </style>
 </head>
