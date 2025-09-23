@@ -16,7 +16,7 @@
       <div class="cu-dialog" role="dialog" aria-modal="true" aria-labelledby="cu-title">
         <button class="cu-close" type="button" data-close-contact aria-label="Close">×</button>
         <h2 id="cu-title">Contact Us</h2>
-        <p class="cu-text">We’d love to hear from you regarding any questions/issues.</p>
+        <p class="cu-text">Don't hesitate to reach out regarding any questions/issues.</p>
         <div class="cu-actions">
           <a class="btn-primary" href="mailto:${CONTACT_EMAIL}" rel="noopener">Email Us</a>
         </div>
