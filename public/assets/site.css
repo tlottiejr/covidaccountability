@@ -361,3 +361,27 @@ main.container > .grid.grid-2:has(#optional-actions) > .card:last-child #optiona
     margin-top: 0;
   }
 }
+/* Footer link spacing + subtle separator color */
+footer.container,
+.footer-links,
+.page-legal,
+.legal,
+.legal.center {
+  text-align: center;
+}
+
+footer.container a,
+.footer-links a,
+.page-legal a,
+.legal a {
+  margin: 0 8px;                /* space left/right of each link */
+}
+
+footer.container span[aria-hidden="true"],
+.footer-links span[aria-hidden="true"],
+.page-legal span[aria-hidden="true"],
+.legal span[aria-hidden="true"] {
+  display: inline-block;
+  margin: 0 6px;                 /* space around the dot separators */
+  color: #94a3b8;                /* softer dot */
+}
