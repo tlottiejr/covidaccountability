@@ -10,3 +10,7 @@ X-Frame-Options: SAMEORIGIN
 
 # Caching: static assets (override per path if you like)
 Cache-Control: public, max-age=600
+
+/assets/health/analytics/*
+  Cache-Control: public, max-age=300, s-maxage=86400, immutable
+  Content-Type: application/json; charset=utf-8
