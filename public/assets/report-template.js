@@ -1,39 +1,52 @@
-/* public/assets/report-template.js
-   Purpose: Generate a clean text report from the current form and
-   support Copy + Save to PDF. Keeps all visible copy verbatim.
-   Assumes jsPDF is available globally at window.jspdf.jsPDF.
-*/
-
-(function () {
+// public/assets/report-template.js (REPLACEMENT)
+// Aligns PDF/text generation with current report.html fields and
+// auto-loads jsPDF from /assets/vendor/jspdf.umd.min.js.
+(() => {
   const $ = (s) => document.querySelector(s);
 
-  // Map to the updated IDs in report.html
   const els = {
-    dateInjection: $('#rtDateInjection'),
-    dateSymptoms: $('#rtDateSymptoms'),
-    dateTreatment: $('#rtDateTreatment'),
-    practitioner: $('#rtPractitioner'),
+    // Updated IDs (with graceful fallback to older IDs if present)
+    dateInjection: $('#rtDateInjection') || $('#rtDate'),
+    dateSymptoms:  $('#rtDateSymptoms')  || $('#rtDate'),
+    dateTreatment: $('#rtDateTreatment') || $('#rtDate'),
+    practitioner:  $('#rtPractitioner'),
     licenseNumber: $('#rtlicensenumber'),
     medicalSpecialty: $('#rtMedicalspecialty'),
-    org: $('#rtOrg'),
-    cityState: $('#rtCityState'),
+    org: $('#rtOrg') || $('#rtLocation'),
+    cityState: $('#rtCityState') || $('#rtLocation'),
     product: $('#rtProduct'),
     outcome: $('#rtOutcome'),
     details: $('#rtDetails'),
     savePdf: $('#rtSavePdf'),
     copyText: $('#rtCopyText'),
+    generateBtn: document.querySelector('#generate-btn, #rtGenerateBtn, [data-action="generate"]'),
   };
 
-  function val(node) {
-    return (node && node.value ? node.value : '').trim();
+  const loadScript = (src) =>
+    new Promise((resolve, reject) => {
+      const s = document.createElement('script');
+      s.src = src;
+      s.async = true;
+      s.onload = resolve;
+      s.onerror = reject;
+      document.head.appendChild(s);
+    });
+
+  async function getJsPDF() {
+    if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
+    await loadScript('/assets/vendor/jspdf.umd.min.js');
+    if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
+    throw new Error('jsPDF failed to load');
   }
+
+  const val = (el) => (el && el.value ? el.value.trim() : '');
 
   function buildModel() {
     return {
       generatedAt: new Date().toISOString(),
       dates: {
         injection: val(els.dateInjection),
-        symptoms: val(els.dateSymptoms),
+        symptoms:  val(els.dateSymptoms),
         treatment: val(els.dateTreatment),
       },
       practitioner: val(els.practitioner),
@@ -43,16 +56,13 @@
       cityState: val(els.cityState),
       product: val(els.product),
       outcome: val(els.outcome),
-      details: val(els.details), // keep verbatim; this is your on-page template text if pasted
-      notice:
-        'Nothing you enter here is collected or stored by this site when using the information template.',
+      details: val(els.details),
     };
   }
 
-  // Build the exact text payload we’ll copy and drop into the PDF.
-  function buildText(m) {
+  function toText(m) {
     const lines = [
-      'Report – Draft for State Board Filing',
+      'Complaint preparation (local draft)',
       `Generated: ${new Date(m.generatedAt).toLocaleString()}`,
       '',
       `Physician Name: ${m.practitioner}`,
@@ -68,80 +78,94 @@
       `  • Date Symptoms Recognized: ${m.dates.symptoms}`,
       `  • Date Treatment Sought: ${m.dates.treatment}`,
       '',
-      'Details / What Happened (verbatim):',
+      'Details / What Happened:',
       m.details || '',
       '',
-      m.notice,
+      'Nothing you enter here is collected or stored by this site when using the information template.',
     ];
     return lines.join('\n');
   }
 
-  async function onCopy() {
-    const text = buildText(buildModel());
+  async function copyToClipboard(text) {
     try {
       await navigator.clipboard.writeText(text);
-      toast('Report text copied to clipboard.');
+      alert('Copied generated report text.');
+      return true;
     } catch (e) {
-      alert('Copy failed. You can select the generated text manually.\n\n' + e);
+      console.warn('Clipboard API failed, falling back.', e);
+      const ta = document.createElement('textarea');
+      ta.value = text;
+      document.body.appendChild(ta);
+      ta.select();
+      const ok = document.execCommand('copy');
+      document.body.removeChild(ta);
+      alert(ok ? 'Copied generated report text.' : 'Copy failed.');
+      return ok;
     }
   }
 
-  function onSavePdf() {
-    const text = buildText(buildModel());
-    const jsPDF = window.jspdf && window.jspdf.jsPDF;
-    if (!jsPDF) {
-      alert(
-        'PDF library (jsPDF) was not found. Please ensure jsPDF is loaded on this page.'
-      );
-      return;
-    }
-
+  async function downloadPdf(filename, m) {
+    const jsPDF = await getJsPDF();
     const doc = new jsPDF({ unit: 'pt', format: 'letter' }); // 612x792
     const margin = 48;
-    const lineHeight = 14;
-    const maxWidth = 612 - margin * 2;
-    const lines = doc.splitTextToSize(text, maxWidth);
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+    const maxW = pageW - margin * 2;
+
+    const text = toText(m);
+    const lines = doc.splitTextToSize(text, maxW);
 
     let y = margin;
-    const startY = margin;
-    const pageHeight = 792;
+    const leading = 16;
 
     lines.forEach((ln) => {
-      if (y > pageHeight - margin) {
+      if (y > pageH - margin) {
         doc.addPage();
-        y = startY;
+        y = margin;
       }
       doc.text(ln, margin, y);
-      y += lineHeight;
+      y += leading;
     });
 
-    const nameHint = (val(els.practitioner) || 'report').replace(/[^a-z0-9-_]+/gi, '_');
-    doc.save(`${nameHint}_draft.pdf`);
+    const safeName =
+      (val(els.practitioner) || 'report').replace(/[^a-z0-9-_]+/gi, '_') +
+      '_' +
+      new Date(m.generatedAt).toISOString().replace(/[:.]/g, '-');
+
+    doc.save(`${safeName}.pdf`);
   }
 
-  function toast(msg) {
-    // simple unobtrusive toast without dependencies
-    let t = document.getElementById('rtToast');
-    if (!t) {
-      t = document.createElement('div');
-      t.id = 'rtToast';
-      t.style.position = 'fixed';
-      t.style.bottom = '16px';
-      t.style.right = '16px';
-      t.style.padding = '10px 14px';
-      t.style.background = 'rgba(0,0,0,0.75)';
-      t.style.color = '#fff';
-      t.style.borderRadius = '8px';
-      t.style.fontSize = '14px';
-      t.style.zIndex = '9999';
-      document.body.appendChild(t);
+  function validateActions() {
+    if (!els.savePdf?.checked && !els.copyText?.checked) {
+      alert('Select at least one option: Save PDF or Copy text.');
+      return false;
     }
-    t.textContent = msg;
-    t.style.opacity = '1';
-    setTimeout(() => (t.style.opacity = '0'), 2000);
+    return true;
   }
 
-  // Wire up events (no-op if buttons are absent)
-  els.copyText && els.copyText.addEventListener('click', onCopy);
-  els.savePdf && els.savePdf.addEventListener('click', onSavePdf);
+  async function handleGenerate() {
+    if (!validateActions()) return;
+    const model = buildModel();
+    const parts = [];
+    if (els.savePdf?.checked) {
+      try {
+        await downloadPdf('report.pdf', model);
+        parts.push('saved PDF');
+      } catch (e) {
+        console.error('PDF generation failed:', e);
+        parts.push('PDF failed');
+        alert('PDF generation failed. See console for details.');
+      }
+    }
+    if (els.copyText?.checked) {
+      const ok = await copyToClipboard(toText(model));
+      parts.push(ok ? 'copied text' : 'copy failed');
+    }
+    if (parts.length) {
+      // eslint-disable-next-line no-alert
+      alert(`Done: ${parts.join(' & ')}. We do not store your report.`);
+    }
+  }
+
+  els.generateBtn && els.generateBtn.addEventListener('click', handleGenerate);
 })();
