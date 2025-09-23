@@ -1,196 +1,147 @@
-// public/assets/report-template.js
-(() => {
+/* public/assets/report-template.js
+   Purpose: Generate a clean text report from the current form and
+   support Copy + Save to PDF. Keeps all visible copy verbatim.
+   Assumes jsPDF is available globally at window.jspdf.jsPDF.
+*/
+
+(function () {
   const $ = (s) => document.querySelector(s);
+
+  // Map to the updated IDs in report.html
   const els = {
-    state: $('#rtState'),
+    dateInjection: $('#rtDateInjection'),
+    dateSymptoms: $('#rtDateSymptoms'),
+    dateTreatment: $('#rtDateTreatment'),
     practitioner: $('#rtPractitioner'),
-    date: $('#rtDate'),
-    location: $('#rtLocation'),
+    licenseNumber: $('#rtlicensenumber'),
+    medicalSpecialty: $('#rtMedicalspecialty'),
+    org: $('#rtOrg'),
+    cityState: $('#rtCityState'),
     product: $('#rtProduct'),
     outcome: $('#rtOutcome'),
     details: $('#rtDetails'),
-    evidence: $('#rtEvidence'),
-    witnesses: $('#rtWitnesses'),
-    priorCase: $('#rtPriorCase'),
-    yourName: $('#rtYourName'),
-    yourEmail: $('#rtYourEmail'),
     savePdf: $('#rtSavePdf'),
     copyText: $('#rtCopyText'),
-    // Bind to the actual button id; keep backward-compatibility with older ids
-    generateBtn: document.querySelector('#generate-btn, #rtGenerateBtn, [data-action="generate"]'),
   };
 
+  function val(node) {
+    return (node && node.value ? node.value : '').trim();
+  }
+
   function buildModel() {
-    const now = new Date().toISOString();
     return {
-      generatedAt: now,
-      state: (els.state?.value || '').trim(),
-      practitioner: (els.practitioner?.value || '').trim(),
-      date: els.date?.value || '',
-      location: (els.location?.value || '').trim(),
-      product: (els.product?.value || '').trim(),
-      outcome: (els.outcome?.value || '').trim(),
-      details: (els.details?.value || '').trim(),
-      evidence: (els.evidence?.value || '').trim(),
-      witnesses: (els.witnesses?.value || '').trim(),
-      priorCase: (els.priorCase?.value || '').trim(),
-      reporter: {
-        name: (els.yourName?.value || '').trim(),
-        email: (els.yourEmail?.value || '').trim(),
+      generatedAt: new Date().toISOString(),
+      dates: {
+        injection: val(els.dateInjection),
+        symptoms: val(els.dateSymptoms),
+        treatment: val(els.dateTreatment),
       },
-      notice: 'This draft is generated locally. We do not store your report.',
+      practitioner: val(els.practitioner),
+      licenseNumber: val(els.licenseNumber),
+      medicalSpecialty: val(els.medicalSpecialty),
+      org: val(els.org),
+      cityState: val(els.cityState),
+      product: val(els.product),
+      outcome: val(els.outcome),
+      details: val(els.details), // keep verbatim; this is your on-page template text if pasted
+      notice:
+        'Nothing you enter here is collected or stored by this site when using the information template.',
     };
   }
 
-  function toText(m) {
+  // Build the exact text payload we’ll copy and drop into the PDF.
+  function buildText(m) {
     const lines = [
-      'Complaint preparation (local draft)',
-      `Generated: ${m.generatedAt}`,
+      'Report – Draft for State Board Filing',
+      `Generated: ${new Date(m.generatedAt).toLocaleString()}`,
       '',
-      `State: ${m.state}`,
-      `Practitioner/Org: ${m.practitioner}`,
-      `Date: ${m.date}`,
-      `Location: ${m.location}`,
-      `Procedure/Product: ${m.product}`,
-      `Harm/Outcome: ${m.outcome}`,
+      `Physician Name: ${m.practitioner}`,
+      `License Number: ${m.licenseNumber}`,
+      `Medical Specialty: ${m.medicalSpecialty}`,
+      `Practice / Organization Name: ${m.org}`,
+      `Location (City / State): ${m.cityState}`,
+      `Product Administered: ${m.product}`,
+      `Harm / Adverse Effect: ${m.outcome}`,
       '',
-      'Details:',
+      'Dates:',
+      `  • Date of Injection: ${m.dates.injection}`,
+      `  • Date Symptoms Recognized: ${m.dates.symptoms}`,
+      `  • Date Treatment Sought: ${m.dates.treatment}`,
+      '',
+      'Details / What Happened (verbatim):',
       m.details || '',
-      '',
-      'Evidence/Documentation:',
-      m.evidence || '',
-      '',
-      'Other:',
-      `Witnesses: ${m.witnesses}`,
-      `Prior board case #: ${m.priorCase}`,
-      '',
-      'Reporter:',
-      `  Name: ${m.reporter.name}`,
-      `  Email: ${m.reporter.email}`,
       '',
       m.notice,
     ];
     return lines.join('\n');
   }
 
-  function loadScript(src) {
-    return new Promise((resolve, reject) => {
-      const s = document.createElement('script');
-      s.src = src;
-      s.async = true;
-      s.onload = resolve;
-      s.onerror = reject;
-      document.head.appendChild(s);
-    });
-  }
-
-  // === Only dependency: load jsPDF from a LOCAL file to avoid CSP/CDN issues ===
-  async function getJsPDF() {
-    if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
-    // Local vendor file (add it at /public/assets/vendor/jspdf.umd.min.js)
-    await loadScript('/assets/vendor/jspdf.umd.min.js');
-    if (window.jspdf?.jsPDF) return window.jspdf.jsPDF;
-    throw new Error('jsPDF failed to load');
-  }
-
-  async function downloadPdf(filename, m) {
-    const jsPDF = await getJsPDF();
-    const doc = new jsPDF({ unit: 'pt', format: 'letter' });
-    const margin = 48;
-    const pageW = doc.internal.pageSize.getWidth();
-    const pageH = doc.internal.pageSize.getHeight();
-    const maxW = pageW - margin * 2;
-    let y = margin;
-
-    const add = (text, { bold = false, size = 11, leading = 16 } = {}) => {
-      doc.setFont('helvetica', bold ? 'bold' : 'normal');
-      doc.setFontSize(size);
-      const lines = doc.splitTextToSize(text, maxW);
-      for (const line of lines) {
-        if (y > pageH - margin) { doc.addPage(); y = margin; }
-        doc.text(line, margin, y);
-        y += leading;
-      }
-    };
-
-    add('Complaint Preparation (Local Draft)', { size: 18, bold: true, leading: 26 });
-    add(`Generated: ${m.generatedAt}`, { size: 10, leading: 14 }); y += 6;
-
-    add('Overview', { bold: true });
-    add(`State: ${m.state}`);
-    add(`Practitioner/Org: ${m.practitioner}`);
-    add(`Date: ${m.date}`);
-    add(`Location: ${m.location}`);
-    add(`Procedure/Product: ${m.product}`);
-    add(`Harm/Outcome: ${m.outcome}`); y += 6;
-
-    add('Details', { bold: true });
-    add(m.details || ''); y += 6;
-
-    add('Evidence/Documentation', { bold: true });
-    add(m.evidence || ''); y += 6;
-
-    add('Other', { bold: true });
-    add(`Witnesses: ${m.witnesses}`);
-    add(`Prior board case #: ${m.priorCase}`); y += 6;
-
-    add('Reporter', { bold: true });
-    add(`Name: ${m.reporter.name}`);
-    add(`Email: ${m.reporter.email}`); y += 10;
-
-    add(m.notice, { size: 9, leading: 13 });
-
-    doc.save(filename);
-  }
-
-  async function copyToClipboard(text) {
+  async function onCopy() {
+    const text = buildText(buildModel());
     try {
       await navigator.clipboard.writeText(text);
-      return true;
-    } catch {
-      try {
-        const ta = document.createElement('textarea');
-        ta.value = text;
-        ta.setAttribute('readonly', '');
-        ta.style.position = 'fixed';
-        ta.style.top = '-9999px';
-        document.body.appendChild(ta);
-        ta.focus();
-        ta.select();
-        const ok = document.execCommand('copy');
-        ta.remove();
-        return ok;
-      } catch {
-        return false;
-      }
+      toast('Report text copied to clipboard.');
+    } catch (e) {
+      alert('Copy failed. You can select the generated text manually.\n\n' + e);
     }
   }
 
-  els.generateBtn?.addEventListener('click', async () => {
-    if (!els.savePdf?.checked && !els.copyText?.checked) {
-      alert('Select at least one option: Save PDF or Copy text.');
+  function onSavePdf() {
+    const text = buildText(buildModel());
+    const jsPDF = window.jspdf && window.jspdf.jsPDF;
+    if (!jsPDF) {
+      alert(
+        'PDF library (jsPDF) was not found. Please ensure jsPDF is loaded on this page.'
+      );
       return;
     }
 
-    const model = buildModel();
-    const ts = new Date(model.generatedAt).toISOString().replace(/[:.]/g, '-');
-    const base = (model.state || 'report').replace(/\s+/g, '-');
-    const file = `report-template-${base}-${ts}.pdf`;
+    const doc = new jsPDF({ unit: 'pt', format: 'letter' }); // 612x792
+    const margin = 48;
+    const lineHeight = 14;
+    const maxWidth = 612 - margin * 2;
+    const lines = doc.splitTextToSize(text, maxWidth);
 
-    let parts = [];
-    if (els.savePdf?.checked) {
-      try {
-        await downloadPdf(file, model);
-        parts.push('saved PDF');
-      } catch (e) {
-        console.error('PDF generation failed:', e);
-        parts.push('PDF failed');
+    let y = margin;
+    const startY = margin;
+    const pageHeight = 792;
+
+    lines.forEach((ln) => {
+      if (y > pageHeight - margin) {
+        doc.addPage();
+        y = startY;
       }
+      doc.text(ln, margin, y);
+      y += lineHeight;
+    });
+
+    const nameHint = (val(els.practitioner) || 'report').replace(/[^a-z0-9-_]+/gi, '_');
+    doc.save(`${nameHint}_draft.pdf`);
+  }
+
+  function toast(msg) {
+    // simple unobtrusive toast without dependencies
+    let t = document.getElementById('rtToast');
+    if (!t) {
+      t = document.createElement('div');
+      t.id = 'rtToast';
+      t.style.position = 'fixed';
+      t.style.bottom = '16px';
+      t.style.right = '16px';
+      t.style.padding = '10px 14px';
+      t.style.background = 'rgba(0,0,0,0.75)';
+      t.style.color = '#fff';
+      t.style.borderRadius = '8px';
+      t.style.fontSize = '14px';
+      t.style.zIndex = '9999';
+      document.body.appendChild(t);
     }
-    if (els.copyText?.checked) {
-      const ok = await copyToClipboard(toText(model));
-      parts.push(ok ? 'copied text' : 'copy failed');
-    }
-    alert(`Done: ${parts.join(' & ')}.\nWe do not store your report.`);
-  });
+    t.textContent = msg;
+    t.style.opacity = '1';
+    setTimeout(() => (t.style.opacity = '0'), 2000);
+  }
+
+  // Wire up events (no-op if buttons are absent)
+  els.copyText && els.copyText.addEventListener('click', onCopy);
+  els.savePdf && els.savePdf.addEventListener('click', onSavePdf);
 })();
