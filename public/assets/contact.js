@@ -16,12 +16,10 @@
       <div class="cu-dialog" role="dialog" aria-modal="true" aria-labelledby="cu-title">
         <button class="cu-close" type="button" data-close-contact aria-label="Close">×</button>
         <h2 id="cu-title">Contact Us</h2>
-        <p class="cu-text">We’d love to hear from you. Choose one of the options below:</p>
+        <p class="cu-text">We’d love to hear from you regarding any questions/issues.</p>
         <div class="cu-actions">
           <a class="btn-primary" href="mailto:${CONTACT_EMAIL}" rel="noopener">Email Us</a>
-          <a class="btn-secondary" href="${GITHUB_URL}" target="_blank" rel="noopener">Open a GitHub Issue</a>
         </div>
-        <p class="cu-note">No information is stored on this site by opening the contact options.</p>
       </div>
     `;
     document.body.appendChild(wrap);
