@@ -109,7 +109,7 @@
       a1.textContent = 'Privacy';
 
       const dot1 = document.createElement('span');
-      dot1.textContent = ' · ';
+      dot1.textContent = '   ·   ';
       dot1.setAttribute('aria-hidden', 'true');
 
       const a2 = document.createElement('a');
@@ -117,7 +117,7 @@
       a2.textContent = 'Disclaimer';
 
       const dot2 = document.createElement('span');
-      dot2.textContent = ' · ';
+      dot2.textContent = '   ·   ';
       dot2.setAttribute('aria-hidden', 'true');
 
       const a3 = document.createElement('a');
