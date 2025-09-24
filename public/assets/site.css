@@ -905,3 +905,31 @@ body {
 .callout {
   box-shadow: none !important;
 }
+.vaers-wide-table {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+.vaers-wide-table .table-card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 0;
+  padding: 12px 12px 8px;
+}
+.table-head, .table-row {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 12px;
+  align-items: center;
+}
+.table-head {
+  font-weight: 600;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--line);
+  margin-bottom: 8px;
+}
+.table-row { padding: 6px 0; border-bottom: 1px solid rgba(0,0,0,0.05); }
+.table-row:last-child { border-bottom: 0; }
+@media (max-width: 860px) {
+  .vaers-wide-table { grid-template-columns: 1fr; }
+}
