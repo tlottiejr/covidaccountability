@@ -1,6 +1,22 @@
 {
   "date": "2025-09-23",
-  "totals": 0,
-  "byState": {},
-  "byHost": {}
+  "totals": 11,
+  "byState": {
+    "AK": 2,
+    "DE": 1,
+    "VT": 1,
+    "OH": 1,
+    "GU": 2,
+    "ME": 2,
+    "TN": 2
+  },
+  "byHost": {
+    "www.commerce.alaska.gov": 2,
+    "delpros.delaware.gov": 1,
+    "sos.vermont.gov": 1,
+    "med.ohio.gov": 1,
+    "guamhplo.org": 2,
+    "www.maine.gov": 2,
+    "www.tn.gov": 2
+  }
 }
