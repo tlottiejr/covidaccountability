@@ -628,3 +628,18 @@ footer.container .sep {
 
 .trust-strip .trust-item { margin: 0 !important; color: var(--ink-700); }
 .trust-strip .trust-item b { color: var(--ink-900); }
+/* ==== TRUST STRIP: force true centering (final override) ==== */
+.trust-strip { background:#fff; border-bottom:1px solid var(--line); }
+
+.trust-strip .container,
+.trust-strip .trust-grid {
+  display: flex !important;          /* override any earlier grid */
+  justify-content: center !important;/* center the whole row */
+  align-items: center !important;
+  gap: 48px !important;               /* space between the two items */
+  padding: 8px 0 !important;
+  text-align: center !important;
+}
+
+.trust-strip .trust-item { margin: 0 !important; color: var(--ink-700); }
+.trust-strip .trust-item b { color: var(--ink-900); }
