@@ -1295,3 +1295,46 @@ body {
     border-bottom: 1px solid var(--vaers-line-strong);
   }
 }
+/* === Square corners: VAERS block === */
+#vaers-breakdowns,
+#vaers-breakdowns.vaers-wide-table,
+#vaers-breakdowns .table-card {
+  border-radius: 0 !important;
+}
+
+/* If your columns/panels add their own rounding, kill it too */
+.vaers-wide-table .table-col,
+.vaers-wide-table table {
+  border-radius: 0 !important;
+}
+
+/* === Square corners: Contact Us popup (cover common modal containers) === */
+/* Try specific IDs/classes first (adjust if your repo uses a different one) */
+#contact-modal,
+#contactModal,
+.contact-modal,
+.modal.is-contact,
+[data-modal="contact"],
+[role="dialog"].contact,
+[aria-labelledby="contact-dialog-title"],
+/* generic modal content shells often used across pages */
+#contact-modal .modal-content,
+#contactModal .modal-content,
+.contact-modal .modal-content,
+.modal .modal-content,
+.dialog,
+.dialog__content,
+.popup,
+.sheet,
+.sheet-content {
+  border-radius: 0 !important;
+}
+
+/* If the popup uses an inner .card shell, square that too */
+#contact-modal .card,
+#contactModal .card,
+.contact-modal .card {
+  border-radius: 0 !important;
+}
+/* Optional: square every .card on the site */
+.card { border-radius: 0 !important; }
