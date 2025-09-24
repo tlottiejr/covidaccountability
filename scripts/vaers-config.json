@@ -1,0 +1,10 @@
+{
+  "us_states_and_territories": ["AL","AK","AZ","AR","CA","CO","CT","DE","DC","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA","ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK","OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","PR","GU","VI","AS","MP","UM"],
+  "flu_types_prefixes": ["FLU"],
+  "source": {
+    "note": "Update to the current VAERS year folder when it rolls (CDC occasionally changes paths).",
+    "data_zip": "https://vaers.hhs.gov/data/datasets/2025/VAERSDataCSVS.zip",
+    "non_domestic_zip": "https://vaers.hhs.gov/data/datasets/2025/NonDomesticVAERSDataCSVS.zip"
+  },
+  "output": "public/data/vaers-summary.json"
+}
