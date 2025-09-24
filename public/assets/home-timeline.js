@@ -18,7 +18,7 @@
       date: '2025-08-15'
     },
     {
-      title: 'YouTube Feature',
+      title: ' Premiere: Inside mRNA Vaccines',
       url:   'https://www.youtube.com/watch?v=BZrJraN2nOQ',
       embedSrc: 'https://www.youtube.com/embed/BZrJraN2nOQ',
       date: '2025-07-20'
