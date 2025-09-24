@@ -933,3 +933,11 @@ body {
 @media (max-width: 860px) {
   .vaers-wide-table { grid-template-columns: 1fr; }
 }
+/* VAERS charts – gentle mobile height reduction */
+@media (max-width: 580px) {
+  #vaers-by-year,
+  #vaers-covid-deaths-monthly,
+  #vaers-days-to-onset {
+    height: 260px !important;
+  }
+}
