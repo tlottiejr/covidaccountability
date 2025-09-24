@@ -832,3 +832,67 @@ body {
     column-gap: 18px;         /* normal gap when stacked */
   }
 }
+/* ==== Next steps grid - boxes fill the whole area, no outer card, no gaps ==== */
+#home .steps-grid {
+  margin: 14px 0 28px;          /* same outer spacing the old card had */
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 0;                       /* remove BOTH horizontal & vertical gaps */
+  /* no border, no background, no padding on the container */
+  background: transparent;
+  border: 0;
+  padding: 0;
+}
+
+/* Each box is the “button” and draws the lines */
+#home .steps-grid .step {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  min-height: 170px;            /* similar height to the old card footprint */
+  padding: 24px 22px;           /* roomy text padding */
+  background: #fff;
+  color: var(--ink-900);
+  text-decoration: none;        /* for <a> steps */
+  border: 1px solid var(--line);/* keeps the thin hard-edged lines */
+  box-sizing: border-box;
+}
+
+/* number badge */
+#home .steps-grid .step .num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  background: var(--brand-blue);
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+  flex: 0 0 42px;
+}
+
+/* text sizing */
+#home .steps-grid .step .txt {
+  font-size: 17px;
+  line-height: 1.5;
+}
+
+/* Hover/focus only for the linked steps */
+#home .steps-grid .step.is-link:hover,
+#home .steps-grid .step.is-link:focus-visible {
+  border-color: #c7d7ff;
+  background: #f9fbff;
+  outline: none;
+  cursor: pointer;
+}
+
+/* Mobile: stack to single column */
+@media (max-width: 720px) {
+  #home .steps-grid {
+    grid-template-columns: 1fr;
+  }
+  #home .steps-grid .step {
+    min-height: 150px;
+  }
+}
