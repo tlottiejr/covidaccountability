@@ -1,6 +1,6 @@
 // public/assets/home-timeline.js (REPLACEMENT)
-// Clickable timeline + player for homepage. Robust Rumble parsing and recreates
-// the iframe on every selection to avoid leftover overlays/ghost frames.
+// Timeline rail as BUTTONS labeled with TITLES (not dates). Robust Rumble embeds,
+// and we rebuild the iframe on each selection to avoid ghost overlays.
 
 (() => {
   const ITEMS = [
@@ -35,20 +35,11 @@
         if (id) return `https://www.youtube.com/embed/${id}`;
       }
 
-      // Rumble: watch URLs -> embed with ?pub=4 (more reliable)
+      // Rumble -> canonical embed with ?pub=4 (most reliable)
       if (/rumble\.com$/i.test(u.hostname)) {
-        const path = u.pathname;
-        const m =
-          path.match(/\/v([a-z0-9]+)(?:-|\.|$)/i) ||
-          path.match(/\/video\/([a-z0-9]+)/i);
-        if (m && m[1]) {
-          const id = m[1];
-          return `https://rumble.com/embed/v${id}/?pub=4`;
-        }
-        if (path.includes('/embed/')) {
-          // Ensure we keep ?pub=4 for consistency
-          return u.toString().includes('?') ? u.toString() : `${u.toString()}?pub=4`;
-        }
+        const m = u.pathname.match(/\/v([a-z0-9]+)(?:-|\.|$)/i) || u.pathname.match(/\/video\/([a-z0-9]+)/i);
+        if (m && m[1]) return `https://rumble.com/embed/v${m[1]}/?pub=4`;
+        if (u.pathname.includes('/embed/')) return u.toString().includes('?') ? u.toString() : `${u.toString()}?pub=4`;
       }
     } catch {}
     return null;
@@ -57,16 +48,16 @@
   function renderRail(root, items, onSelect) {
     const rail = document.createElement('div');
     rail.className = 'video-rail';
-    rail.innerHTML = '<div class="container"></div>';
+    rail.innerHTML = '<div class="container" role="tablist" aria-label="Media timeline"></div>';
     const track = rail.firstElementChild;
 
     items.forEach((it, idx) => {
-      const label = new Date(it.date).toLocaleDateString(undefined, { year: 'numeric', month: 'short' });
       const btn = document.createElement('button');
       btn.type = 'button';
       btn.className = 'rail-item';
       btn.dataset.index = String(idx);
-      btn.textContent = label;
+      btn.textContent = it.title;          // << titles instead of dates
+      btn.title = it.title;                // tooltip for long titles
       btn.addEventListener('click', () => onSelect(idx));
       track.appendChild(btn);
     });
@@ -86,7 +77,7 @@
     return wrap;
   }
 
-  function buildIframe(src) {
+  function iframeNode(src) {
     const f = document.createElement('iframe');
     f.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share');
     f.setAttribute('allowfullscreen', 'true');
@@ -99,20 +90,20 @@
     const it = items[index];
     const embed = toEmbed(it.url);
 
+    // mark active button
     rail.querySelectorAll('.rail-item').forEach(b => b.removeAttribute('aria-current'));
     const active = rail.querySelector(`.rail-item[data-index="${index}"]`);
     if (active) active.setAttribute('aria-current', 'true');
 
+    // title above player links to source
     const title = player.querySelector('.video-title');
     title.textContent = it.title;
     title.href = it.url;
 
-    // Rebuild the iframe every time to avoid leftover overlays
+    // rebuild iframe to avoid stale overlays/ghost frames
     const frameHost = player.querySelector('.frame');
     frameHost.innerHTML = '';
-    const iframe = buildIframe(embed);
-    frameHost.appendChild(iframe);
-
+    frameHost.appendChild(iframeNode(embed));
     frameHost.style.background = embed ? '#000' : '#f8fafc';
   }
 
@@ -120,10 +111,9 @@
     const host = document.getElementById('home-media');
     if (!host) return;
 
-    const items = ITEMS.slice().sort((a, b) => (a.date < b.date ? 1 : -1)); // newest first
+    const items = ITEMS.slice().sort((a,b)=> (a.date < b.date ? 1 : -1)); // newest first
     const rail = renderRail(host, items, (i) => select(i, items, rail, player));
     const player = renderPlayer(host);
-
     select(0, items, rail, player);
   }
 
