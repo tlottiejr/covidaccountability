@@ -10,12 +10,12 @@
     <link rel="stylesheet" href="/assets/site.css"/>
   </head>
   <body id="home">
-    <!-- Global nav + trust strip are injected here -->
+    <!-- Global nav + trust strip are injected -->
     <div id="nav-root"></div>
     <script src="/assets/nav-include.js" defer></script>
 
     <main class="container">
-      <!-- Story-first hero (no buttons) -->
+      <!-- Hero (story-first) -->
       <section class="hero">
         <h1>Is Your Story Our Story?</h1>
         <p>
@@ -23,13 +23,11 @@
         </p>
       </section>
 
-      <!-- Clickable timeline rail + player are injected into this section -->
-      <section id="home-media" aria-label="Featured media timeline">
-        <!-- /assets/home-timeline.js will render the rail and the player here -->
-      </section>
+      <!-- Timeline rail + player mount point (already working) -->
+      <section id="home-media" aria-label="Featured media timeline"></section>
 
-      <!-- Inline CTAs (your existing Next Steps content, verbatim) -->
-      <section class="inline-steps" aria-label="Next steps">
+      <!-- 4-step checklist (verbatim) -->
+      <section class="checklist" aria-label="Next steps">
         <ol>
           <li>Start with the <a href="/report.html">Information Template</a> to prepare your story</li>
           <li>Proceed to the <a href="/complaint-portal.html">Complaint Portal</a> to connect with your state's medical board</li>
@@ -38,7 +36,7 @@
         </ol>
       </section>
 
-      <!-- Keep What We Offer content verbatim on the page -->
+      <!-- What We Offer (single band, verbatim) -->
       <section class="module" aria-labelledby="what-we-offer">
         <div class="rule"></div>
         <div class="inner">
@@ -51,11 +49,23 @@
           </p>
         </div>
       </section>
+
+      <!-- Recently cited (simple, non-breaking). Links open /references.html -->
+      <section id="ref-spotlight" aria-label="Recently cited">
+        <h3>Recently cited</h3>
+        <div class="chip-list">
+          <a class="chip" href="/references.html" target="_blank" rel="noopener">OpenVAERS dashboard</a>
+          <a class="chip" href="/references.html" target="_blank" rel="noopener">NEJM myocarditis paper</a>
+          <a class="chip" href="/references.html" target="_blank" rel="noopener">Pfizer 5.3.6 post-marketing</a>
+        </div>
+      </section>
     </main>
 
-    <!-- Footer unchanged -->
+    <!-- Footer (normalized globally by nav-include.js, but keep for no-JS fallback) -->
     <footer class="container">
-      <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
+      <a href="/privacy.html">Privacy</a> ·
+      <a href="/disclaimer.html">Disclaimer</a> ·
+      <a href="#contact" data-open-contact>Contact</a>
     </footer>
   </body>
 </html>
