@@ -71,8 +71,6 @@ export async function onRequestPost({ request, env }) {
     const key = `open_board:${date}`;
     // 2-try optimistic merge (simple since KV lacks atomic ops)
     let tries = 0;
-    // In case of parallel writes, last write wins but we retry merge once
-    // (acceptable for coarse analytics)
     do {
       tries++;
       const current = (await env.OPEN_BOARD_KV.get(key, "json")) || EMPTY_AGG();
