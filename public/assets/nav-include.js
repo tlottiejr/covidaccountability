@@ -9,9 +9,8 @@
     return p || '/';
   }
 
-  // Wordmark: "COVIDA" and the trailing "N" in blue
+  // Wordmark: "COVIDA" + trailing "N" in blue
   function wordmarkHTML() {
-    // "COVIDAccountabilityNow" -> accent "COVIDA" + "N"
     return `
       <span class="logo-wordmark">
         <span class="accent">COVIDA</span>ccountabilityNo<span class="accent">n</span>
@@ -70,7 +69,6 @@
     const inner = document.createElement('div');
     inner.className = 'container trust-grid';
 
-    // states/territories count (from state-links.json)
     let countText = 'States & territories covered';
     try {
       const res = await fetch('/assets/state-links.json', { cache: 'reload' });
@@ -90,6 +88,39 @@
     host.insertAdjacentElement('afterend', strip);
   }
 
+  // NEW: normalize footer globally
+  function renderFooter() {
+    document.querySelectorAll('footer.container').forEach((foot) => {
+      // Avoid double-run
+      if (foot.__standardized) return;
+      foot.__standardized = true;
+
+      foot.innerHTML = '';
+      const mkSep = () => {
+        const s = document.createElement('span');
+        s.className = 'sep';
+        s.setAttribute('aria-hidden', 'true');
+        s.textContent = '·';
+        return s;
+      };
+
+      const a1 = document.createElement('a');
+      a1.href = '/privacy.html';
+      a1.textContent = 'Privacy';
+
+      const a2 = document.createElement('a');
+      a2.href = '/disclaimer.html';
+      a2.textContent = 'Disclaimer';
+
+      const a3 = document.createElement('a');
+      a3.href = '#contact';
+      a3.textContent = 'Contact';
+      a3.setAttribute('data-open-contact', '');
+
+      foot.append(a1, mkSep(), a2, mkSep(), a3);
+    });
+  }
+
   function loadOnce(src, id) {
     if (id && document.getElementById(id)) return;
     if ([...document.scripts].some(s => s.src.endsWith(src))) return;
@@ -103,6 +134,7 @@
   function init() {
     renderNav();
     renderTrustStrip();
+    renderFooter();
 
     // global helpers
     loadOnce('/assets/links-newtab.js', 'links-newtab-js');
