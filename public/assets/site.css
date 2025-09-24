@@ -1357,3 +1357,10 @@ section[aria-labelledby="vaers-figures"] .grid {
 
 /* (Optional) tighter legends so they don’t wrap weirdly on small screens */
 .echarts { font-size: 14px; line-height: 1.25; }
+/* TEMP: hide global accessibility/drawer bits sitewide */
+.skip-link,
+.nav-close,
+.drawer-close,
+button[aria-label="Close navigation"] {
+  display: none !important;
+}
