@@ -1255,3 +1255,43 @@ body {
     background: color-mix(in srgb, var(--accent) 4%, transparent);
   }
 }
+/* === About > VAERS: no white panels, unified 3-col block over gradient === */
+
+/* 1) Remove white backgrounds inside the 3 columns */
+.vaers-wide-table .table-card{
+  background: transparent !important;
+  border: 0;                       /* we’ll draw borders on the wrapper/columns */
+  border-radius: 0;
+  padding: 12px 12px 8px;
+}
+
+/* 2) Make the 3 columns read as a single table */
+#vaers-breakdowns.vaers-wide-table{
+  gap: 0;                           /* no gutter between columns */
+  border: 1px solid var(--vaers-line-strong);
+  border-radius: 10px;
+  overflow: hidden;
+}
+
+/* vertical dividers between the 3 columns */
+.vaers-wide-table .table-col:nth-child(1) { border-right: 1px solid var(--vaers-line-strong); }
+.vaers-wide-table .table-col:nth-child(2) { border-right: 1px solid var(--vaers-line-strong); }
+
+/* keep header/row separators visible on top of gradient */
+.table-head{ border-bottom: 1px solid var(--vaers-line-strong); }
+.table-row{ border-bottom: 1px solid var(--vaers-line-soft); }
+.table-row:last-child{ border-bottom: 0; }
+
+/* numeric column alignment */
+.table-head span:last-child,
+.table-row  span:last-child{ text-align: right; white-space: nowrap; }
+
+/* mobile stack */
+@media (max-width: 980px){
+  #vaers-breakdowns.vaers-wide-table{ border-radius: 10px; }
+  .vaers-wide-table .table-col:nth-child(1),
+  .vaers-wide-table .table-col:nth-child(2){
+    border-right: 0;
+    border-bottom: 1px solid var(--vaers-line-strong);
+  }
+}
