@@ -673,3 +673,32 @@ footer.container .sep {
   color: var(--ink-700);
   font-size: 14px;
 }
+/* ===== Below-player layout (homepage only) ===== */
+
+/* Checklist: tighten rhythm and readability */
+#home .checklist { margin: 10px 0 14px; }
+#home .checklist ol { margin: 0; padding-left: 18px; line-height: 1.35; }
+#home .checklist li + li { margin-top: 4px; }
+
+/* Single-band module with hard edges */
+#home .module { margin: 14px 0 16px; border: 1px solid var(--line); background: #fff; }
+#home .module .rule { height: 3px; background: var(--brand-blue); }
+#home .module .inner { padding: 14px 16px; }
+#home .module h2 { margin: 0 0 8px; }
+
+/* Recently cited (chip row) */
+#home #ref-spotlight { margin: 6px 0 18px; }
+#home #ref-spotlight h3 { margin: 0 0 8px; font-size: 16px; }
+#home .chip-list {
+  display: flex; flex-wrap: wrap; gap: 8px;
+}
+#home .chip {
+  display: inline-block;
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 6px 10px;
+  text-decoration: none;
+  color: var(--ink-900);
+  font-size: 14px;
+}
+#home .chip:hover { border-color: #c7d7ff; }
