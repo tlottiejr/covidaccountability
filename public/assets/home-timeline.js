@@ -1,8 +1,7 @@
-// public/assets/home-timeline.js
-// Homepage: clickable timeline rail + main player. Title links to original source.
+// public/assets/home-timeline.js (REPLACEMENT)
+// Timeline rail + player. Robust Rumble parsing and prevents stale iframes.
 
 (() => {
-  // Seed items (add more later)
   const ITEMS = [
     {
       title: 'PSI: Hearing Voices of the Vaccine Injured',
@@ -23,21 +22,31 @@
 
   function toEmbed(url) {
     try {
-      const u = new URL(url);
+      const u = new URL(url, location.href);
+
       // YouTube
-      if (/youtube\.com$/.test(u.hostname)) {
+      if (/youtube\.com$/i.test(u.hostname)) {
         const id = u.searchParams.get('v');
         if (id) return `https://www.youtube.com/embed/${id}`;
       }
-      if (/youtu\.be$/.test(u.hostname)) {
+      if (/youtu\.be$/i.test(u.hostname)) {
         const id = u.pathname.split('/').pop();
         if (id) return `https://www.youtube.com/embed/${id}`;
       }
-      // Rumble
-      if (/rumble\.com$/.test(u.hostname)) {
-        const m = u.pathname.match(/\/v([a-z0-9]+)(?:-|\.|$)/i) || u.pathname.match(/\/video\/([a-z0-9]+)/i);
-        if (m) return `https://rumble.com/embed/v${m[1]}/?pub=4`;
-        if (u.pathname.includes('/embed/')) return u.toString();
+
+      // Rumble:
+      //  - watch URL: /v<ID>-title.html or /video/<ID>
+      //  - embed URL: /embed/v<ID>/
+      if (/rumble\.com$/i.test(u.hostname)) {
+        const path = u.pathname;
+        const m =
+          path.match(/\/v([a-z0-9]+)(?:-|\.|$)/i) ||
+          path.match(/\/video\/([a-z0-9]+)/i);
+        if (m && m[1]) {
+          const id = m[1];
+          return `https://rumble.com/embed/v${id}/`;
+        }
+        if (path.includes('/embed/')) return u.toString();
       }
     } catch {}
     return null;
@@ -51,13 +60,13 @@
 
     items.forEach((it, idx) => {
       const label = new Date(it.date).toLocaleDateString(undefined, { year:'numeric', month:'short' });
-      const a = document.createElement('button');
-      a.type = 'button';
-      a.className = 'rail-item';
-      a.dataset.index = String(idx);
-      a.innerHTML = `<span>${label}</span>`;
-      a.addEventListener('click', () => onSelect(idx));
-      track.appendChild(a);
+      const btn = document.createElement('button');
+      btn.type = 'button';
+      btn.className = 'rail-item';
+      btn.dataset.index = String(idx);
+      btn.textContent = label;
+      btn.addEventListener('click', () => onSelect(idx));
+      track.appendChild(btn);
     });
 
     root.appendChild(rail);
@@ -69,7 +78,7 @@
     wrap.className = 'video-player';
     wrap.innerHTML = `
       <div class="title"><a class="video-title" href="#" target="_blank" rel="noopener"></a></div>
-      <div class="frame"><iframe allowfullscreen loading="lazy"></iframe></div>
+      <div class="frame"><iframe allow="accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share" allowfullscreen loading="lazy"></iframe></div>
     `;
     root.appendChild(wrap);
     return wrap;
@@ -78,24 +87,26 @@
   function select(index, items, rail, player) {
     const it = items[index];
     const embed = toEmbed(it.url);
-    const buttons = rail.querySelectorAll('.rail-item');
-    buttons.forEach(b => b.removeAttribute('aria-current'));
+
+    // set selection state
+    rail.querySelectorAll('.rail-item').forEach(b => b.removeAttribute('aria-current'));
     const active = rail.querySelector(`.rail-item[data-index="${index}"]`);
     if (active) active.setAttribute('aria-current', 'true');
 
+    // update title + link
     const title = player.querySelector('.video-title');
-    const frame = player.querySelector('iframe');
-    frame.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share');
-
     title.textContent = it.title;
     title.href = it.url;
+
+    // always reset iframe before changing src to avoid ghost frames
+    const frame = player.querySelector('iframe');
+    frame.removeAttribute('src');
 
     if (embed) {
       frame.src = embed;
       frame.parentElement.style.background = '#000';
     } else {
-      // Not a video; show blank frame with link only
-      frame.removeAttribute('src');
+      // Not a video: keep a light backdrop; link still works
       frame.parentElement.style.background = '#f8fafc';
     }
   }
@@ -108,15 +119,9 @@
     const rail = renderRail(host, items, (i) => select(i, items, rail, player));
     const player = renderPlayer(host);
 
-    // Inline steps list already in HTML beneath #home-media
-
-    // Default: first item (newest)
-    select(0, items, rail, player);
+    select(0, items, rail, player); // default to newest
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', mount);
-  } else {
-    mount();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', mount);
+  else mount();
 })();
