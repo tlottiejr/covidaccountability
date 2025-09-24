@@ -1,6 +1,4 @@
 // public/assets/nav-include.js (REPLACEMENT)
-// Renders top nav, adds a trust strip under the header, and conditionally
-// loads homepage helpers. Keeps hard edges and active tab underline.
 
 (function () {
   function canonicalizePath(input) {
@@ -11,12 +9,10 @@
     return p || '/';
   }
 
-  // Build logo with color accents: "COVIDA" + trailing "N" in brand blue
   function wordmarkHTML() {
-    const base = 'COVIDAccountabilityNow';
     return `
-      <span class="logo-wordmark" style="font-weight:700; font-size:18px; letter-spacing:.2px;">
-        <span style="color:#2563eb;">COVIDA</span>ccountabilityNo<span style="color:#2563eb;">w</span>
+      <span class="logo-wordmark">
+        <span class="accent">COVIDA</span>ccountabilityNo<span class="accent">w</span>
       </span>
     `;
   }
@@ -39,29 +35,22 @@
 
     const header = document.createElement('header');
     header.className = 'site-header';
+    header.innerHTML = `
+      <div class="container header-flex">
+        <a class="logo" href="/"> ${wordmarkHTML()} </a>
+        <nav class="nav"></nav>
+      </div>
+    `;
 
-    const container = document.createElement('div');
-    container.className = 'container';
-    header.appendChild(container);
-
-    const logo = document.createElement('a');
-    logo.className = 'logo';
-    logo.href = '/';
-    logo.innerHTML = wordmarkHTML();
-    container.appendChild(logo);
-
-    const nav = document.createElement('nav');
-    nav.className = 'nav';
-    container.appendChild(nav);
-
+    const nav = header.querySelector('.nav');
     NAV_LINKS.forEach(link => {
       const a = document.createElement('a');
       a.href = link.href;
       a.textContent = link.label;
       if (link.contact) a.setAttribute('data-open-contact', '');
-      else if (canonicalizePath(link.href) === current) {
+      if (!link.contact && canonicalizePath(link.href) === current) {
         a.setAttribute('aria-current', 'page');
-        a.addEventListener('click', ev => { ev.preventDefault(); });
+        a.addEventListener('click', ev => ev.preventDefault());
       }
       nav.appendChild(a);
     });
@@ -70,7 +59,6 @@
     mount.appendChild(header);
   }
 
-  // Trust strip right under header (slim; out of the way)
   async function renderTrustStrip() {
     const host = document.querySelector('.site-header');
     if (!host) return;
@@ -78,9 +66,8 @@
     const strip = document.createElement('div');
     strip.className = 'trust-strip';
     const inner = document.createElement('div');
-    inner.className = 'container';
+    inner.className = 'container trust-grid';
 
-    // states/territories count (from state-links.json)
     let countText = 'States & territories covered';
     try {
       const res = await fetch('/assets/state-links.json', { cache: 'reload' });
@@ -94,7 +81,6 @@
 
     inner.innerHTML = `
       <div class="trust-item"><b>${countText}</b></div>
-      <div class="trust-item"><b>Local-only PDF</b></div>
       <div class="trust-item"><b>No data collected</b></div>
     `;
     strip.appendChild(inner);
@@ -114,21 +100,14 @@
   function init() {
     renderNav();
     renderTrustStrip();
-
-    // Always-on helpers
     loadOnce('/assets/links-newtab.js', 'links-newtab-js');
     loadOnce('/assets/contact.js', 'contact-js');
 
-    // Home-only timeline
-    const p = canonicalizePath(location.pathname);
-    if (p === '/') {
+    if (canonicalizePath(location.pathname) === '/') {
       loadOnce('/assets/home-timeline.js', 'home-timeline-js');
     }
   }
 
-  if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', init);
-  } else {
-    init();
-  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
+  else init();
 })();
