@@ -2,9 +2,13 @@
 // CSP-friendly contact modal (no inline styles). Auto-loads contact.css.
 // Opens when clicking:
 //   1) any element with [data-contact-open], OR
-//   2) any <a> that looks like a Contact link (href ending with /contact.html
-//      or containing "contact", case-insensitive) in the header/footer/anywhere.
-// Accessible: focus trap, ESC, overlay click, restores focus on close.
+//   2) any <a> that looks like a Contact link (href/text contains "contact").
+//
+// Updates requested:
+// - Page DOES NOT freeze (no scroll lock; overlay pointer-events: none).
+// - Square corners.
+// - Colors match site theme (buttons use computed link color).
+// - Modal slightly smaller.
 
 (function () {
   const CSS_HREF = "/assets/contact.css";
@@ -23,6 +27,27 @@
     }
   }
 
+  // Derive link color from the site and set CSS var --contact-link
+  function syncThemeFromSite() {
+    const probe =
+      document.querySelector('a[href]') ||
+      (() => {
+        const a = document.createElement("a");
+        a.href = "#";
+        a.style.display = "none";
+        document.body.appendChild(a);
+        const ref = a;
+        document.body.removeChild(a);
+        return ref;
+      })();
+    try {
+      const computed = getComputedStyle(probe).color;
+      document.documentElement.style.setProperty("--contact-link", computed);
+    } catch {
+      /* ignore */
+    }
+  }
+
   function qs(root, sel) {
     return (root || document).querySelector(sel);
   }
@@ -34,7 +59,7 @@
     if (modalReady) return;
     modalReady = true;
 
-    // Overlay
+    // Overlay (doesn't trap pointer events; page remains scrollable)
     const overlay = document.createElement("div");
     overlay.className = "contact-overlay";
     overlay.setAttribute("aria-hidden", "true");
@@ -112,7 +137,10 @@
 
     // Events
     function closeOnOverlay(e) {
-      if (e.target === overlay) close();
+      // Overlay is non-interactive; keep for visual dim only.
+      // If you want overlay-click to close, uncomment below and switch
+      // pointer-events back on in CSS for .contact-overlay.
+      // if (e.target === overlay) close();
     }
     function esc(e) {
       if (e.key === "Escape") close();
@@ -149,13 +177,14 @@
 
   function open() {
     ensureStylesheet();
+    syncThemeFromSite();
     buildOnce();
     const overlay = qs(document, ".contact-overlay");
     const dialog = qs(document, ".contact-dialog");
     if (!overlay || !dialog) return;
 
     lastActive = document.activeElement;
-    document.body.classList.add("body--contact-open");
+    // No body scroll lock class (per “don’t freeze” requirement)
     overlay.setAttribute("aria-hidden", "false");
     dialog.setAttribute("aria-hidden", "false");
     isOpen = true;
@@ -171,7 +200,6 @@
 
     overlay.setAttribute("aria-hidden", "true");
     dialog.setAttribute("aria-hidden", "true");
-    document.body.classList.remove("body--contact-open");
     isOpen = false;
 
     if (lastActive && typeof lastActive.focus === "function") {
@@ -186,8 +214,6 @@
     if (!a || a.tagName !== "A") return false;
     const href = (a.getAttribute("href") || "").toLowerCase();
     const txt = (a.textContent || "").trim().toLowerCase();
-    // Match common cases in nav/footer:
-    // /contact.html, /contact, #contact, or link text "contact"
     return (
       href.endsWith("/contact.html") ||
       href.endsWith("/contact") ||
@@ -204,8 +230,10 @@
       if (!el.__contactWired) {
         el.__contactWired = true;
         el.addEventListener("click", (e) => {
-          e.preventDefault();
-          open();
+          if (e.button === 0 && !e.metaKey && !e.ctrlKey) {
+            e.preventDefault();
+            open();
+          }
         });
       }
     });
@@ -216,7 +244,6 @@
         a.__contactWired = true;
         a.setAttribute("data-contact-open", "");
         a.addEventListener("click", (e) => {
-          // Allow middle-click / new tab to behave normally
           if (e.button === 0 && !e.metaKey && !e.ctrlKey) {
             e.preventDefault();
             open();
@@ -236,10 +263,11 @@
 
   onReady(() => {
     ensureStylesheet();
+    syncThemeFromSite();
     wireTriggers(document);
   });
 
-  // In case your nav/footer is injected late, rewire a few times.
+  // Rewire if header/footer is injected late.
   let retries = 4;
   const late = () => { wireTriggers(document); if (retries-- > 0) setTimeout(late, 300); };
   onReady(() => setTimeout(late, 200));
