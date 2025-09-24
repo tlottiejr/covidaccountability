@@ -599,3 +599,10 @@ footer.container .sep {
 }
 #home .rail-link:hover { border-bottom-color:#c7d7ff; }
 #home .rail-link[aria-current="true"] { border-bottom-color: var(--brand-blue); }
+/* Title buttons: keep tidy on one line */
+#home .rail-item {
+  max-width: 320px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
