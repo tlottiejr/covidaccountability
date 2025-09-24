@@ -14,3 +14,9 @@ Cache-Control: public, max-age=600
 /assets/health/analytics/*
   Cache-Control: public, max-age=300, s-maxage=86400, immutable
   Content-Type: application/json; charset=utf-8
+
+/*
+  Allow YouTube/Rumble embeds
+*/
+*
+  Content-Security-Policy: frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://rumble.com;
