@@ -1,12 +1,15 @@
 // public/assets/contact.js
 // CSP-friendly contact modal (no inline styles). Auto-loads contact.css.
-// Opens via any element with [data-contact-open] attribute.
+// Opens when clicking:
+//   1) any element with [data-contact-open], OR
+//   2) any <a> that looks like a Contact link (href ending with /contact.html
+//      or containing "contact", case-insensitive) in the header/footer/anywhere.
 // Accessible: focus trap, ESC, overlay click, restores focus on close.
 
 (function () {
   const CSS_HREF = "/assets/contact.css";
   const CSS_ID = "contact-modal-css";
-  let modalRoot = null;
+  let modalReady = false;
   let lastActive = null;
   let isOpen = false;
 
@@ -27,8 +30,9 @@
     return Array.from((root || document).querySelectorAll(sel));
   }
 
-  function buildModal() {
-    if (modalRoot) return modalRoot;
+  function buildOnce() {
+    if (modalReady) return;
+    modalReady = true;
 
     // Overlay
     const overlay = document.createElement("div");
@@ -69,9 +73,9 @@
     body.className = "contact-body";
     body.id = "contact-desc";
 
-    // Try to find an existing mailto link on the page to reuse target
-    const mailto = qs(document, 'a[href^="mailto:"]');
-    const emailHref = mailto ? mailto.getAttribute("href") : null;
+    // Try to reuse an existing mailto link if present
+    const mailtoEl = qs(document, 'a[href^="mailto:"]');
+    const emailHref = mailtoEl ? mailtoEl.getAttribute("href") : null;
 
     body.innerHTML = `
       <p>Don’t hesitate to reach out regarding any questions or issues.</p>
@@ -101,11 +105,6 @@
     panel.appendChild(body);
     panel.appendChild(actions);
     dialog.appendChild(panel);
-
-    // Root
-    modalRoot = document.createDocumentFragment();
-    modalRoot.appendChild(overlay);
-    modalRoot.appendChild(dialog);
 
     // Mount
     document.body.appendChild(overlay);
@@ -146,13 +145,11 @@
     // ARIA wiring
     dialog.setAttribute("aria-labelledby", title.id);
     dialog.setAttribute("aria-describedby", body.id);
-
-    return modalRoot;
   }
 
   function open() {
     ensureStylesheet();
-    buildModal();
+    buildOnce();
     const overlay = qs(document, ".contact-overlay");
     const dialog = qs(document, ".contact-dialog");
     if (!overlay || !dialog) return;
@@ -163,7 +160,6 @@
     dialog.setAttribute("aria-hidden", "false");
     isOpen = true;
 
-    // Focus first meaningful control
     const firstAction = qs(dialog, ".contact-btn") || qs(dialog, ".contact-close");
     if (firstAction) firstAction.focus();
   }
@@ -184,12 +180,49 @@
     }
   }
 
+  // --- Auto-wiring ---
+
+  function looksLikeContactLink(a) {
+    if (!a || a.tagName !== "A") return false;
+    const href = (a.getAttribute("href") || "").toLowerCase();
+    const txt = (a.textContent || "").trim().toLowerCase();
+    // Match common cases in nav/footer:
+    // /contact.html, /contact, #contact, or link text "contact"
+    return (
+      href.endsWith("/contact.html") ||
+      href.endsWith("/contact") ||
+      href === "#contact" ||
+      href.includes("contact") ||
+      txt === "contact" ||
+      txt.includes("contact")
+    );
+  }
+
   function wireTriggers(root) {
+    // 1) Explicit triggers
     qsa(root || document, "[data-contact-open]").forEach((el) => {
-      el.addEventListener("click", (e) => {
-        e.preventDefault();
-        open();
-      });
+      if (!el.__contactWired) {
+        el.__contactWired = true;
+        el.addEventListener("click", (e) => {
+          e.preventDefault();
+          open();
+        });
+      }
+    });
+
+    // 2) Existing links that look like Contact (nav/footer/etc.)
+    qsa(root || document, "a").forEach((a) => {
+      if (looksLikeContactLink(a) && !a.__contactWired) {
+        a.__contactWired = true;
+        a.setAttribute("data-contact-open", "");
+        a.addEventListener("click", (e) => {
+          // Allow middle-click / new tab to behave normally
+          if (e.button === 0 && !e.metaKey && !e.ctrlKey) {
+            e.preventDefault();
+            open();
+          }
+        });
+      }
     });
   }
 
@@ -206,6 +239,8 @@
     wireTriggers(document);
   });
 
-  // If navigation replaces parts of the DOM (client-side nav), rewire later.
-  setTimeout(() => wireTriggers(document), 1000);
+  // In case your nav/footer is injected late, rewire a few times.
+  let retries = 4;
+  const late = () => { wireTriggers(document); if (retries-- > 0) setTimeout(late, 300); };
+  onReady(() => setTimeout(late, 200));
 })();
