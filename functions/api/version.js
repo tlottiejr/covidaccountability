@@ -1,33 +1,33 @@
 // functions/api/version.js
-// Returns version info from the static asset /assets/version.json with strong caching.
+// GET /api/version -> { version, builtAt } from static file if present, else synthesized.
 
-export async function onRequestGet({ request }) {
+function json(body, status = 200, headers = {}) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "public, max-age=60, s-maxage=3600",
+      ...headers,
+    },
+  });
+}
+
+export async function onRequestGet({ request, env }) {
   try {
-    const url = new URL("/assets/version.json", request.url);
-    const res = await fetch(url.toString(), { headers: { accept: "application/json" } });
+    // Try static file
+    const url = new URL("/assets/version.json", request.url).toString();
+    const res = await fetch(url, { headers: { accept: "application/json" } });
     if (res.ok) {
-      const text = await res.text();
-      return new Response(text, {
-        headers: {
-          "content-type": "application/json; charset=utf-8",
-          "cache-control": "public, max-age=60, s-maxage=3600, stale-while-revalidate=86400"
-        }
-      });
+      // Pass-through but ensure sensible caching and content-type
+      const data = await res.json();
+      return json(data);
     }
-  } catch {}
+  } catch {
+    // fall through to synthesized
+  }
 
-  // Fallback when the asset is missing
-  return new Response(
-    JSON.stringify({
-      version: "unknown",
-      commit: "unknown",
-      builtAt: new Date().toISOString()
-    }),
-    {
-      headers: {
-        "content-type": "application/json; charset=utf-8",
-        "cache-control": "no-store"
-      }
-    }
-  );
+  // Fallback synthesis
+  const version = env.GIT_COMMIT || "unknown";
+  const builtAt = env.BUILT_AT || null;
+  return json({ version, builtAt });
 }
