@@ -1,71 +1,118 @@
-import { all, one, ID_ALIAS, toBoard } from "../_lib/db.js";
-import { assertState, assertUrl, assertNonEmpty, readJson, bad } from "../_lib/validate.js";
+// functions/admin/boards.js
+// GET ?state=XX -> list active boards for state
+// POST { state, board, url, primary? } -> create board; if primary true, demote siblings
 
-export const onRequestGet = async ({ env, request }) => {
-  const url = new URL(request.url);
-  const state = url.searchParams.get("state")?.toUpperCase();
-  if (!state) throw bad("Missing state query param");
-  assertState(state);
+import { all, one } from "../_lib/db.js";
+import { assertState, assertUrl, assertNonEmpty, bad } from "../_lib/validate.js";
 
-  const rows = await all(env.DB,
-    `SELECT ${ID_ALIAS}, state_code, board, url, primary_flag, active
-       FROM boards
-      WHERE state_code = ? AND active = 1
-      ORDER BY primary_flag DESC, board`, [state]);
+function json(body, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+  });
+}
 
-  return json(rows.map(toBoard));
-};
-
-export const onRequestPost = async ({ env, request, data }) => {
-  const body = await readJson(request);
-  const state_code = String(body.state_code || "").toUpperCase();
-  const board = String(body.board || "");
-  const url = String(body.url || "");
-  const primary = !!body.primary;
-
-  assertState(state_code);
-  assertNonEmpty(board, "board");
-  assertUrl(url);
-
-  // de-dupe: same (state, board, url) active?
-  const dupe = await one(env.DB,
-    `SELECT ${ID_ALIAS} FROM boards WHERE state_code=? AND board=? AND url=? AND active=1 LIMIT 1`,
-    [state_code, board, url]
-  );
-  if (dupe) throw bad("Duplicate board url for state", 409);
-
-  // insert
-  const ins = await env.DB.prepare(
-    `INSERT INTO boards (state_code, board, url, primary_flag, active)
-     VALUES (?, ?, ?, ?, 1)`
-  ).bind(state_code, board, url, primary ? 1 : 0).run();
-
-  const insertedId = ins.lastRowId;
-
-  // if primary, demote others atomically
-  if (primary) {
-    await env.DB.batch([
-      env.DB.prepare(`UPDATE boards SET primary_flag=0 WHERE state_code=? AND ${ID_ALIAS.replace(" AS id","")} <> ?`)
-        .bind(state_code, insertedId)
-    ]);
+export async function onRequestGet({ request, env }) {
+  const { searchParams } = new URL(request.url);
+  const state = searchParams.get("state");
+  try {
+    assertState(state);
+  } catch (e) {
+    return bad(400, e);
   }
 
-  const row = await one(env.DB,
-    `SELECT ${ID_ALIAS}, state_code, board, url, primary_flag, active
-       FROM boards WHERE (id=? OR rowid=?)`, [insertedId, insertedId]);
+  try {
+    const rows = await all(
+      env.DB,
+      `
+      SELECT COALESCE(id, rowid) AS id, state_code, board, url,
+             (primary_flag = 1) AS primary,
+             active, created_at, updated_at
+      FROM boards
+      WHERE state_code = ? AND active = 1
+      ORDER BY primary_flag DESC, board ASC
+      `,
+      [state],
+    );
+    return json({ ok: true, state, boards: rows });
+  } catch (err) {
+    console.error("[admin/boards GET] error", err);
+    return json({ ok: false, error: "internal-error" }, 500);
+  }
+}
 
-  // audit
-  await env.DB.prepare(
-    `INSERT INTO board_events (board_id, actor, action, prev, next, ts)
-     VALUES (?, ?, 'create', NULL, ?, ?)`
-  ).bind(insertedId, data.actor || "token", JSON.stringify(row), Date.now()).run();
+export async function onRequestPost({ request, env, data }) {
+  try {
+    const body = await request.json();
+    const state = body.state;
+    const board = body.board;
+    const url = body.url;
+    const primary = !!body.primary;
 
-  return json(toBoard(row), 201);
-};
+    assertState(state);
+    assertNonEmpty(board, "board");
+    assertUrl(url);
 
-function json(payload, status = 200) {
-  return new Response(JSON.stringify(payload), {
-    status,
-    headers: { "content-type": "application/json" },
-  });
+    const now = new Date().toISOString();
+
+    // Transaction (serialize statements)
+    const demote = primary
+      ? env.DB.prepare("UPDATE boards SET primary_flag = 0, updated_at = ? WHERE state_code = ? AND active = 1")
+          .bind(now, state)
+      : null;
+
+    const insert = env.DB
+      .prepare(
+        `
+        INSERT INTO boards (state_code, board, url, primary_flag, active, created_at, updated_at)
+        VALUES (?,?,?,?,1,?,?)
+        `,
+      )
+      .bind(state, board, url, primary ? 1 : 0, now, now);
+
+    try {
+      if (demote) await demote.run();
+      const res = await insert.run();
+      const id = res.lastRowId;
+
+      const created = await one(
+        env.DB,
+        `
+        SELECT COALESCE(id, rowid) AS id, state_code, board, url,
+               (primary_flag = 1) AS primary,
+               active, created_at, updated_at
+        FROM boards
+        WHERE COALESCE(id, rowid) = ?
+        `,
+        [id],
+      );
+
+      // Audit
+      const actor = (data && data.actor) || "token";
+      await env.DB
+        .prepare(
+          `
+          INSERT INTO board_events (board_id, actor, action, prev_json, next_json, created_at)
+          VALUES (?,?,?,?,?,?)
+        `,
+        )
+        .bind(
+          created.id,
+          actor,
+          "create",
+          null,
+          JSON.stringify(created),
+          now,
+        )
+        .run();
+
+      return json({ ok: true, board: created }, 201);
+    } catch (e) {
+      console.error("[admin/boards POST] db error", e);
+      return json({ ok: false, error: "db-error" }, 500);
+    }
+  } catch (err) {
+    console.error("[admin/boards POST] error", err);
+    return json({ ok: false, error: "bad-request" }, 400);
+  }
 }
