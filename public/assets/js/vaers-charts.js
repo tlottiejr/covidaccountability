@@ -1,79 +1,209 @@
-(function () {
-  const $ = (s) => document.querySelector(s);
-  const css = getComputedStyle(document.documentElement);
-  const cPrimary = css.getPropertyValue("--primary").trim() || "#2a6df4";
-  const cInk = css.getPropertyValue("--ink").trim() || "#111";
-  const cLine = css.getPropertyValue("--line").trim() || "#e5e7eb";
-  const cAccent = css.getPropertyValue("--accent").trim() || "#0ea5e9";
-  const cMuted = css.getPropertyValue("--muted-ink").trim() || "#64748b";
+// public/assets/js/vaers-charts.js
+// Renders the 3 charts from /data/vaers-summary.json using ECharts.
+// - Matches site theme via CSS variables (no hardcoded palette)
+// - Resizes on window/visibility changes
+// - Tolerant of slightly different JSON shapes from the builder
 
-  async function load() {
-    const res = await fetch("/data/vaers-summary.json", { cache: "no-cache" });
-    if (!res.ok) return;
-    const d = await res.json();
-    const fmt = new Intl.NumberFormat();
-
-    const asof = document.getElementById("vaers-asof");
-    if (asof && d.as_of) asof.textContent = `Data through ${new Date(d.as_of).toLocaleDateString()}`;
-
-    // Chart 1: All reports by year (two series)
-    const c1El = $("#vaers-by-year");
-    if (c1El && window.echarts) {
-      const chart = echarts.init(c1El);
-      const years = d.reports_by_year.all.map(([y]) => y);
-      const all = d.reports_by_year.all.map(([,v]) => v);
-      const dom = d.reports_by_year.us_terr_unk.map(([,v]) => v);
-      chart.setOption({
-        tooltip: { trigger: "axis", valueFormatter: (v)=>fmt.format(v) },
-        legend: { data: ["All VAERS Reports", "US/Terr./Unk." ] },
-        grid: { left: 50, right: 20, top: 30, bottom: 45 },
-        xAxis: { type: "category", data: years, axisTick: { alignWithLabel: true } },
-        yAxis: { type: "value", splitLine: { lineStyle: { color: cLine } } },
-        series: [
-          { name: "All VAERS Reports", type: "bar", data: all, emphasis: { focus: "series" }},
-          { name: "US/Terr./Unk.", type: "bar", data: dom, emphasis: { focus: "series" }}
-        ]
-      });
+(() => {
+  // ----- readiness helpers -----
+  const domReady = new Promise((res) => {
+    if (document.readyState === "loading") {
+      document.addEventListener("DOMContentLoaded", () => res(), { once: true });
+    } else {
+      res();
     }
+  });
 
-    // Chart 3: COVID deaths by month (3 lines)
-    const c2El = $("#vaers-covid-deaths-monthly");
-    if (c2El && window.echarts) {
-      const chart = echarts.init(c2El);
-      const months = d.covid_deaths_by_month.total.map(([m]) => m);
-      chart.setOption({
-        tooltip: { trigger: "axis", valueFormatter: (v)=>fmt.format(v) },
-        legend: { data: ["Total", "US/Terr./Unk.", "Foreign"] },
-        grid: { left: 50, right: 20, top: 30, bottom: 45 },
-        xAxis: { type: "category", data: months },
-        yAxis: { type: "value", splitLine: { lineStyle: { color: cLine } } },
-        series: [
-          { name: "Total", type: "line", data: d.covid_deaths_by_month.total.map(([,v])=>v), symbolSize: 4 },
-          { name: "US/Terr./Unk.", type: "line", data: d.covid_deaths_by_month.us_terr_unk.map(([,v])=>v), symbolSize: 4 },
-          { name: "Foreign", type: "line", data: d.covid_deaths_by_month.foreign.map(([,v])=>v), symbolSize: 4 }
-        ]
-      });
-    }
+  const echartsReady = () =>
+    new Promise((res) => {
+      if (window.echarts) return res();
+      const t = setInterval(() => {
+        if (window.echarts) { clearInterval(t); res(); }
+      }, 30);
+    });
 
-    // Chart 4: Deaths by days to onset (covid vs flu)
-    const c3El = $("#vaers-days-to-onset");
-    if (c3El && window.echarts) {
-      const chart = echarts.init(c3El);
-      const days = Array.from({length:20}, (_,i)=>i);
-      chart.setOption({
-        tooltip: { trigger: "axis", valueFormatter: (v)=>fmt.format(v) },
-        legend: { data: ["COVID Vaccines", "Flu Vaccines"] },
-        grid: { left: 50, right: 20, top: 30, bottom: 45 },
-        xAxis: { type: "category", data: days },
-        yAxis: { type: "value", splitLine: { lineStyle: { color: cLine } } },
-        series: [
-          { name: "COVID Vaccines", type: "bar", data: d.deaths_days_to_onset.covid.map(([,v])=>v) },
-          { name: "Flu Vaccines", type: "bar", data: d.deaths_days_to_onset.flu.map(([,v])=>v) }
-        ]
-      });
-    }
+  // ----- theme helpers -----
+  function theme() {
+    const r = getComputedStyle(document.documentElement);
+    // fallbacks keep things readable if a var is missing
+    const ink    = r.getPropertyValue("--ink")?.trim() || "#0b1d2a";
+    const accent = r.getPropertyValue("--accent")?.trim() || "#1d6fbd";
+    const muted  = r.getPropertyValue("--muted-ink")?.trim() || "#6b7280";
+    const grid   = r.getPropertyValue("--rule")?.trim() || "#e5e7eb";
+    return { ink, accent, muted, grid };
   }
 
-  if (document.readyState === "complete" || document.readyState === "interactive") load();
-  else document.addEventListener("DOMContentLoaded", load);
+  function mount(el) {
+    if (!el) return null;
+    return echarts.init(el, null, { renderer: "canvas" });
+  }
+
+  function listenResize(instances) {
+    const doResize = () => instances.forEach((c) => c && c.resize({ animation: { duration: 0 } }));
+    window.addEventListener("resize", doResize);
+    document.addEventListener("visibilitychange", doResize);
+  }
+
+  // Some builders may emit keys in slightly different names.
+  // These helpers normalize common shapes.
+  function normalizeReportsByYear(arr = []) {
+    // expected: [{year, all, us_territories_unknown}]
+    return arr
+      .filter((x) => x && (x.year || x.y || x[0] !== undefined))
+      .map((x) => ({
+        year: x.year ?? x.y ?? x[0],
+        all:  Number(x.all ?? x.a ?? x[1] ?? 0),
+        us:   Number(x.us_territories_unknown ?? x.us_terr_unk ?? x.u ?? x[2] ?? 0),
+      }))
+      .sort((a, b) => Number(a.year) - Number(b.year));
+  }
+
+  function normalizeCovidDeathsMonthly(obj = {}) {
+    // expected shape:
+    // { months: ["2021-01", ...], total: [], domestic: [], foreign: [] }
+    // fallbacks: us_territories_unknown -> domestic
+    const months = obj.months || obj.labels || [];
+    const total  = obj.total  || obj.t || [];
+    const dom    = obj.domestic || obj.us_territories_unknown || obj.us || [];
+    const forgn  = obj.foreign  || obj.f || [];
+    return { months, total, dom, forgn };
+  }
+
+  function normalizeDaysToOnset(obj = {}) {
+    // expected shape:
+    // { buckets: ["0","1",...,"19"], covid: [], flu: [] }
+    const buckets = obj.buckets || obj.labels || [];
+    const covid   = obj.covid || obj.c || [];
+    const flu     = obj.flu   || obj.f || [];
+    return { buckets, covid, flu };
+  }
+
+  async function run() {
+    await domReady;
+    await echartsReady();
+
+    const byYearEl       = document.getElementById("vaers-by-year");
+    const deathsMonthEl  = document.getElementById("vaers-covid-deaths-monthly");
+    const onsetEl        = document.getElementById("vaers-days-to-onset");
+    const asofEl         = document.getElementById("vaers-asof");
+
+    if (!byYearEl || !deathsMonthEl || !onsetEl) return;
+
+    let json;
+    try {
+      const res = await fetch("/data/vaers-summary.json", { cache: "no-cache" });
+      json = await res.json();
+    } catch (e) {
+      console.error("VAERS: failed to fetch JSON", e);
+      if (asofEl) asofEl.textContent = "Could not load VAERS data.";
+      return;
+    }
+
+    if (asofEl && json?.as_of) asofEl.textContent = `As of ${json.as_of}`;
+
+    const colors = theme();
+
+    // ===== Chart 1: All Reports to VAERS by Year =====
+    const byYear = normalizeReportsByYear(json?.reports_by_year);
+    const byYearChart = mount(byYearEl);
+    if (byYearChart && byYear.length) {
+      const years = byYear.map((d) => d.year);
+      const all   = byYear.map((d) => d.all);
+      const us    = byYear.map((d) => d.us);
+
+      byYearChart.setOption({
+        grid: { left: 44, right: 16, top: 30, bottom: 30 },
+        tooltip: { trigger: "axis" },
+        legend: {
+          data: ["All Reports", "US/Terr/Unknown"],
+          top: 0,
+          textStyle: { color: colors.muted }
+        },
+        xAxis: {
+          type: "category",
+          data: years,
+          axisLine: { lineStyle: { color: colors.grid } },
+          axisLabel: { color: colors.muted }
+        },
+        yAxis: {
+          type: "value",
+          axisLine: { lineStyle: { color: colors.grid } },
+          splitLine: { lineStyle: { color: colors.grid } },
+          axisLabel: { color: colors.muted }
+        },
+        series: [
+          { name: "All Reports", type: "line", smooth: true, data: all, lineStyle: { width: 3 }, color: colors.accent },
+          { name: "US/Terr/Unknown", type: "line", smooth: true, data: us,  lineStyle: { width: 3 }, color: colors.ink }
+        ]
+      });
+    }
+
+    // ===== Chart 2: COVID Vaccine Reports of Death by Month =====
+    const deathsMonthly = normalizeCovidDeathsMonthly(json?.covid_deaths_by_month || json?.deaths_by_month);
+    const deathsMonthlyChart = mount(deathsMonthEl);
+    if (deathsMonthlyChart && deathsMonthly.months?.length) {
+      deathsMonthlyChart.setOption({
+        grid: { left: 44, right: 16, top: 30, bottom: 30 },
+        tooltip: { trigger: "axis" },
+        legend: {
+          data: ["Total", "US/Terr/Unknown", "Foreign"],
+          top: 0,
+          textStyle: { color: colors.muted }
+        },
+        xAxis: {
+          type: "category",
+          data: deathsMonthly.months,
+          axisLine: { lineStyle: { color: colors.grid } },
+          axisLabel: { color: colors.muted, hideOverlap: true }
+        },
+        yAxis: {
+          type: "value",
+          axisLine: { lineStyle: { color: colors.grid } },
+          splitLine: { lineStyle: { color: colors.grid } },
+          axisLabel: { color: colors.muted }
+        },
+        series: [
+          { name: "Total",             type: "line", smooth: true, data: deathsMonthly.total, lineStyle: { width: 3 }, color: colors.accent },
+          { name: "US/Terr/Unknown",   type: "line", smooth: true, data: deathsMonthly.dom,   lineStyle: { width: 3 }, color: colors.ink },
+          { name: "Foreign",           type: "line", smooth: true, data: deathsMonthly.forgn, lineStyle: { width: 3 }, color: "#888" }
+        ]
+      });
+    }
+
+    // ===== Chart 3: Deaths by Days to Onset (COVID vs Flu) =====
+    const onset = normalizeDaysToOnset(json?.deaths_days_to_onset || json?.days_to_onset);
+    const onsetChart = mount(onsetEl);
+    if (onsetChart && onset.buckets?.length) {
+      onsetChart.setOption({
+        grid: { left: 44, right: 16, top: 30, bottom: 30 },
+        tooltip: { trigger: "axis" },
+        legend: {
+          data: ["COVID-19", "Flu"],
+          top: 0,
+          textStyle: { color: colors.muted }
+        },
+        xAxis: {
+          type: "category",
+          data: onset.buckets,
+          axisLine: { lineStyle: { color: colors.grid } },
+          axisLabel: { color: colors.muted }
+        },
+        yAxis: {
+          type: "value",
+          axisLine: { lineStyle: { color: colors.grid } },
+          splitLine: { lineStyle: { color: colors.grid } },
+          axisLabel: { color: colors.muted }
+        },
+        series: [
+          { name: "COVID-19", type: "bar", data: onset.covid, color: colors.accent },
+          { name: "Flu",      type: "bar", data: onset.flu,   color: colors.ink }
+        ]
+      });
+    }
+
+    // Handle resizes
+    listenResize([byYearChart, deathsMonthlyChart, onsetChart]);
+  }
+
+  run();
 })();
