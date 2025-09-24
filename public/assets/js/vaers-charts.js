@@ -1,14 +1,13 @@
 // public/assets/js/vaers-charts.js
-// Render 3 charts from /data/vaers-summary.json with robust shape handling.
-
 (() => {
-  // ---- readiness helpers ----
   const domReady = new Promise((res) => {
     if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", res, { once: true });
     else res();
   });
 
-  function cssTheme() {
+  const fmtNum = (n) => (n == null ? "" : Number(n).toLocaleString());
+
+  function cssVars() {
     const s = getComputedStyle(document.documentElement);
     return {
       ink:    s.getPropertyValue("--ink")?.trim() || "#0b1d2a",
@@ -23,81 +22,65 @@
     return echarts.init(el, null, { renderer: "canvas" });
   }
 
-  function hookResize(charts) {
-    const fn = () => charts.forEach((c) => c && c.resize({ animation: { duration: 0 } }));
+  function hookResize(instances) {
+    const fn = () => instances.forEach(c => c && c.resize({ animation: { duration: 0 } }));
     window.addEventListener("resize", fn);
     document.addEventListener("visibilitychange", fn);
   }
 
-  // ---- normalizers for multiple JSON shapes ----
-
-  // reports_by_year: either
-  //   [{year, all, us_territories_unknown}, ...]
-  // or
-  //   {"1990": {all: N, us_territories_unknown: M}, ...}
-  function normalizeReportsByYear(src) {
-    let list = [];
-    if (Array.isArray(src)) {
-      list = src;
-    } else if (src && typeof src === "object") {
-      list = Object.entries(src).map(([y, v]) => ({
-        year: Number(y),
-        all:  Number(v?.all ?? v?.a ?? v?.[0] ?? 0),
-        us:   Number(v?.us_territories_unknown ?? v?.us ?? v?.u ?? v?.[1] ?? 0),
-      }));
-    }
-    return list
-      .filter((x) => x && x.year != null)
-      .map((x) => ({ year: Number(x.year), all: Number(x.all ?? 0), us: Number(x.us ?? 0) }))
-      .sort((a, b) => a.year - b.year);
+  // ---- normalizers ----
+  function normDeathsByYear(src) {
+    // expecting [{year, all, non_covid}]
+    if (!Array.isArray(src)) return [];
+    return src
+      .filter(x => x && x.year != null)
+      .map(x => ({ year: Number(x.year), all: Number(x.all||0), non_covid: Number(x.non_covid||0) }))
+      .sort((a,b) => a.year - b.year);
   }
 
-  // covid_deaths_by_month (or deaths_by_month): object like
-  //   { months:[], total:[], domestic:[]|us_territories_unknown:[], foreign:[] }
-  // We also accept array-of-tuples [[month, total, dom, foreign], ...]
-  function normalizeDeathsByMonth(src = {}) {
+  function normDeathsByMonth(src = {}) {
     if (Array.isArray(src)) {
-      const months = src.map((r) => String(r[0]));
-      const total  = src.map((r) => Number(r[1] ?? 0));
-      const dom    = src.map((r) => Number(r[2] ?? 0));
-      const forgn  = src.map((r) => Number(r[3] ?? 0));
-      return { months, total, dom, forgn };
+      return {
+        months: src.map(r => String(r[0])),
+        total:  src.map(r => Number(r[1]||0)),
+        dom:    src.map(r => Number(r[2]||0)),
+        forgn:  src.map(r => Number(r[3]||0)),
+      };
     }
-    const months = src.months || src.labels || [];
-    const total  = src.total  || src.t || [];
-    const dom    = src.domestic || src.us_territories_unknown || src.us || [];
-    const forgn  = src.foreign  || src.f || [];
-    return { months, total, dom, forgn };
+    return {
+      months: src.months || src.labels || [],
+      total:  src.total  || src.t || [],
+      dom:    src.domestic || src.us_territories_unknown || src.us || [],
+      forgn:  src.foreign  || src.f || [],
+    };
   }
 
-  // deaths_days_to_onset (or days_to_onset): { buckets:[], covid:[], flu:[] }
-  // Also accept array-of-tuples [[bucket, covid, flu], ...]
-  function normalizeDaysToOnset(src = {}) {
+  function normDaysToOnset(src = {}) {
     if (Array.isArray(src)) {
-      const buckets = src.map((r) => String(r[0]));
-      const covid   = src.map((r) => Number(r[1] ?? 0));
-      const flu     = src.map((r) => Number(r[2] ?? 0));
-      return { buckets, covid, flu };
+      return {
+        buckets: src.map(r => String(r[0])),
+        covid:   src.map(r => Number(r[1]||0)),
+        flu:     src.map(r => Number(r[2]||0)),
+      };
     }
-    const buckets = src.buckets || src.labels || [];
-    const covid   = src.covid || src.c || [];
-    const flu     = src.flu   || src.f || [];
-    return { buckets, covid, flu };
+    return {
+      buckets: src.buckets || src.labels || [],
+      covid:   src.covid || src.c || [],
+      flu:     src.flu   || src.f || [],
+    };
   }
 
-  // ---- main ----
   async function run() {
     await domReady;
 
-    const byYearEl  = document.getElementById("vaers-by-year");
-    const monthEl   = document.getElementById("vaers-covid-deaths-monthly");
-    const onsetEl   = document.getElementById("vaers-days-to-onset");
-    const asOfEl    = document.getElementById("vaers-asof");
-    if (!byYearEl || !monthEl || !onsetEl) return;
+    const byYearEl = document.getElementById("vaers-by-year");
+    const monthEl  = document.getElementById("vaers-covid-deaths-monthly");
+    const onsetEl  = document.getElementById("vaers-days-to-onset");
+    const asOfEl   = document.getElementById("vaers-asof");
 
-    // Ensure ECharts is present (CDN script should have loaded with defer)
+    if (!byYearEl || !monthEl || !onsetEl) return;
     if (!window.echarts) {
-      console.error("ECharts not found on window.");
+      console.error("ECharts not found.");
       if (asOfEl) asOfEl.textContent = "Charts unavailable.";
       return;
     }
@@ -111,67 +94,115 @@
       if (asOfEl) asOfEl.textContent = "Could not load VAERS data.";
       return;
     }
-
     if (asOfEl && data?.as_of) asOfEl.textContent = `As of ${data.as_of}`;
 
-    const colors = cssTheme();
+    const colors = cssVars();
     const charts = [];
 
-    // Chart 1 — All Reports to VAERS by Year
+    // === Chart 1 — All Deaths Reported to VAERS by Year ===
     try {
-      const chart = init(byYearEl);
-      const rows = normalizeReportsByYear(data?.reports_by_year);
-      chart && chart.setOption({
-        grid: { left: 44, right: 16, top: 30, bottom: 30 },
-        tooltip: { trigger: "axis" },
-        legend: { data: ["All Reports", "US/Terr/Unknown"], top: 0, textStyle: { color: colors.muted } },
-        xAxis: { type: "category", data: rows.map(r => r.year), axisLine: { lineStyle: { color: colors.grid } }, axisLabel: { color: colors.muted } },
-        yAxis: { type: "value", axisLine: { lineStyle: { color: colors.grid } }, splitLine: { lineStyle: { color: colors.grid } }, axisLabel: { color: colors.muted } },
+      const c = init(byYearEl);
+      const rows = normDeathsByYear(data?.deaths_by_year || []);
+      const years = rows.map(r => r.year);
+      const all   = rows.map(r => r.all);
+      const noncv = rows.map(r => r.non_covid);
+
+      c && c.setOption({
+        grid: { left: 48, right: 16, top: 36, bottom: 36 },
+        tooltip: {
+          trigger: "axis",
+          valueFormatter: fmtNum
+        },
+        legend: {
+          data: ["Reports of Death", "All Non-COVID-Vaccine Deaths"],
+          top: 0,
+          textStyle: { color: colors.muted }
+        },
+        xAxis: {
+          type: "category",
+          data: years,
+          axisLine: { lineStyle: { color: colors.grid } },
+          axisLabel: { color: colors.muted }
+        },
+        yAxis: {
+          type: "value",
+          axisLabel: { color: colors.muted, formatter: (v)=>fmtNum(v) },
+          axisLine: { lineStyle: { color: colors.grid } },
+          splitLine: { lineStyle: { color: colors.grid } }
+        },
         series: [
-          { name: "All Reports",     type: "line", smooth: true, data: rows.map(r => r.all), lineStyle: { width: 3 }, color: colors.accent },
-          { name: "US/Terr/Unknown", type: "line", smooth: true, data: rows.map(r => r.us),  lineStyle: { width: 3 }, color: colors.ink }
+          { name: "Reports of Death", type: "line", smooth: true, data: all,   lineStyle: { width: 3 }, color: colors.accent, symbol: "circle", symbolSize: 4 },
+          { name: "All Non-COVID-Vaccine Deaths", type: "line", smooth: true, data: noncv, lineStyle: { width: 3 }, color: colors.ink,    symbol: "circle", symbolSize: 4 }
         ]
       });
-      charts.push(chart);
-    } catch (e) { console.error("Chart 1 failed", e); }
+      charts.push(c);
+    } catch (e) { console.error("Chart1 failed", e); }
 
-    // Chart 2 — COVID Vaccine Reports of Death by Month
+    // === Chart 2 — COVID Vaccine Reports of Death (by month) ===
     try {
-      const chart = init(monthEl);
+      const c = init(monthEl);
       const src = data?.covid_deaths_by_month || data?.deaths_by_month || {};
-      const m = normalizeDeathsByMonth(src);
-      chart && chart.setOption({
-        grid: { left: 44, right: 16, top: 30, bottom: 30 },
-        tooltip: { trigger: "axis" },
-        legend: { data: ["Total", "US/Terr/Unknown", "Foreign"], top: 0, textStyle: { color: colors.muted } },
-        xAxis: { type: "category", data: m.months, axisLine: { lineStyle: { color: colors.grid } }, axisLabel: { color: colors.muted, hideOverlap: true } },
-        yAxis: { type: "value", axisLine: { lineStyle: { color: colors.grid } }, splitLine: { lineStyle: { color: colors.grid } }, axisLabel: { color: colors.muted } },
-        series: [
-          { name: "Total",             type: "line", smooth: true, data: m.total, lineStyle: { width: 3 }, color: colors.accent },
-          { name: "US/Terr/Unknown",   type: "line", smooth: true, data: m.dom,   lineStyle: { width: 3 }, color: colors.ink },
-          { name: "Foreign",           type: "line", smooth: true, data: m.forgn, lineStyle: { width: 3 }, color: "#888" }
-        ]
-      });
-      charts.push(chart);
-    } catch (e) { console.error("Chart 2 failed", e); }
+      const m = normDeathsByMonth(src);
 
-    // Chart 3 — Deaths by Days to Onset (COVID vs Flu)
-    try {
-      const chart = init(onsetEl);
-      const o = normalizeDaysToOnset(data?.deaths_days_to_onset || data?.days_to_onset || {});
-      chart && chart.setOption({
-        grid: { left: 44, right: 16, top: 30, bottom: 30 },
-        tooltip: { trigger: "axis" },
-        legend: { data: ["COVID-19", "Flu"], top: 0, textStyle: { color: colors.muted } },
-        xAxis: { type: "category", data: o.buckets, axisLine: { lineStyle: { color: colors.grid } }, axisLabel: { color: colors.muted } },
-        yAxis: { type: "value", axisLine: { lineStyle: { color: colors.grid } }, splitLine: { lineStyle: { color: colors.grid } }, axisLabel: { color: colors.muted } },
+      c && c.setOption({
+        grid: { left: 48, right: 16, top: 36, bottom: 60 },
+        tooltip: {
+          trigger: "axis",
+          valueFormatter: fmtNum
+        },
+        legend: {
+          data: ["Total", "US/Terr/Unknown", "Foreign"],
+          top: 0,
+          textStyle: { color: colors.muted }
+        },
+        xAxis: {
+          type: "category",
+          data: m.months,
+          axisLabel: { color: colors.muted, rotate: 45, hideOverlap: true },
+          axisLine: { lineStyle: { color: colors.grid } }
+        },
+        yAxis: {
+          type: "value",
+          axisLabel: { color: colors.muted, formatter: (v)=>fmtNum(v) },
+          axisLine: { lineStyle: { color: colors.grid } },
+          splitLine: { lineStyle: { color: colors.grid } }
+        },
         series: [
-          { name: "COVID-19", type: "bar", data: o.covid, color: colors.accent },
-          { name: "Flu",      type: "bar", data: o.flu,   color: colors.ink }
+          { name: "Total",             type: "line", smooth: true, data: m.total, lineStyle: { width: 3 }, color: colors.accent, symbol: "circle", symbolSize: 3, areaStyle: { opacity: 0.1 } },
+          { name: "US/Terr/Unknown",   type: "line", smooth: true, data: m.dom,   lineStyle: { width: 3 }, color: colors.ink,    symbol: "none" },
+          { name: "Foreign",           type: "line", smooth: true, data: m.forgn, lineStyle: { width: 2 }, color: "#888",        symbol: "none" }
         ]
       });
-      charts.push(chart);
-    } catch (e) { console.error("Chart 3 failed", e); }
+      charts.push(c);
+    } catch (e) { console.error("Chart2 failed", e); }
+
+    // === Chart 3 — VAERS COVID/FLU Vaccine Reported Deaths by Days to Onset ===
+    try {
+      const c = init(onsetEl);
+      const o = normDaysToOnset(data?.deaths_days_to_onset || data?.days_to_onset || {});
+      c && c.setOption({
+        grid: { left: 48, right: 16, top: 36, bottom: 36 },
+        tooltip: { trigger: "axis", valueFormatter: fmtNum },
+        legend: { data: ["COVID-19", "Flu"], top: 0, textStyle: { color: colors.muted } },
+        xAxis: {
+          type: "category",
+          data: o.buckets,
+          axisLine: { lineStyle: { color: colors.grid } },
+          axisLabel: { color: colors.muted }
+        },
+        yAxis: {
+          type: "value",
+          axisLabel: { color: colors.muted, formatter: (v)=>fmtNum(v) },
+          axisLine: { lineStyle: { color: colors.grid } },
+          splitLine: { lineStyle: { color: colors.grid } }
+        },
+        series: [
+          { name: "COVID-19", type: "bar", data: o.covid, color: colors.accent, itemStyle: { borderRadius: [3,3,0,0] } },
+          { name: "Flu",      type: "bar", data: o.flu,   color: colors.ink,    itemStyle: { borderRadius: [3,3,0,0] } }
+        ]
+      });
+      charts.push(c);
+    } catch (e) { console.error("Chart3 failed", e); }
 
     hookResize(charts);
   }
