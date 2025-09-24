@@ -1122,3 +1122,59 @@ body {
   }
   #vaers-breakdowns tbody td{ border-top-color: var(--accent); }
 }
+/* === VAERS table: make ALL lines use theme blue tints === */
+:root{
+  --vaers-line-strong: color-mix(in srgb, var(--accent) 26%, transparent);
+  --vaers-line-soft:   color-mix(in srgb, var(--accent) 18%, transparent);
+}
+
+/* Outer frame + column dividers between the 3 inner tables */
+#vaers-breakdowns{
+  border-color: var(--vaers-line-strong);
+}
+#vaers-breakdowns table:nth-of-type(1),
+#vaers-breakdowns table:nth-of-type(2){
+  border-right: 1px solid var(--vaers-line-strong);
+}
+
+/* Apply blue line color to ALL cell borders (header + body) */
+#vaers-breakdowns table,
+#vaers-breakdowns th,
+#vaers-breakdowns td{
+  border-color: var(--vaers-line-soft) !important;
+}
+
+/* Ensure header bottom line is strong */
+#vaers-breakdowns thead th{
+  border-bottom: 1px solid var(--vaers-line-strong) !important;
+}
+
+/* Ensure every subsequent row has a blue top divider */
+#vaers-breakdowns tbody tr + tr td{
+  border-top: 1px solid var(--vaers-line-soft) !important;
+}
+
+/* Optional: a hairline column divider between label and cases inside each mini-table */
+#vaers-breakdowns thead th:last-child,
+#vaers-breakdowns tbody td:last-child{
+  border-left: 1px solid var(--vaers-line-soft);
+}
+
+/* Subtle on-brand hover */
+@media (hover:hover){
+  #vaers-breakdowns tbody tr:hover td{
+    background: color-mix(in srgb, var(--accent) 6%, #fff);
+  }
+}
+
+/* Fallback for browsers without color-mix */
+@supports not (color: color-mix(in srgb, #000, #fff)){
+  #vaers-breakdowns,
+  #vaers-breakdowns table:nth-of-type(1),
+  #vaers-breakdowns table:nth-of-type(2),
+  #vaers-breakdowns table,
+  #vaers-breakdowns th,
+  #vaers-breakdowns td{
+    border-color: var(--accent) !important;
+  }
+}
