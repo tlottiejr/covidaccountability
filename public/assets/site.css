@@ -1338,3 +1338,22 @@ body {
 }
 /* Optional: square every .card on the site */
 .card { border-radius: 0 !important; }
+/* === About page: stack VAERS charts full-width, large height === */
+/* Target the charts wrapper under the VAERS Figures section */
+section[aria-labelledby="vaers-figures"] .grid {
+  display: block !important;          /* stop using the 3-column grid */
+  margin-top: 12px;
+}
+
+/* Make each chart full width and tall */
+#vaers-by-year,
+#vaers-covid-deaths-monthly,
+#vaers-days-to-onset {
+  display: block;
+  width: 100% !important;
+  height: 420px !important;           /* adjust to taste (e.g., 460/500) */
+  margin: 0 0 16px 0;                 /* space between charts */
+}
+
+/* (Optional) tighter legends so they don’t wrap weirdly on small screens */
+.echarts { font-size: 14px; line-height: 1.25; }
