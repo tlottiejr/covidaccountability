@@ -44,18 +44,32 @@
     document.addEventListener("visibilitychange", doResize);
   }
 
-  // Some builders may emit keys in slightly different names.
-  // These helpers normalize common shapes.
-  function normalizeReportsByYear(arr = []) {
-    // expected: [{year, all, us_territories_unknown}]
-    return arr
-      .filter((x) => x && (x.year || x.y || x[0] !== undefined))
+    // Some builders may emit keys in slightly different names.
+    // These helpers normalize common shapes.
+    function normalizeReportsByYear(src) {
+    // Accept either an array of rows or an object keyed by year
+    let list;
+    if (Array.isArray(src)) {
+      list = src;
+    } else if (src && typeof src === "object") {
+      // Expect shapes like: { "1990": { all: N, us_territories_unknown: M } , ... }
+      list = Object.entries(src).map(([year, v]) => ({
+        year: Number(year),
+        all:  Number(v?.all ?? v?.a ?? v?.[0] ?? 0),
+        us:   Number(v?.us_territories_unknown ?? v?.us ?? v?.u ?? v?.[1] ?? 0),
+      }));
+    } else {
+      list = [];
+    }
+  
+    return list
+      .filter((x) => x && x.year != null)
       .map((x) => ({
-        year: x.year ?? x.y ?? x[0],
-        all:  Number(x.all ?? x.a ?? x[1] ?? 0),
-        us:   Number(x.us_territories_unknown ?? x.us_terr_unk ?? x.u ?? x[2] ?? 0),
+        year: Number(x.year),
+        all:  Number(x.all ?? 0),
+        us:   Number(x.us  ?? 0),
       }))
-      .sort((a, b) => Number(a.year) - Number(b.year));
+      .sort((a, b) => a.year - b.year);
   }
 
   function normalizeCovidDeathsMonthly(obj = {}) {
