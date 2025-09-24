@@ -1,54 +1,33 @@
 // public/assets/home-timeline.js (REPLACEMENT)
-// Timeline rail as BUTTONS labeled with TITLES (not dates). Robust Rumble embeds,
-// and we rebuild the iframe on each selection to avoid ghost overlays.
+// Title buttons that swap the main player. Uses explicit EMBED URLs for reliability.
 
 (() => {
+  // IMPORTANT: Use explicit embedSrc for each item to avoid parsing/redirect issues.
   const ITEMS = [
     {
       title: 'PSI: Hearing Voices of the Vaccine Injured',
-      url: 'https://rumble.com/v6w6cqw-psi-hearing-voices-of-the-vaccine-injured.html',
+      url:   'https://rumble.com/v6w6cqw-psi-hearing-voices-of-the-vaccine-injured.html',
+      embedSrc: 'https://rumble.com/embed/v6w6cqw/?pub=4',
       date: '2025-09-01'
     },
     {
       title: 'How Healers Become Killers — Vera Sharav',
-      url: 'https://rumble.com/v6s6ddn-how-healers-become-killers-vera-sharav.html?e9s=src_v1_s%2Csrc_v1_s_o',
+      url:   'https://rumble.com/v6s6ddn-how-healers-become-killers-vera-sharav.html?e9s=src_v1_s%2Csrc_v1_s_o',
+      embedSrc: 'https://rumble.com/embed/v6s6ddn/?pub=4',
       date: '2025-08-15'
     },
     {
-      title: 'Premiere: Inside mRNA Vaccines',
-      url: 'https://www.youtube.com/watch?v=BZrJraN2nOQ',
+      title: 'YouTube Feature',
+      url:   'https://www.youtube.com/watch?v=BZrJraN2nOQ',
+      embedSrc: 'https://www.youtube.com/embed/BZrJraN2nOQ',
       date: '2025-07-20'
     }
   ];
 
-  function toEmbed(url) {
-    try {
-      const u = new URL(url, location.href);
-
-      // YouTube
-      if (/youtube\.com$/i.test(u.hostname)) {
-        const id = u.searchParams.get('v');
-        if (id) return `https://www.youtube.com/embed/${id}`;
-      }
-      if (/youtu\.be$/i.test(u.hostname)) {
-        const id = u.pathname.split('/').pop();
-        if (id) return `https://www.youtube.com/embed/${id}`;
-      }
-
-      // Rumble -> canonical embed with ?pub=4 (most reliable)
-      if (/rumble\.com$/i.test(u.hostname)) {
-        const m = u.pathname.match(/\/v([a-z0-9]+)(?:-|\.|$)/i) || u.pathname.match(/\/video\/([a-z0-9]+)/i);
-        if (m && m[1]) return `https://rumble.com/embed/v${m[1]}/?pub=4`;
-        if (u.pathname.includes('/embed/')) return u.toString().includes('?') ? u.toString() : `${u.toString()}?pub=4`;
-      }
-    } catch {}
-    return null;
-  }
-
   function renderRail(root, items, onSelect) {
     const rail = document.createElement('div');
     rail.className = 'video-rail';
-    rail.innerHTML = '<div class="container" role="tablist" aria-label="Media timeline"></div>';
+    rail.innerHTML = '<div class="container" role="tablist" aria-label="Featured media"></div>';
     const track = rail.firstElementChild;
 
     items.forEach((it, idx) => {
@@ -56,8 +35,8 @@
       btn.type = 'button';
       btn.className = 'rail-item';
       btn.dataset.index = String(idx);
-      btn.textContent = it.title;          // << titles instead of dates
-      btn.title = it.title;                // tooltip for long titles
+      btn.textContent = it.title;    // titles (not dates)
+      btn.title = it.title;
       btn.addEventListener('click', () => onSelect(idx));
       track.appendChild(btn);
     });
@@ -82,15 +61,15 @@
     f.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share');
     f.setAttribute('allowfullscreen', 'true');
     f.setAttribute('loading', 'lazy');
-    if (src) f.src = src;
+    f.setAttribute('referrerpolicy', 'no-referrer'); // avoids odd referrer-based behavior
+    f.src = src;
     return f;
   }
 
   function select(index, items, rail, player) {
     const it = items[index];
-    const embed = toEmbed(it.url);
 
-    // mark active button
+    // highlight active
     rail.querySelectorAll('.rail-item').forEach(b => b.removeAttribute('aria-current'));
     const active = rail.querySelector(`.rail-item[data-index="${index}"]`);
     if (active) active.setAttribute('aria-current', 'true');
@@ -100,11 +79,15 @@
     title.textContent = it.title;
     title.href = it.url;
 
-    // rebuild iframe to avoid stale overlays/ghost frames
+    // rebuild iframe from explicit embedSrc (no parsing)
     const frameHost = player.querySelector('.frame');
     frameHost.innerHTML = '';
-    frameHost.appendChild(iframeNode(embed));
-    frameHost.style.background = embed ? '#000' : '#f8fafc';
+    if (it.embedSrc) {
+      frameHost.appendChild(iframeNode(it.embedSrc));
+      frameHost.style.background = '#000';
+    } else {
+      frameHost.style.background = '#f8fafc';
+    }
   }
 
   function mount() {
