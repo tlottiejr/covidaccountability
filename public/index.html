@@ -1,56 +1,61 @@
 <!doctype html>
 <html lang="en">
-<script src="/assets/js/ux-accessibility.js" defer></script>
-<head>
-  <meta charset="utf-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1"/>
-  <title>COVIDAccountabilityNow</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="/assets/site.css"/>
-</head>
-<body id="home">
-  <div id="nav-root"></div>
-  <script src="/assets/nav-include.js" defer></script>
+  <script src="/assets/js/ux-accessibility.js" defer></script>
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>COVIDAccountabilityNow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="/assets/site.css"/>
+  </head>
+  <body id="home">
+    <!-- Global nav + trust strip are injected here -->
+    <div id="nav-root"></div>
+    <script src="/assets/nav-include.js" defer></script>
 
-  <main class="container">
-    <section class="hero card">
-      <h1>Is Your Story Our Story?</h1>
-      <p>
-        We help victims navigate official reporting channels for injury following COVID "vaccine" administration.
-      </p>
-      <div class="row">
-        <a class="btn" href="/report.html">Information Template</a>
-        <a class="btn" href="/complaint-portal.html">Complaint Portal</a>
-        <a class="btn ghost" href="/why-report.html">Why should I report?</a>
-      </div>
-    </section>
+    <main class="container">
+      <!-- Story-first hero (no buttons) -->
+      <section class="hero">
+        <h1>Is Your Story Our Story?</h1>
+        <p>
+          We help victims navigate official reporting channels for injury following COVID "vaccine" administration.
+        </p>
+      </section>
 
-    <section class="card">
-      <h2>What We Offer</h2>
-      <p>
-        Free assistance with filing your injury to the medical board and support for advancing accountability.
-      </p>
-      <p>
-        This website is not medical or legal advice. We offer research and links to reporting agencies.
-      </p>
-    </section>
+      <!-- Clickable timeline rail + player are injected into this section -->
+      <section id="home-media" aria-label="Featured media timeline">
+        <!-- /assets/home-timeline.js will render the rail and the player here -->
+      </section>
 
-    <section class="card">
-      <h2>Next Steps</h2>
-      <p>
+      <!-- Inline CTAs (your existing Next Steps content, verbatim) -->
+      <section class="inline-steps" aria-label="Next steps">
         <ol>
           <li>Start with the <a href="/report.html">Information Template</a> to prepare your story</li>
           <li>Proceed to the <a href="/complaint-portal.html">Complaint Portal</a> to connect with your state's medical board</li>
           <li>Visit our <a href="/references.html">References</a> to explore supporting material</li>
           <li>Consider sharing with others who may benefit from this service</li>
-      </ol>
-      </p>
-    </section>
-  </main>
+        </ol>
+      </section>
 
-  <footer class="container">
-    <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
-  </footer>
-</body>
+      <!-- Keep What We Offer content verbatim on the page -->
+      <section class="module" aria-labelledby="what-we-offer">
+        <div class="rule"></div>
+        <div class="inner">
+          <h2 id="what-we-offer">What We Offer</h2>
+          <p>
+            Free assistance with filing your injury to the medical board and support for advancing accountability.
+          </p>
+          <p>
+            This website is not medical or legal advice. We offer research and links to reporting agencies.
+          </p>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer unchanged -->
+    <footer class="container">
+      <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
+    </footer>
+  </body>
 </html>
