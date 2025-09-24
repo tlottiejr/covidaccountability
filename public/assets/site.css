@@ -896,3 +896,12 @@ body {
     min-height: 150px;
   }
 }
+/* --- Global shadow kill switch --- */
+.card,
+.card:hover,
+.card:focus,
+.panel,
+.paper,
+.callout {
+  box-shadow: none !important;
+}
