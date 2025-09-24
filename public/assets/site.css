@@ -1214,3 +1214,44 @@ body {
     background: rgba(29,111,189,0.12) !important;
   }
 }
+/* === VAERS table: transparent cells over gradient (no white panels) === */
+
+/* make every cell transparent so the container's gradient shows through */
+#vaers-breakdowns table,
+#vaers-breakdowns thead th,
+#vaers-breakdowns tbody td {
+  background: transparent !important;
+}
+
+/* strengthen lines slightly for contrast on gradient (tune % to taste) */
+:root{
+  --vaers-line-strong: color-mix(in srgb, var(--accent) 30%, transparent);
+  --vaers-line-soft:   color-mix(in srgb, var(--accent) 20%, transparent);
+}
+
+#vaers-breakdowns{
+  border-color: var(--vaers-line-strong);
+}
+#vaers-breakdowns table:nth-of-type(1),
+#vaers-breakdowns table:nth-of-type(2){
+  border-right: 1px solid var(--vaers-line-strong);
+}
+#vaers-breakdowns thead th{
+  border-bottom: 1px solid var(--vaers-line-strong) !important;
+}
+#vaers-breakdowns tbody tr + tr td{
+  border-top: 1px solid var(--vaers-line-soft) !important;
+}
+
+/* keep numeric column divider subtle */
+#vaers-breakdowns thead th:last-child,
+#vaers-breakdowns tbody td:last-child{
+  border-left: 1px solid var(--vaers-line-soft);
+}
+
+/* optional: faint hover without adding a solid background */
+@media (hover:hover){
+  #vaers-breakdowns tbody tr:hover td{
+    background: color-mix(in srgb, var(--accent) 4%, transparent);
+  }
+}
