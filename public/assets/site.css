@@ -397,11 +397,6 @@ footer.container span[aria-hidden="true"],
   --radius: 0px; /* hard edges */
 }
 
-html, body { height: 100%; }
-body {
-  background: linear-gradient(180deg, #e8f0ff 0%, #f3f6ff 30%, #ffffff 100%);
-}
-
 /* Hard edges for common UI */
 .card, .paper, .btn, input, textarea, select, .site-header, .hero, .module, .video-rail, .video-player,
 .embed, .trust-strip { border-radius: var(--radius) !important; }
@@ -480,14 +475,6 @@ body {
   --radius: 0px;
 }
 
-/* Gradient covers full height */
-html, body { height: 100%; }
-body {
-  min-height: 100%;
-  background: linear-gradient(180deg, #e8f0ff 0%, #f3f6ff 35%, #ffffff 100%);
-  color: var(--ink-900);
-}
-
 /* Header */
 .site-header { background:#fff; border-bottom:1px solid var(--line); }
 .header-flex {
@@ -543,10 +530,6 @@ footer.container a { margin: 0 8px; }
   gap: 12px;
   padding: 8px 0;
 }
-
-/* Ensure gradient covers the full page height, no bottom gap */
-html, body { height: 100%; }
-body { min-height: 100vh; background-attachment: scroll; }
 
 /* Header + nav (hard edges, spacing) */
 .site-header { background:#fff; border-bottom:1px solid var(--line); }
@@ -735,4 +718,15 @@ footer.container .sep {
   #home .steps-grid {
     grid-template-columns: 1fr;
   }
+}
+/* ==== Global background gradient (robust across scroll & tall pages) ==== */
+html {
+  min-height: 100%;
+  background: linear-gradient(180deg, #e8f0ff 0%, #f3f6ff 35%, #ffffff 100%);
+  background-attachment: fixed;   /* keep gradient continuous while scrolling */
+}
+
+body {
+  min-height: 100%;
+  background: transparent;        /* let the html gradient show through */
 }
