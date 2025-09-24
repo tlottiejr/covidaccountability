@@ -11,34 +11,37 @@ Regenerate `public/data/vaers-summary.json` each month from official VAERS CSVs 
 
 - **Windows + PowerShell**
 - **Node.js 20+** (any recent LTS is fine)
-- **7-Zip** installed at `C:\Program Files\7-Zip\7z.exe`  
-  (VAERS ZIPs sometimes use **Deflate64**; Windows’ built-in unzip won’t extract those reliably.)
-- GitHub access to upload a single file via the web UI
-
-> No `npm install` required for the monthly run. The builder script is self-contained.
+- **7-Zip** at `C:\Program Files\7-Zip\7z.exe`  
+  *(Some VAERS ZIPs use Deflate64; Windows’ unzip can fail.)*
+- GitHub access to upload a single file via the web UI  
+- No `npm install` required. The builder scripts are self-contained.
 
 ---
 
 ## One-Time Repo Hygiene (do this once)
 
-Ensure these files exist in the repo (they already do in the current live ZIP):
+Ensure these files exist in the repo:
 
-- `scripts/vaers-build-from-dir.mjs`  ← local builder that reads extracted CSV folders
-- `public/about.html`                 ← contains the VAERS section + **3 script tags** (see below)
+- `scripts/vaers-build-from-dir.mjs` — main builder that reads extracted CSV folders
+- `scripts/vaers-compute-deaths-by-year.mjs` — **adds `deaths_by_year` to JSON (NEW)**
+- `public/about.html` — contains the VAERS section + **3 script tags**
 - `public/assets/js/vaers-charts.js`
 - `public/assets/js/vaers-tables.js`
 
-Ignore the local working folders so you never commit raw CSVs:
+Ignore local working folders so you never commit raw CSVs:
 
-    # .gitignore
-    _vaers/
+```gitignore
+_vaers/
+```
 
-(You’ll extract VAERS ZIPs into `_vaers/domestic` and `_vaers/non_domestic` each month.)
+(Each month you’ll extract ZIPs into `_vaers/domestic` and `_vaers/non_domestic`.)
 
-Optional: keep empty placeholders so folders exist in git (handy for structure):
+Optional placeholders to keep folders in git:
 
-    public/data/.gitkeep
-    data/vaers/.gitkeep
+```
+public/data/.gitkeep
+data/vaers/.gitkeep
+```
 
 ---
 
@@ -46,153 +49,209 @@ Optional: keep empty placeholders so folders exist in git (handy for structure):
 
 ### 1) Download the official VAERS bundles (captcha page)
 
-Use your browser to download from the VAERS Data page (you’ll pass a captcha):
+From the VAERS Data page (you’ll pass a captcha), download:
 
-- **Domestic (All Years Data → Zip File)** – e.g. `AllVAERSDataCSVS.zip`
-- **Non-Domestic (All Years Data → Zip File)** – must include both:
+- **Domestic (All Years Data → Zip File)** — e.g. `AllVAERSDataCSVS.zip`
+- **Non-Domestic (All Years Data → Zip File)** — the ZIP must include:
   - `NonDomesticVAERSDATA.csv`
   - `NonDomesticVAERSVAX.csv`
 
-Save the two ZIPs somewhere convenient (e.g., your Downloads folder).
+Save both ZIPs (e.g., in your Downloads folder).
 
 ---
 
 ### 2) Extract with 7-Zip (Deflate64-safe) into the repo
 
-Open **PowerShell** at the **repo root** (the folder that contains `public/`, `scripts/`, `ops/`, etc.) and run:
+Open **PowerShell** at the **repo root** (folder with `public/`, `scripts/`, `ops/`, …) and run:
 
-    # --- Adjust these two paths to where you saved the zips ---
-    $domZip = "C:\Users\<you>\Downloads\AllVAERSDataCSVS.zip"
-    $nonZip = "C:\Users\<you>\Downloads\NonDomesticVAERSDATA.zip"  # must contain DATA and VAX CSVs
+```powershell
+# --- Adjust these two paths to where you saved the zips ---
+$domZip = "C:\Users\<you>\Downloads\AllVAERSDataCSVS.zip"
+$nonZip = "C:\Users\<you>\Downloads\NonDomesticVAERSDATA.zip"  # must contain DATA and VAX CSVs
 
-    # --- Choose stable extract folders inside the repo (repeatable month-to-month) ---
-    $domDir = "_vaers\domestic"
-    $nonDir = "_vaers\non_domestic"
-    New-Item -ItemType Directory -Force -Path $domDir, $nonDir | Out-Null
+# --- Stable extract folders inside the repo (repeat month-to-month) ---
+$domDir = "_vaers\domestic"
+$nonDir = "_vaers\non_domestic"
+New-Item -ItemType Directory -Force -Path $domDir, $nonDir | Out-Null
 
-    # --- 7-Zip extraction (handles Deflate64) ---
-    $sevenZip = "C:\Program Files\7-Zip\7z.exe"
-    & $sevenZip x $domZip -o$domDir -y
-    & $sevenZip x $nonZip -o$nonDir -y
+# --- 7-Zip extraction (handles Deflate64) ---
+$sevenZip = "C:\Program Files\7-Zip\7z.exe"
+& $sevenZip x $domZip -o$domDir -y
+& $sevenZip x $nonZip -o$nonDir -y
+```
 
-After extraction you should have something like:
+Expected structure after extraction:
 
-    _vaers/domestic/
-      1990VAERSDATA.csv
-      1990VAERSVAX.csv
-      1991VAERSDATA.csv
-      1991VAERSVAX.csv
-      ... (many years)
+```
+_vaers/domestic/
+  1990VAERSDATA.csv
+  1990VAERSVAX.csv
+  1991VAERSDATA.csv
+  1991VAERSVAX.csv
+  ... (many years)
 
-    _vaers/non_domestic/
-      NonDomesticVAERSDATA.csv
-      NonDomesticVAERSVAX.csv
+_vaers/non_domestic/
+  NonDomesticVAERSDATA.csv
+  NonDomesticVAERSVAX.csv
+```
 
-> If you accidentally created literal folders named `.\$domDir` or `.\$nonDir`, re-extract using the commands above (those `$` names were meant to be variables).
+> If you accidentally created literal folders named `.\$domDir` or `.\$nonDir`, re-extract with the commands above (`$` names are variables).
 
 ---
 
-### 3) Build the summary JSON (no npm)
+### 3) Build the **base** summary JSON (no npm)
 
-From the repo root in **PowerShell**:
+```powershell
+# Point the builder at the two extracted folders
+$env:VAERS_DATA_DIR   = (Resolve-Path $domDir)
+$env:VAERS_NONDOM_DIR = (Resolve-Path $nonDir)
 
-    # Point the builder at the two extracted folders
-    $env:VAERS_DATA_DIR   = (Resolve-Path $domDir)
-    $env:VAERS_NONDOM_DIR = (Resolve-Path $nonDir)
+Write-Host "Building vaers-summary.json from:`n  $env:VAERS_DATA_DIR`n  $env:VAERS_NONDOM_DIR" -ForegroundColor Cyan
 
-    Write-Host "Building vaers-summary.json from:`n  $env:VAERS_DATA_DIR`n  $env:VAERS_NONDOM_DIR" -ForegroundColor Cyan
+node scripts/vaers-build-from-dir.mjs
 
-    node scripts/vaers-build-from-dir.mjs
+Write-Host "Base JSON built." -ForegroundColor Green
+Resolve-Path "public\data\vaers-summary.json"
+```
 
-    Write-Host "Done. Upload this file in GitHub web UI:" -ForegroundColor Green
-    Resolve-Path "public\data\vaers-summary.json"
+This creates/overwrites: `public/data/vaers-summary.json`.
 
-This generates/overwrites: `public/data/vaers-summary.json`.
+---
+
+### 3b) **NEW — Inject `deaths_by_year` (required for Chart #1)**
+
+Chart #1 on **About** uses **yearly deaths** (Total vs **Non-COVID**), not “all reports.”  
+Run the injector to scan VAERS DATA/VAX CSVs and merge `deaths_by_year`:
+
+```powershell
+# Uses the same VAERS_DATA_DIR and VAERS_NONDOM_DIR set in step 3
+node scripts/vaers-compute-deaths-by-year.mjs
+
+Write-Host "Injected deaths_by_year." -ForegroundColor Green
+Resolve-Path "public\data\vaers-summary.json"
+```
+
+You should now see a block like:
+
+```json
+"deaths_by_year": [
+  { "year": 1990, "all": 123, "non_covid": 120 },
+  { "year": 1991, "all": 110, "non_covid": 108 }
+]
+```
 
 ---
 
 ### 4) Upload the JSON to GitHub (web UI)
 
-1. In GitHub, open your repo → **Add file** → **Upload files**.  
+1. In GitHub: repo → **Add file** → **Upload files**  
 2. Upload **only**: `public/data/vaers-summary.json`  
-3. Commit directly to your default branch (usually `main`).  
-4. Cloudflare Pages detects the commit and redeploys; the **About** page charts update.
+3. Commit to the default branch (usually `main`)  
+4. Cloudflare Pages redeploys; the **About** page updates automatically
 
-> **We never commit the raw CSVs or ZIPs.** Only the generated JSON goes to git.
-
----
-
-## About Page – Hooks (already present; reference for verification)
-
-Make sure the **section block** exists near the end of `public/about.html` (before `</main>`):
-
-    <!-- VAERS Figures (Official Data) -->
-    <section class="module" aria-labelledby="vaers-figures">
-      <div class="rule"></div>
-      <div class="inner">
-        <h2 id="vaers-figures">VAERS Figures (Official Data)</h2>
-
-        <!-- Charts grid -->
-        <div class="grid" style="margin-top:12px">
-          <div id="vaers-by-year" style="height:320px"></div>
-          <div id="vaers-covid-deaths-monthly" style="height:320px"></div>
-          <div id="vaers-days-to-onset" style="height:320px"></div>
-        </div>
-
-        <!-- Wide 3-column table (Manufacturer / Sex / Age) -->
-        <div id="vaers-breakdowns" class="table-like" style="margin-top:16px"></div>
-
-        <p class="muted" id="vaers-asof" style="margin-top:8px"></p>
-      </div>
-    </section>
-
-And add these **three** scripts before `</body>` (keep order):
-
-    <!-- ECharts (UMD) -->
-    <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js" defer></script>
-
-    <!-- VAERS renderers -->
-    <script src="/assets/js/vaers-charts.js" defer></script>
-    <script src="/assets/js/vaers-tables.js" defer></script>
-
-These scripts load `/data/vaers-summary.json`, render the three charts:
-- **All Reports to VAERS by Year** (two series)
-- **COVID Vaccine Reports of Death by Month** (Total / US-Terr-Unk / Foreign)
-- **Deaths by Days to Onset (COVID vs Flu)**
-
-…and the **wide table** (Manufacturer / Sex / Age bins for COVID deaths). Colors/typography follow your existing CSS variables.
+> **Do not commit the CSVs or ZIPs.** Only the generated JSON goes to git.
 
 ---
 
-## (Optional) One-Command Helper (PowerShell)
+## About Page – Quick Verification
 
-Save as `ops/update-vaers.ps1` for a one-shot monthly run:
+Confirm these three scripts are present just before `</body>` in `public/about.html`:
 
-    param(
-      [string]$Domestic    = "_vaers\domestic",
-      [string]$NonDomestic = "_vaers\non_domestic"
-    )
+```html
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js" defer></script>
+<script src="/assets/js/vaers-charts.js" defer></script>
+<script src="/assets/js/vaers-tables.js" defer></script>
+```
 
-    Set-StrictMode -Version Latest
-    $ErrorActionPreference = "Stop"
+The charts rendered:
 
-    if (!(Test-Path $Domestic))    { throw "Domestic dir not found: $Domestic" }
-    if (!(Test-Path $NonDomestic)) { throw "Non-domestic dir not found: $NonDomestic" }
+1. **All Deaths Reported to VAERS by Year**  
+   - Uses `deaths_by_year` (from **Step 3b**)  
+   - Lines: **Reports of Death** and **All Non-COVID-Vaccine Deaths**
+2. **COVID Vaccine Reports of Death by Month**  
+   - Uses `covid_deaths_by_month` (base builder)  
+   - Series: **Total**, **US/Terr/Unknown**, **Foreign**
+3. **VAERS COVID/FLU Vaccine Reported Deaths by Days to Onset**  
+   - Uses `deaths_days_to_onset` (base builder)  
+   - Series: **COVID-19**, **Flu**
 
-    $env:VAERS_DATA_DIR   = (Resolve-Path $Domestic)
-    $env:VAERS_NONDOM_DIR = (Resolve-Path $NonDomestic)
-
-    Write-Host "Building vaers-summary.json from:`n  $env:VAERS_DATA_DIR`n  $env:VAERS_NONDOM_DIR" -ForegroundColor Cyan
-    node scripts/vaers-build-from-dir.mjs
-
-    Write-Host "Done. Upload this file in GitHub web UI:" -ForegroundColor Green
-    Resolve-Path "public\data\vaers-summary.json"
-
-Usage each month (from repo root):
-
-    pwsh ops/update-vaers.ps1
+The **wide table** (Manufacturer / Sex / Age) is unchanged and reads from the breakdowns in the JSON.
 
 ---
+
+## Post-Update Checklist
+
+- About page shows updated **“As of …”** date  
+- Chart #1 shows **deaths** (two lines: All & Non-COVID)  
+- Monthly and Days-to-Onset charts populate  
+- Wide table populates  
+- If stale, hard-refresh (Ctrl+F5)
+
+---
+
+## Troubleshooting
+
+**Chart #1 blank / NaN**  
+- Step **3b** wasn’t run, or `deaths_by_year` wasn’t written.  
+- Open `/public/data/vaers-summary.json` and confirm the array exists.
+
+**ECharts blocked**  
+- `public/_headers` must allow `https://cdn.jsdelivr.net` in `script-src`.
+
+**Extraction errors**  
+- Use **7-Zip**; some VAERS bundles are **Deflate64**.
+
+---
+
+## Data Definitions (reference)
+
+- **Deaths by Year (All vs Non-COVID)**  
+  - From `VAERSDATA`: `DIED='Y'`; year = `year(RECVDATE)`  
+  - A death is **COVID** if any joined `VAERSVAX` row has `VAX_TYPE='COVID19'`  
+  - `non_covid = all - covid`
+- **COVID Deaths by Month**  
+  - `DIED='Y'` + `VAX_TYPE='COVID19'`; group by `month(RECVDATE)`  
+  - Split **US/Terr/Unknown** vs **Foreign** using `STATE` membership (blank/Unknown → US/Terr/Unknown)
+- **Days to Onset (COVID vs Flu)**  
+  - Prefer `NUMDAYS`; else `ONSET_DATE - VAX_DATE` in days; bucket `0…19`  
+  - COVID = `VAX_TYPE='COVID19'`; Flu = `VAX_TYPE` starts with `FLU`
+
+---
+
+## Optional: One-Command Helper
+
+Save as `ops/update-vaers.ps1` to run steps 3 + 3b in one shot (after manual downloads/extraction):
+
+```powershell
+param(
+  [string]$Domestic    = "_vaers\domestic",
+  [string]$NonDomestic = "_vaers\non_domestic"
+)
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = "Stop"
+
+if (!(Test-Path $Domestic))    { throw "Domestic dir not found: $Domestic" }
+if (!(Test-Path $NonDomestic)) { throw "Non-domestic dir not found: $NonDomestic" }
+
+$env:VAERS_DATA_DIR   = (Resolve-Path $Domestic)
+$env:VAERS_NONDOM_DIR = (Resolve-Path $NonDomestic)
+
+Write-Host "Building base JSON..." -ForegroundColor Cyan
+node scripts/vaers-build-from-dir.mjs
+
+Write-Host "Injecting deaths_by_year..." -ForegroundColor Cyan
+node scripts/vaers-compute-deaths-by-year.mjs
+
+Write-Host "Ready to upload:" -ForegroundColor Green
+Resolve-Path "public\data\vaers-summary.json"
+```
+
+Usage each month:
+
+```powershell
+pwsh ops/update-vaers.ps1
+```
 
 ## Post-Update Checklist
 
