@@ -581,11 +581,18 @@ footer.container .sep {
   justify-content: center;   /* center the buttons */
 }
 /* Center trust strip items and tighten */
+/* Trust strip centered under the nav */
 .trust-strip { background:#fff; border-bottom:1px solid var(--line); }
-.trust-grid {
-  display:grid; grid-template-columns: repeat(2, minmax(0,1fr));
-  justify-items:center; align-items:center; gap:8px; padding:8px 0;
+.trust-grid{
+  display:flex;                 /* <— switch from grid to flex */
+  justify-content:center;       /* <— center the whole row */
+  align-items:center;
+  gap:48px;                     /* space between the two items */
+  padding:8px 0;
+  text-align:center;
 }
+.trust-item{ color:var(--ink-700); }
+.trust-item b{ color:var(--ink-900); }
 
 /* Center hero text and constrain width */
 #home .hero { text-align:center; }
