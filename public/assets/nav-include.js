@@ -9,16 +9,14 @@
     return p || '/';
   }
 
-  // Wordmark: "COVIDA" blue + the "N" of "Now" blue (final "ow" black)
+  // Wordmark: "COVIDA" blue + "N" in Now blue; "ow" remains black; NOT a link
   function wordmarkHTML() {
-  // COVIDAccountabilityNow -> [COVIDA][ccountability][N][ow]
     return `
-      <span class="logo-wordmark">
+      <span class="logo-wordmark" aria-label="COVIDAccountabilityNow">
         <span class="accent">COVIDA</span>ccountability<span class="accent">N</span>ow
       </span>
     `;
   }
-
 
   const NAV_LINKS = [
     { label: 'Home',            href: '/' },
@@ -40,8 +38,8 @@
     header.className = 'site-header';
     header.innerHTML = `
       <div class="container header-flex">
-        <a class="logo" href="/"> ${wordmarkHTML()} </a>
-        <nav class="nav"></nav>
+        <div class="logo" role="img">${wordmarkHTML()}</div>
+        <nav class="nav" aria-label="Primary"></nav>
       </div>
     `;
 
@@ -53,7 +51,7 @@
       if (link.contact) a.setAttribute('data-open-contact', '');
       if (!link.contact && canonicalizePath(link.href) === current) {
         a.setAttribute('aria-current', 'page');
-        a.addEventListener('click', ev => ev.preventDefault());
+        a.addEventListener('click', (ev) => ev.preventDefault());
       }
       nav.appendChild(a);
     });
@@ -90,39 +88,6 @@
     host.insertAdjacentElement('afterend', strip);
   }
 
-  // NEW: normalize footer globally
-  function renderFooter() {
-    document.querySelectorAll('footer.container').forEach((foot) => {
-      // Avoid double-run
-      if (foot.__standardized) return;
-      foot.__standardized = true;
-
-      foot.innerHTML = '';
-      const mkSep = () => {
-        const s = document.createElement('span');
-        s.className = 'sep';
-        s.setAttribute('aria-hidden', 'true');
-        s.textContent = '·';
-        return s;
-      };
-
-      const a1 = document.createElement('a');
-      a1.href = '/privacy.html';
-      a1.textContent = 'Privacy';
-
-      const a2 = document.createElement('a');
-      a2.href = '/disclaimer.html';
-      a2.textContent = 'Disclaimer';
-
-      const a3 = document.createElement('a');
-      a3.href = '#contact';
-      a3.textContent = 'Contact';
-      a3.setAttribute('data-open-contact', '');
-
-      foot.append(a1, mkSep(), a2, mkSep(), a3);
-    });
-  }
-
   function loadOnce(src, id) {
     if (id && document.getElementById(id)) return;
     if ([...document.scripts].some(s => s.src.endsWith(src))) return;
@@ -133,19 +98,39 @@
     document.body.appendChild(s);
   }
 
+  function renderFooter() {
+    document.querySelectorAll('footer.container').forEach((foot) => {
+      if (foot.__standardized) return;
+      foot.__standardized = true;
+      foot.innerHTML = '';
+      const mkSep = () => {
+        const s = document.createElement('span');
+        s.className = 'sep';
+        s.setAttribute('aria-hidden', 'true');
+        s.textContent = '·';
+        return s;
+      };
+      const a1 = Object.assign(document.createElement('a'), { href: '/privacy.html', textContent: 'Privacy' });
+      const a2 = Object.assign(document.createElement('a'), { href: '/disclaimer.html', textContent: 'Disclaimer' });
+      const a3 = Object.assign(document.createElement('a'), { href: '#contact', textContent: 'Contact' });
+      a3.setAttribute('data-open-contact', '');
+      foot.append(a1, mkSep(), a2, mkSep(), a3);
+    });
+  }
+
   function init() {
     renderNav();
     renderTrustStrip();
     renderFooter();
 
     // global helpers
-    loadOnce('/assets/links-newtab.js', 'links-newtab-js');
-    loadOnce('/assets/contact.js', 'contact-js');
+    const p = canonicalizePath(location.pathname);
+    const load = (src, id) => { if (!document.getElementById(id)) { const s=document.createElement('script'); s.id=id; s.src=src; s.defer=true; document.body.appendChild(s);} };
+    load('/assets/links-newtab.js', 'links-newtab-js');
+    load('/assets/contact.js', 'contact-js');
 
     // home-only timeline
-    if (canonicalizePath(location.pathname) === '/') {
-      loadOnce('/assets/home-timeline.js', 'home-timeline-js');
-    }
+    if (p === '/') load('/assets/home-timeline.js', 'home-timeline-js');
   }
 
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', init);
