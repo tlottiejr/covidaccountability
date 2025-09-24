@@ -1178,3 +1178,39 @@ body {
     border-color: var(--accent) !important;
   }
 }
+/* === VAERS block: subtle reverse gradient on-brand === */
+:root{
+  /* tune these two if you want stronger/weaker tint */
+  --vaers-grad-strong: color-mix(in srgb, var(--accent) 12%, #fff);
+  --vaers-grad-soft:   color-mix(in srgb, var(--accent) 6%,  #fff);
+}
+
+/* wrapper already has border + radius; add gradient background */
+#vaers-breakdowns{
+  background:
+    /* reverse/diagonal wash from bottom-left to top-right */
+    linear-gradient(135deg, var(--vaers-grad-strong) 0%, var(--vaers-grad-soft) 55%, #fff 100%);
+  /* keep the existing outer border color you set earlier */
+  /* optional: subtle inner highlight so it pops just a hair */
+  box-shadow: inset 0 1px 0 color-mix(in srgb, var(--accent) 10%, transparent);
+}
+
+/* keep inner tables transparent so the gradient shows through softly */
+#vaers-breakdowns table{
+  background: transparent !important;
+}
+
+/* header tint over the gradient still looks balanced */
+#vaers-breakdowns thead th{
+  background: color-mix(in srgb, #fff 85%, var(--accent) 15%) !important;
+}
+
+/* Fallback if color-mix isn't supported */
+@supports not (color: color-mix(in srgb, #000, #fff)){
+  #vaers-breakdowns{
+    background: linear-gradient(135deg, rgba(29,111,189,0.12) 0%, rgba(29,111,189,0.06) 55%, #fff 100%);
+  }
+  #vaers-breakdowns thead th{
+    background: rgba(29,111,189,0.12) !important;
+  }
+}
