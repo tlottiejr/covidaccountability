@@ -561,3 +561,14 @@ body { min-height: 100vh; background-attachment: scroll; }
 /* Footer spacing + Contact link */
 footer.container { text-align:center; padding:14px 0 18px; }
 footer.container a { margin: 0 8px; }
+/* Global footer spacing + centered links */
+footer.container {
+  text-align: center;
+  padding: 16px 0 22px;
+}
+footer.container a { margin: 0 8px; }
+footer.container .sep {
+  display: inline-block;
+  margin: 0 6px;
+  color: #94a3b8;
+}
