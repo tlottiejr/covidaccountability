@@ -15,19 +15,19 @@
     <script src="/assets/nav-include.js" defer></script>
 
     <main class="container">
-      <!-- Hero (story-first) -->
-      <section class="hero">
+      <!-- Hero with shadow -->
+      <section class="hero card">
         <h1>Is Your Story Our Story?</h1>
         <p>
           We help victims navigate official reporting channels for injury following COVID "vaccine" administration.
         </p>
       </section>
 
-      <!-- Timeline rail + player mount point (already working) -->
+      <!-- Timeline rail + player -->
       <section id="home-media" aria-label="Featured media timeline"></section>
 
-      <!-- What We Offer (single band, verbatim) -->
-      <section class="module" aria-labelledby="what-we-offer">
+      <!-- What We Offer FIRST (single band, with shadow) -->
+      <section class="module card" aria-labelledby="what-we-offer">
         <div class="rule"></div>
         <div class="inner">
           <h2 id="what-we-offer">What We Offer</h2>
@@ -39,19 +39,35 @@
           </p>
         </div>
       </section>
-    </main>
 
-    <!-- 4-step checklist (verbatim) -->
-      <section class="checklist" aria-label="Next steps">
+      <!-- Next steps (keep as-is, with shadow) -->
+      <section class="checklist card" aria-label="Next steps">
         <ol>
           <li>Start with the <a href="/report.html">Information Template</a> to prepare your story</li>
-          <li>Proceed to the <a href="/complaint-portal.html">State Board Portal</a> to connect with your state's medical board</li>
+          <li>Proceed to the <a href="/complaint-portal.html">Complaint Portal</a> to connect with your state's medical board</li>
           <li>Visit our <a href="/references.html">References</a> to explore supporting material</li>
           <li>Consider sharing with others who may benefit from this service</li>
         </ol>
       </section>
 
-    <!-- Footer (normalized globally by nav-include.js, but keep for no-JS fallback) -->
+      <!-- NEW: 2x2 grid of the same steps (verbatim), below the Next Steps card -->
+      <section class="steps-grid card" aria-label="Next steps grid">
+        <div class="step">
+          <p>Start with the <a href="/report.html">Information Template</a> to prepare your story</p>
+        </div>
+        <div class="step">
+          <p>Proceed to the <a href="/complaint-portal.html">Complaint Portal</a> to connect with your state's medical board</p>
+        </div>
+        <div class="step">
+          <p>Visit our <a href="/references.html">References</a> to explore supporting material</p>
+        </div>
+        <div class="step">
+          <p>Consider sharing with others who may benefit from this service</p>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
     <footer class="container">
       <a href="/privacy.html">Privacy</a> ·
       <a href="/disclaimer.html">Disclaimer</a> ·
