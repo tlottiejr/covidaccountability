@@ -1,128 +1,123 @@
-/**
- * POST /admin/boards/:id/restore?event=<eventId>
- *
- * Restores the board to the `prev_json` snapshot recorded in `board_events` for the given event.
- * Requirements:
- *  - Authorization: Bearer <ADMIN_API_TOKEN>
- *  - D1 binding: env.DB (points to your medportal_db)
- *
- * Notes:
- *  - We rely on a board_events table with columns:
- *      id (integer PK), board_id (integer), op (text),
- *      prev_json (text), next_json (text), created_at (text)
- *  - prev_json is a JSON object with the board fields we care about (state_code, board, url, primary_flag, active).
- */
+// functions/admin/boards/[id]/restore.js
+// POST { eventId } or { snapshot:{ board, url, primary, active } } -> restore fields and audit
 
-async function authOrThrow(request, env) {
-  const hdr = request.headers.get('Authorization') || '';
-  const token = hdr.startsWith('Bearer ') ? hdr.slice(7).trim() : '';
-  if (!token || token !== env.ADMIN_API_TOKEN) {
-    return new Response(JSON.stringify({ ok: false, error: 'unauthorized' }), {
-      status: 401,
-      headers: { 'content-type': 'application/json; charset=utf-8' },
-    });
-  }
-  return null;
+import { one } from "../../../_lib/db.js";
+
+function json(body, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+  });
 }
 
-export const onRequestPost = async (ctx) => {
-  const { env, request, params } = ctx;
-  const authErr = await authOrThrow(request, env);
-  if (authErr) return authErr;
-
-  const boardIdRaw = params.id;
-  const url = new URL(request.url);
-  const eventIdRaw = url.searchParams.get('event');
-
-  // Validate inputs
-  const boardId = Number(boardIdRaw);
-  const eventId = Number(eventIdRaw);
-  if (!boardId || !Number.isFinite(boardId)) {
-    return jsonResp({ ok: false, error: 'invalid_board_id' }, 400);
-  }
-  if (!eventId || !Number.isFinite(eventId)) {
-    return jsonResp({ ok: false, error: 'invalid_event_id' }, 400);
-  }
-
-  // 1) Fetch the event and ensure it belongs to this board.
-  const evStmt = env.DB.prepare(
-    `SELECT id, board_id, op, prev_json, next_json, created_at
-       FROM board_events
-      WHERE id=?`
+async function getBoard(env, id) {
+  return await one(
+    env.DB,
+    `
+    SELECT COALESCE(id, rowid) AS id, state_code, board, url,
+           (primary_flag = 1) AS primary,
+           active, created_at, updated_at
+    FROM boards
+    WHERE COALESCE(id, rowid) = ?
+    `,
+    [id],
   );
-  const evRow = await evStmt.bind(eventId).first();
+}
 
-  if (!evRow) return jsonResp({ ok: false, error: 'event_not_found' }, 404);
-  if (Number(evRow.board_id) !== boardId) {
-    return jsonResp({ ok: false, error: 'event_does_not_belong_to_board' }, 400);
-  }
+export async function onRequestPost({ request, env, params, data }) {
+  const id = params.id;
+  if (!id) return json({ ok: false, error: "missing-id" }, 400);
 
-  if (!evRow.prev_json) {
-    return jsonResp({ ok: false, error: 'no_prev_snapshot_available' }, 400);
-  }
+  const existing = await getBoard(env, id);
+  if (!existing) return json({ ok: false, error: "not-found" }, 404);
 
-  let snapshot;
+  let body = {};
   try {
-    snapshot = JSON.parse(evRow.prev_json);
+    body = await request.json();
   } catch {
-    return jsonResp({ ok: false, error: 'invalid_prev_snapshot' }, 500);
+    // ignore
   }
 
-  // 2) Make sure the board exists (we only "restore" existing rows).
-  const boardStmt = env.DB.prepare(
-    `SELECT id, state_code, board, url, primary_flag, active
-       FROM boards
-      WHERE id=?`
-  );
-  const boardRow = await boardStmt.bind(boardId).first();
-  if (!boardRow) return jsonResp({ ok: false, error: 'board_not_found' }, 404);
+  let snapshot = body.snapshot || null;
 
-  // 3) Apply snapshot in a basic transaction:
-  //    - If snapshot.primary_flag=1 we demote any state primary first (like create/primary endpoint does).
-  //    - Then update this board with snapshot fields.
-  const txn = await env.DB.batch([
-    // If the restore sets the row to primary, demote others for that state.
-    snapshot.primary_flag ? env.DB.prepare(
-      `UPDATE boards
-          SET primary_flag=0
-        WHERE state_code=? AND id<>?`
-    ).bind(snapshot.state_code, boardId) : null,
+  if (!snapshot && body.eventId) {
+    // Load from board_events
+    const ev = await one(
+      env.DB,
+      `
+      SELECT id, prev_json, next_json
+      FROM board_events
+      WHERE board_id = ? AND id = ?
+      `,
+      [existing.id, body.eventId],
+    );
+    if (!ev) return json({ ok: false, error: "event-not-found" }, 404);
+    // Prefer next_json (state after that event)
+    snapshot = (ev.next_json && JSON.parse(ev.next_json)) || (ev.prev_json && JSON.parse(ev.prev_json)) || null;
+  }
 
-    env.DB.prepare(
-      `UPDATE boards
-          SET state_code=?,
-              board=?,
-              url=?,
-              primary_flag=?,
-              active=?
-        WHERE id=?`
-    ).bind(
-      snapshot.state_code ?? boardRow.state_code,
-      snapshot.board ?? boardRow.board,
-      snapshot.url ?? boardRow.url,
-      Number(snapshot.primary_flag ?? boardRow.primary_flag) ? 1 : 0,
-      Number(snapshot.active ?? boardRow.active) ? 1 : 0,
-      boardId
-    ),
-  ].filter(Boolean));
+  if (!snapshot) {
+    return json({ ok: false, error: "missing-snapshot" }, 400);
+  }
 
-  // 4) Return final row for convenience.
-  const refreshed = await env.DB.prepare(
-    `SELECT id, state_code, board, url, primary_flag, active
-       FROM boards
-      WHERE id=?`
-  ).bind(boardId).first();
+  const nextFields = {
+    board: snapshot.board ?? existing.board,
+    url: snapshot.url ?? existing.url,
+    primary: snapshot.primary ?? existing.primary,
+    active: snapshot.active ?? existing.active,
+  };
 
-  return jsonResp({
-    ok: true,
-    restored_from_event: eventId,
-    board: refreshed,
-  });
-};
+  const now = new Date().toISOString();
 
-function jsonResp(obj, status = 200) {
-  return new Response(JSON.stringify(obj), {
-    status,
-    headers: { 'content-type': 'application/json; charset=utf-8' },
-  });
+  try {
+    if (nextFields.primary === true) {
+      await env.DB
+        .prepare("UPDATE boards SET primary_flag = 0, updated_at = ? WHERE state_code = ? AND active = 1")
+        .bind(now, existing.state_code)
+        .run();
+    }
+
+    await env.DB
+      .prepare(
+        `
+        UPDATE boards
+        SET board = ?, url = ?, primary_flag = ?, active = ?, updated_at = ?
+        WHERE COALESCE(id, rowid) = ?
+        `,
+      )
+      .bind(
+        nextFields.board,
+        nextFields.url,
+        nextFields.primary ? 1 : 0,
+        nextFields.active ? 1 : 0,
+        now,
+        id,
+      )
+      .run();
+
+    const updated = await getBoard(env, id);
+
+    const actor = (data && data.actor) || "token";
+    await env.DB
+      .prepare(
+        `
+        INSERT INTO board_events (board_id, actor, action, prev_json, next_json, created_at)
+        VALUES (?,?,?,?,?,?)
+      `,
+      )
+      .bind(
+        updated.id,
+        actor,
+        "restore",
+        JSON.stringify(existing),
+        JSON.stringify(updated),
+        now,
+      )
+      .run();
+
+    return json({ ok: true, board: updated }, 200);
+  } catch (err) {
+    console.error("[admin/boards restore POST] error", err);
+    return json({ ok: false, error: "db-error" }, 500);
+  }
 }
