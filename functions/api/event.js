@@ -1,47 +1,100 @@
-// Minimal, privacy-safe sink for 'open_board' analytics.
-// KV key format: open_board:YYYY-MM-DD
-export async function onRequestGet({ request, env }) {
-  const url = new URL(request.url);
-  const date = (url.searchParams.get('date') || new Date().toISOString().slice(0,10)).slice(0,10);
-  const key = `open_board:${date}`;
-  const json = await env.OPEN_BOARD_KV.get(key);
-  const data = json ? JSON.parse(json) : { date, totals: 0, byState: {}, byHost: {} };
-  return new Response(JSON.stringify(data, null, 2), {
-    headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }
+// functions/api/event.js
+// GET /api/event?date=YYYY-MM-DD  -> return aggregate
+// POST /api/event { type:'open_board', state:'XX', url:'https://..', host:'...' } -> aggregate counters in KV
+
+/** Small JSON response helper */
+function json(body, status = 200, headers = {}) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+      ...headers,
+    },
   });
+}
+
+function todayISO(date = new Date()) {
+  return date.toISOString().slice(0, 10);
+}
+
+function isStateCode(v) {
+  return typeof v === "string" && /^[A-Z]{2}$/.test(v);
+}
+
+function isHttpUrl(v) {
+  try {
+    const u = new URL(v);
+    return u.protocol === "http:" || u.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
+async function readJson(request) {
+  const text = await request.text();
+  try {
+    return JSON.parse(text || "{}");
+  } catch {
+    return {};
+  }
+}
+
+const EMPTY_AGG = () => ({ totals: 0, byState: {}, byHost: {} });
+
+export async function onRequestGet({ request, env }) {
+  try {
+    const { searchParams } = new URL(request.url);
+    const date = searchParams.get("date") || todayISO();
+    const key = `open_board:${date}`;
+
+    const val = await env.OPEN_BOARD_KV.get(key, "json");
+    const agg = val && typeof val === "object" ? val : EMPTY_AGG();
+
+    return json({ date, ...agg });
+  } catch (err) {
+    console.error("[/api/event GET] error", err);
+    return json({ ok: false, error: "internal-error" }, 500);
+  }
 }
 
 export async function onRequestPost({ request, env }) {
   try {
-    const body = await request.json();
-    if (!body || body.type !== 'open_board') {
-      return new Response(JSON.stringify({ ok: false, error: 'invalid_type' }), { status: 400 });
-    }
-    const date = (body.date || new Date().toISOString().slice(0,10)).slice(0,10);
-    const state = (body.stateCode || '').toUpperCase().slice(0, 2);
-    let host = '';
-    try { host = new URL(`https://${body.boardHost}`).host; } catch { host = ''; }
-    if (!state || !host) {
-      return new Response(JSON.stringify({ ok: true }), { status: 202 });
+    const body = await readJson(request);
+    const { type, state, url, host } = body || {};
+
+    if (type !== "open_board" || !isStateCode(state) || !isHttpUrl(url) || typeof host !== "string" || !host) {
+      return json({ ok: false, error: "bad-request" }, 400);
     }
 
+    const date = todayISO();
     const key = `open_board:${date}`;
-    const existing = await env.OPEN_BOARD_KV.get(key);
-    const agg = existing ? JSON.parse(existing) : { date, totals: 0, byState: {}, byHost: {} };
+    // 2-try optimistic merge (simple since KV lacks atomic ops)
+    let tries = 0;
+    // In case of parallel writes, last write wins but we retry merge once
+    // (acceptable for coarse analytics)
+    do {
+      tries++;
+      const current = (await env.OPEN_BOARD_KV.get(key, "json")) || EMPTY_AGG();
+      current.totals = (current.totals || 0) + 1;
+      current.byState = current.byState || {};
+      current.byHost = current.byHost || {};
+      current.byState[state] = (current.byState[state] || 0) + 1;
+      current.byHost[host] = (current.byHost[host] || 0) + 1;
 
-    agg.totals = (agg.totals || 0) + 1;
-    agg.byState[state] = (agg.byState[state] || 0) + 1;
-    agg.byHost[host] = (agg.byHost[host] || 0) + 1;
+      try {
+        await env.OPEN_BOARD_KV.put(key, JSON.stringify(current), {
+          expirationTtl: 45 * 24 * 60 * 60, // 45 days
+        });
+        return json({ ok: true }, 202);
+      } catch (e) {
+        if (tries >= 2) throw e;
+      }
+    } while (tries < 2);
 
-    await env.OPEN_BOARD_KV.put(key, JSON.stringify(agg), { expirationTtl: 60 * 60 * 24 * 45 });
-
-    return new Response(JSON.stringify({ ok: true }), {
-      headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }
-    });
-  } catch {
-    return new Response(JSON.stringify({ ok: false }), {
-      status: 200,
-      headers: { 'content-type': 'application/json; charset=utf-8', 'cache-control': 'no-store' }
-    });
+    return json({ ok: false, error: "kv-write-failed" }, 500);
+  } catch (err) {
+    console.error("[/api/event POST] error", err);
+    return json({ ok: false, error: "internal-error" }, 500);
   }
 }
