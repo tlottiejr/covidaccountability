@@ -643,3 +643,9 @@ footer.container .sep {
 
 .trust-strip .trust-item { margin: 0 !important; color: var(--ink-700); }
 .trust-strip .trust-item b { color: var(--ink-900); }
+#home .rail-item {
+  max-width: 360px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
