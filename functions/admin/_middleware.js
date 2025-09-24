@@ -1,16 +1,26 @@
-// Simple bearer token auth for /admin/*
-// Set ADMIN_API_TOKEN in Cloudflare Pages project settings.
+// functions/admin/_middleware.js
+// Enforce Bearer token, capture actor suffix if provided: "Bearer TOKEN#alice"
 
-export const onRequest = async (ctx) => {
-  const token = ctx.request.headers.get("authorization")?.replace(/^Bearer\s+/i, "");
-  if (!token || token !== ctx.env.ADMIN_API_TOKEN) {
-    return new Response(JSON.stringify({ error: "Unauthorized" }), {
-      status: 401,
-      headers: { "content-type": "application/json" },
-    });
+function json(body, status = 401) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+  });
+}
+
+export async function onRequest(ctx) {
+  const { request, env, data } = ctx;
+  const auth = request.headers.get("authorization") || request.headers.get("Authorization") || "";
+  if (!auth.toLowerCase().startsWith("bearer ")) {
+    return json({ ok: false, error: "missing-authorization" }, 401);
   }
-  // Attach actor (for audit)
-  ctx.data = ctx.data || {};
-  ctx.data.actor = "token"; // Optionally parse a suffix from token or use Access in future
+  const tokenRaw = auth.slice(7).trim(); // after "Bearer "
+  const [provided, actorSuffix] = tokenRaw.split("#");
+  if (!provided || provided !== env.ADMIN_API_TOKEN) {
+    return json({ ok: false, error: "invalid-authorization" }, 401);
+  }
+  // capture actor for audit
+  ctx.data = data || {};
+  ctx.data.actor = actorSuffix || "token";
   return await ctx.next();
-};
+}
