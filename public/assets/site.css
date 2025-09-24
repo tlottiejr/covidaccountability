@@ -649,3 +649,27 @@ footer.container .sep {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+/* Fallback card for non-embeddable videos */
+.embed-fallback {
+  padding: 16px;
+  display: grid;
+  grid-auto-flow: column;
+  gap: 12px;
+  align-items: center;
+  justify-content: start;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+.embed-fallback p { margin: 0; color: var(--ink-700); }
+.embed-fallback .btn {
+  display: inline-block;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  background: #fff;
+  text-decoration: none;
+}
+.embed-note {
+  margin-top: 8px;
+  color: var(--ink-700);
+  font-size: 14px;
+}
