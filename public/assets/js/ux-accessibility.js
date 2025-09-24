@@ -24,19 +24,6 @@
   const style = document.createElement('style');
   style.textContent = `
     :root { --anchor-offset: ${offset}px; }
-    /* Skip link styles */
-    .skip-to-content {
-      position: absolute; left: 0.5rem; top: 0.5rem; z-index: 1000;
-      background: #fff; padding: 0.5rem 0.75rem; border-radius: 0.375rem;
-      box-shadow: 0 1px 2px rgba(0,0,0,.1); text-decoration: none;
-      color: inherit; transform: translateY(-200%); transition: transform .15s ease;
-    }
-    .skip-to-content:focus { transform: translateY(0); outline: 2px solid #000; }
-    /* Anchor offset: when navigating to #hash, create space above target */
-    :target::before {
-      content: ""; display: block; height: var(--anchor-offset);
-      margin-top: calc(var(--anchor-offset) * -1);
-    }
   `;
   document.head.appendChild(style);
 
