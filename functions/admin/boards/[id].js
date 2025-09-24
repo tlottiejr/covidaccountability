@@ -1,84 +1,130 @@
-import { one, ID_ALIAS, toBoard } from "../../_lib/db.js";
-import { assertState, assertUrl, readJson, bad } from "../../_lib/validate.js";
+// functions/admin/boards/[id].js
+// PATCH { board?, url?, primary? } -> update board; if primary true, demote siblings
+// DELETE -> 405 (disabled)
 
-export const onRequestPatch = async ({ env, params, request, data }) => {
-  const id = Number(params.id);
-  if (!Number.isFinite(id)) throw bad("Invalid id");
+import { one } from "../../_lib/db.js";
+import { assertUrl, assertNonEmpty, bad } from "../../_lib/validate.js";
 
-  const existing = await one(env.DB,
-    `SELECT ${ID_ALIAS}, state_code, board, url, primary_flag, active
-       FROM boards WHERE (id=? OR rowid=?)`, [id, id]);
-  if (!existing) throw bad("Not found", 404);
+function json(body, status = 200) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+  });
+}
 
-  const changes = await readJson(request);
-  const next = {
-    state_code: changes.state_code ? String(changes.state_code).toUpperCase() : existing.state_code,
-    board:      changes.board      ?? existing.board,
-    url:        changes.url        ?? existing.url,
-    primary:    typeof changes.primary === "boolean" ? changes.primary : (Number(existing.primary_flag) === 1),
-    active:     typeof changes.active  === "boolean" ? changes.active  : (Number(existing.active) === 1),
-  };
+async function getBoard(env, id) {
+  return await one(
+    env.DB,
+    `
+    SELECT COALESCE(id, rowid) AS id, state_code, board, url,
+           (primary_flag = 1) AS primary,
+           active, created_at, updated_at
+    FROM boards
+    WHERE COALESCE(id, rowid) = ?
+    `,
+    [id],
+  );
+}
 
-  // Validate
-  assertState(next.state_code);
-  if (next.url !== existing.url) assertUrl(next.url);
+export async function onRequestPatch({ request, env, params, data }) {
+  const id = params.id;
+  if (!id) return bad(400, "missing id");
 
-  // Update
-  await env.DB.prepare(
-    `UPDATE boards
-        SET state_code=?, board=?, url=?, primary_flag=?, active=?
-      WHERE (id=? OR rowid=?)`
-  ).bind(next.state_code, next.board, next.url, next.primary ? 1 : 0, next.active ? 1 : 0, id, id).run();
+  const existing = await getBoard(env, id);
+  if (!existing) return bad(404, "not found");
 
-  // If now primary, demote others in state (except self)
-  if (next.primary) {
-    await env.DB.prepare(
-      `UPDATE boards SET primary_flag=0
-        WHERE state_code=? AND ${ID_ALIAS.replace(" AS id","")} <> ?`
-    ).bind(next.state_code, id).run();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return bad(400, "invalid json");
   }
 
-  const after = await one(env.DB,
-    `SELECT ${ID_ALIAS}, state_code, board, url, primary_flag, active
-       FROM boards WHERE (id=? OR rowid=?)`, [id, id]);
+  const fields = {};
+  if (body.board != null) {
+    assertNonEmpty(body.board, "board");
+    fields.board = String(body.board);
+  }
+  if (body.url != null) {
+    assertUrl(body.url);
+    fields.url = String(body.url);
+  }
+  if (body.primary != null) {
+    fields.primary = !!body.primary;
+  }
 
-  // audit
-  await env.DB.prepare(
-    `INSERT INTO board_events (board_id, actor, action, prev, next, ts)
-     VALUES (?, ?, 'update', ?, ?, ?)`
-  ).bind(id, data.actor || "token", JSON.stringify(existing), JSON.stringify(after), Date.now()).run();
+  if (Object.keys(fields).length === 0) {
+    return json({ ok: true, board: existing }, 200);
+  }
 
-  return json(toBoard(after));
-};
+  const now = new Date().toISOString();
 
-export const onRequestDelete = async ({ env, params, data }) => {
-  const id = Number(params.id);
-  if (!Number.isFinite(id)) throw bad("Invalid id");
+  try {
+    // Transaction-ish: demote siblings if promoting this one
+    if (fields.primary === true) {
+      await env.DB
+        .prepare("UPDATE boards SET primary_flag = 0, updated_at = ? WHERE state_code = ? AND active = 1")
+        .bind(now, existing.state_code)
+        .run();
+    }
 
-  const existing = await one(env.DB,
-    `SELECT ${ID_ALIAS}, state_code, board, url, primary_flag, active
-       FROM boards WHERE (id=? OR rowid=?)`, [id, id]);
-  if (!existing) throw bad("Not found", 404);
+    const next = {
+      ...existing,
+      ...(fields.board != null ? { board: fields.board } : {}),
+      ...(fields.url != null ? { url: fields.url } : {}),
+      ...(fields.primary != null ? { primary: fields.primary } : {}),
+      updated_at: now,
+    };
 
-  await env.DB.prepare(
-    `UPDATE boards SET active=0, primary_flag=0 WHERE (id=? OR rowid=?)`
-  ).bind(id, id).run();
+    await env.DB
+      .prepare(
+        `
+        UPDATE boards
+        SET board = COALESCE(?, board),
+            url = COALESCE(?, url),
+            primary_flag = COALESCE(?, primary_flag),
+            updated_at = ?
+        WHERE COALESCE(id, rowid) = ?
+        `,
+      )
+      .bind(
+        fields.board ?? null,
+        fields.url ?? null,
+        fields.primary != null ? (fields.primary ? 1 : 0) : null,
+        now,
+        id,
+      )
+      .run();
 
-  const after = await one(env.DB,
-    `SELECT ${ID_ALIAS}, state_code, board, url, primary_flag, active
-       FROM boards WHERE (id=? OR rowid=?)`, [id, id]);
+    const updated = await getBoard(env, id);
 
-  await env.DB.prepare(
-    `INSERT INTO board_events (board_id, actor, action, prev, next, ts)
-     VALUES (?, ?, 'delete', ?, ?, ?)`
-  ).bind(id, data.actor || "token", JSON.stringify(existing), JSON.stringify(after), Date.now()).run();
+    // Audit
+    const actor = (data && data.actor) || "token";
+    await env.DB
+      .prepare(
+        `
+        INSERT INTO board_events (board_id, actor, action, prev_json, next_json, created_at)
+        VALUES (?,?,?,?,?,?)
+      `,
+      )
+      .bind(
+        updated.id,
+        actor,
+        "update",
+        JSON.stringify(existing),
+        JSON.stringify(updated),
+        now,
+      )
+      .run();
 
-  return new Response(null, { status: 204 });
-};
+    return json({ ok: true, board: updated }, 200);
+  } catch (err) {
+    console.error("[admin/boards PATCH] error", err);
+    return json({ ok: false, error: "db-error" }, 500);
+  }
+}
 
-function json(payload, status = 200) {
-  return new Response(JSON.stringify(payload), {
-    status,
-    headers: { "content-type": "application/json" },
-  });
+export async function onRequestDelete() {
+  // Deletion disabled per product decision
+  return json({ ok: false, error: "delete-disabled" }, 405);
 }
