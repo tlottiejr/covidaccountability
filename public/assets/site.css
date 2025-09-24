@@ -702,3 +702,37 @@ footer.container .sep {
   font-size: 14px;
 }
 #home .chip:hover { border-color: #c7d7ff; }
+/* ==== 2x2 step boxes under Next Steps (homepage only) ==== */
+#home .steps-grid {
+  margin: 14px 0 18px;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+
+#home .steps-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+#home .steps-grid .step {
+  border: 1px solid var(--line);
+  background: #fff;
+  padding: 14px 16px;
+  min-height: 84px; /* roomy enough for each sentence */
+  display: flex;
+  align-items: center;
+}
+
+#home .steps-grid .step p {
+  margin: 0;
+  line-height: 1.4;
+}
+
+/* Stack to single column on narrow screens */
+@media (max-width: 720px) {
+  #home .steps-grid {
+    grid-template-columns: 1fr;
+  }
+}
