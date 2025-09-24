@@ -1,0 +1,116 @@
+/* public/assets/contact.css */
+/* No inline styles. Modal is created on-demand by /assets/contact.js */
+
+:root {
+  --contact-overlay-bg: rgba(9, 30, 66, 0.55);
+  --contact-panel-bg: #ffffff;
+  --contact-border: #e5e7eb;
+  --contact-text: #0f172a;
+  --contact-muted: #475569;
+  --contact-shadow: 0 10px 25px rgba(0,0,0,0.15);
+  --contact-radius: 16px;
+  --contact-focus: 0 0 0 3px rgba(59,130,246,0.6);
+}
+
+.contact-overlay {
+  position: fixed;
+  inset: 0;
+  background: var(--contact-overlay-bg);
+  display: none;
+  z-index: 10000;
+}
+
+.contact-overlay[aria-hidden="false"] {
+  display: block;
+}
+
+.contact-dialog {
+  position: fixed;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  z-index: 10001;
+  pointer-events: none; /* let panel manage interactions */
+}
+
+.contact-panel {
+  width: min(560px, 92vw);
+  max-height: 86vh;
+  overflow: auto;
+  background: var(--contact-panel-bg);
+  color: var(--contact-text);
+  border: 1px solid var(--contact-border);
+  border-radius: var(--contact-radius);
+  box-shadow: var(--contact-shadow);
+  pointer-events: auto;
+}
+
+.contact-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--contact-border);
+}
+
+.contact-title {
+  margin: 0;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+.contact-close {
+  appearance: none;
+  border: 1px solid var(--contact-border);
+  border-radius: 10px;
+  background: #f8fafc;
+  padding: 6px 10px;
+  cursor: pointer;
+}
+
+.contact-close:focus-visible {
+  outline: none;
+  box-shadow: var(--contact-focus);
+}
+
+.contact-body {
+  padding: 16px;
+  color: var(--contact-muted);
+  line-height: 1.5;
+}
+
+.contact-actions {
+  display: flex;
+  gap: 10px;
+  padding: 14px 16px 18px;
+  border-top: 1px solid var(--contact-border);
+}
+
+.contact-btn {
+  appearance: none;
+  border: 1px solid var(--contact-border);
+  background: #0f172a;
+  color: #fff;
+  padding: 10px 14px;
+  border-radius: 10px;
+  cursor: pointer;
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.contact-btn.secondary {
+  background: #f1f5f9;
+  color: #0f172a;
+}
+
+.contact-btn:focus-visible {
+  outline: none;
+  box-shadow: var(--contact-focus);
+}
+
+/* Prevent body scroll when modal open */
+.body--contact-open {
+  overflow: hidden;
+}
