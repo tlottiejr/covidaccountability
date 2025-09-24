@@ -777,3 +777,58 @@ body {
   }
   #home .steps-grid .step { min-height: 120px; }
 }
+/* ==== Next steps grid - boxes ARE the buttons, larger, no center gap ==== */
+#home .steps-grid {
+  margin: 14px 0 28px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap: 18px;                  /* vertical spacing */
+  column-gap: 0;              /* remove space between the two middle boxes */
+}
+
+#home .steps-grid .step {
+  border: 1px solid var(--line);
+  background: #fff;
+  min-height: 150px;          /* larger / squarer */
+  padding: 22px 20px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  text-decoration: none;      /* for <a> steps */
+  color: var(--ink-900);
+}
+
+#home .steps-grid .step .num {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 42px;
+  height: 42px;
+  background: var(--brand-blue);
+  color: #fff;
+  font-weight: 700;
+  font-size: 18px;
+  flex: 0 0 42px;
+}
+
+#home .steps-grid .step .txt {
+  font-size: 17px;            /* a bit larger to fill */
+  line-height: 1.5;
+}
+
+/* Hover/focus styles only for link-steps */
+#home .steps-grid .step.is-link:hover,
+#home .steps-grid .step.is-link:focus-visible {
+  border-color: #c7d7ff;
+  outline: none;
+  background: #f9fbff;
+  cursor: pointer;
+}
+
+/* Mobile: stack */
+@media (max-width: 720px) {
+  #home .steps-grid {
+    grid-template-columns: 1fr;
+    column-gap: 18px;         /* normal gap when stacked */
+  }
+}
