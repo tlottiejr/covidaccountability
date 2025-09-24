@@ -18,7 +18,5 @@ Cache-Control: public, max-age=600
 /*
   Allow YouTube/Rumble embeds
 */
-*
-  *
   Content-Security-Policy: frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://rumble.com;
 
