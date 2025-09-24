@@ -9,10 +9,12 @@
     return p || '/';
   }
 
+  // Wordmark: "COVIDA" and the trailing "N" in blue
   function wordmarkHTML() {
+    // "COVIDAccountabilityNow" -> accent "COVIDA" + "N"
     return `
       <span class="logo-wordmark">
-        <span class="accent">COVIDA</span>ccountabilityNo<span class="accent">w</span>
+        <span class="accent">COVIDA</span>ccountabilityNo<span class="accent">n</span>
       </span>
     `;
   }
@@ -68,6 +70,7 @@
     const inner = document.createElement('div');
     inner.className = 'container trust-grid';
 
+    // states/territories count (from state-links.json)
     let countText = 'States & territories covered';
     try {
       const res = await fetch('/assets/state-links.json', { cache: 'reload' });
@@ -100,9 +103,12 @@
   function init() {
     renderNav();
     renderTrustStrip();
+
+    // global helpers
     loadOnce('/assets/links-newtab.js', 'links-newtab-js');
     loadOnce('/assets/contact.js', 'contact-js');
 
+    // home-only timeline
     if (canonicalizePath(location.pathname) === '/') {
       loadOnce('/assets/home-timeline.js', 'home-timeline-js');
     }
