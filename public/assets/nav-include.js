@@ -9,14 +9,16 @@
     return p || '/';
   }
 
-  // Wordmark: "COVIDA" + trailing "N" in blue
+  // Wordmark: "COVIDA" blue + the "N" of "Now" blue (final "ow" black)
   function wordmarkHTML() {
+  // COVIDAccountabilityNow -> [COVIDA][ccountability][N][ow]
     return `
       <span class="logo-wordmark">
-        <span class="accent">COVIDA</span>ccountabilityNo<span class="accent">n</span>
+        <span class="accent">COVIDA</span>ccountability<span class="accent">N</span>ow
       </span>
     `;
   }
+
 
   const NAV_LINKS = [
     { label: 'Home',            href: '/' },
