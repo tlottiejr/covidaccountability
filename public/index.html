@@ -15,8 +15,8 @@
     <script src="/assets/nav-include.js" defer></script>
 
     <main class="container">
-      <!-- Hero with shadow -->
-      <section class="hero card">
+      <!-- Hero (shadow removed by dropping .card) -->
+      <section class="hero">
         <h1>Is Your Story Our Story?</h1>
         <p>
           We help victims navigate official reporting channels for injury following COVID "vaccine" administration.
@@ -26,7 +26,7 @@
       <!-- Timeline rail + player -->
       <section id="home-media" aria-label="Featured media timeline"></section>
 
-      <!-- What We Offer (single band, with shadow) -->
+      <!-- What We Offer (keeps shadow) -->
       <section class="module card" aria-labelledby="what-we-offer">
         <div class="rule"></div>
         <div class="inner">
@@ -40,23 +40,24 @@
         </div>
       </section>
 
-      <!-- 2x2 step BUTTON boxes (boxes ARE the links), no outer card -->
+      <!-- 2x2 step BUTTON boxes -->
       <section class="steps-grid" aria-label="Next steps grid">
-        <a class="step is-link" href="/references.html">
-          <span class="num">1</span>
-          <span class="txt">Watch one of the videos above or visit our References to explore supporting material</span>
-        </a>
         <a class="step is-link" href="/report.html">
-          <span class="num">2</span>
-          <span class="txt">Go to the Information Template to prepare your complaint</span>
+          <span class="num">1</span>
+          <span class="txt">Start with the Information Template to prepare your story</span>
         </a>
         <a class="step is-link" href="/complaint-portal.html">
+          <span class="num">2</span>
+          <span class="txt">Proceed to the Complaint Portal to connect with your state's medical board</span>
+        </a>
+        <a class="step is-link" href="/references.html">
           <span class="num">3</span>
-          <span class="txt">Proceed to the State Board Portal to connect with your state's medical board</span>
-        <a class="step">
+          <span class="txt">Visit our References to explore supporting material</span>
+        </a>
+        <div class="step">
           <span class="num">4</span>
           <span class="txt">Consider sharing with others who may benefit from this service</span>
-        </a>
+        </div>
       </section>
     </main>
 
