@@ -534,3 +534,30 @@ body {
 
 footer.container { text-align:center; padding:14px 0 18px; }
 footer.container a { margin: 0 8px; }
+/* Center the two trust items */
+.trust-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  justify-items: center;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 0;
+}
+
+/* Ensure gradient covers the full page height, no bottom gap */
+html, body { height: 100%; }
+body { min-height: 100vh; background-attachment: scroll; }
+
+/* Header + nav (hard edges, spacing) */
+.site-header { background:#fff; border-bottom:1px solid var(--line); }
+.header-flex { display:flex; align-items:center; justify-content:space-between; gap:24px; padding:8px 0; }
+.logo-wordmark { font-weight:700; font-size:18px; letter-spacing:.2px; color: var(--ink-900); }
+.logo-wordmark .accent { color: var(--brand-blue); }
+.nav { display:flex; flex-wrap:wrap; gap:16px; }
+.nav a { text-decoration:none; color:var(--ink-900); padding:8px 2px; border-bottom:2px solid transparent; }
+.nav a:hover { border-bottom-color:#c7d7ff; }
+.nav a[aria-current="page"] { border-bottom-color:var(--brand-blue); }
+
+/* Footer spacing + Contact link */
+footer.container { text-align:center; padding:14px 0 18px; }
+footer.container a { margin: 0 8px; }
