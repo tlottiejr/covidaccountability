@@ -1,35 +1,50 @@
 // functions/api/verify-turnstile.js
+// POST /api/verify-turnstile  { response, remoteip? } -> { success, data }
+
+function json(body, status = 200, headers = {}) {
+  return new Response(JSON.stringify(body), {
+    status,
+    headers: {
+      "content-type": "application/json; charset=utf-8",
+      "cache-control": "no-store",
+      ...headers,
+    },
+  });
+}
+
+async function readJson(request) {
+  const text = await request.text();
+  try {
+    return JSON.parse(text || "{}");
+  } catch {
+    return {};
+  }
+}
+
 export async function onRequestPost({ request, env }) {
   try {
-    const { token } = await request.json().catch(() => ({}));
-    if (!token) {
-      return new Response(JSON.stringify({ success: false, error: "missing_token" }), {
-        status: 400,
-        headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
-      });
+    const { response, remoteip } = await readJson(request);
+    if (!response || typeof response !== "string") {
+      return json({ success: false, error: "missing-response" }, 400);
     }
 
     const form = new URLSearchParams();
     form.set("secret", env.TURNSTILE_SECRET);
-    form.set("response", token);
-    const ip = request.headers.get("CF-Connecting-IP");
-    if (ip) form.set("remoteip", ip);
+    form.set("response", response);
+    if (remoteip) form.set("remoteip", remoteip);
 
-    const r = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    const verify = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
       method: "POST",
-      body: form
+      body: form,
+      headers: { "content-type": "application/x-www-form-urlencoded" },
     });
-    const data = await r.json().catch(() => ({}));
-    const ok = !!data.success;
 
-    return new Response(JSON.stringify({ success: ok, data }), {
-      status: ok ? 200 : 400,
-      headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
-    });
-  } catch {
-    return new Response(JSON.stringify({ success: false, error: "bad_request" }), {
-      status: 400,
-      headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" }
-    });
+    const data = await verify.json().catch(() => ({}));
+    const success = !!data.success;
+
+    return json({ success, data }, 200);
+  } catch (err) {
+    console.error("[/api/verify-turnstile] error", err);
+    return json({ success: false, error: "internal-error" }, 500);
   }
 }
