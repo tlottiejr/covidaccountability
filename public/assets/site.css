@@ -941,3 +941,64 @@ body {
     height: 260px !important;
   }
 }
+/* === About page: visually merge the three VAERS tables into one wide table === */
+#vaers-breakdowns {
+  /* lay out the three tables side-by-side with no gaps */
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;                          /* remove spacing between tables */
+  border: 1px solid var(--line);   /* single outer border around all three */
+  border-radius: 6px;
+  overflow: hidden;                /* clip corner radii */
+  background: #fff;
+  margin-top: 12px !important;
+}
+
+/* normalize each inner table */
+#vaers-breakdowns table {
+  width: 100%;
+  margin: 0 !important;
+  border: 0 !important;            /* no individual table borders */
+  border-collapse: separate;
+  border-spacing: 0;
+  background: transparent;
+}
+
+/* header styling */
+#vaers-breakdowns thead th {
+  padding: 10px 12px !important;
+  background: #fff;                /* keep brand look; adjust if you use a header tint */
+  text-align: left;
+  border-bottom: 1px solid var(--line);
+}
+#vaers-breakdowns thead th:last-child {
+  text-align: right;
+}
+
+/* body cells: compact & consistent */
+#vaers-breakdowns tbody td {
+  padding: 8px 12px !important;
+  border-top: 1px solid rgba(0,0,0,0.05);
+}
+#vaers-breakdowns tbody td:last-child {
+  text-align: right;
+  white-space: nowrap;
+}
+
+/* add vertical dividers between the three tables to read as one grid */
+#vaers-breakdowns table:nth-of-type(1) { border-right: 1px solid var(--line); }
+#vaers-breakdowns table:nth-of-type(2) { border-right: 1px solid var(--line); }
+/* (the 3rd table has no right border so the outer wrapper edge is the boundary) */
+
+/* responsive: stack to a single column on narrow screens */
+@media (max-width: 980px) {
+  #vaers-breakdowns {
+    grid-template-columns: 1fr;
+    border-radius: 6px;
+  }
+  #vaers-breakdowns table:nth-of-type(1),
+  #vaers-breakdowns table:nth-of-type(2) {
+    border-right: 0;
+    border-bottom: 1px solid var(--line); /* divider between stacked tables */
+  }
+}
