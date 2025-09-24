@@ -1081,3 +1081,44 @@ body {
     border-bottom:1px solid var(--line);
   }
 }
+/* === VAERS table: use theme blue for lines === */
+:root{
+  /* adjust % to taste for darker/lighter lines */
+  --vaers-line-strong: color-mix(in srgb, var(--accent) 26%, transparent);
+  --vaers-line-soft:   color-mix(in srgb, var(--accent) 14%, transparent);
+}
+
+#vaers-breakdowns{
+  border-color: var(--vaers-line-strong);
+}
+
+#vaers-breakdowns table:nth-of-type(1),
+#vaers-breakdowns table:nth-of-type(2){
+  border-right-color: var(--vaers-line-strong);
+}
+
+#vaers-breakdowns thead th{
+  border-bottom-color: var(--vaers-line-strong);
+}
+
+#vaers-breakdowns tbody td{
+  border-top-color: var(--vaers-line-soft);
+}
+
+/* subtle on-brand row hover */
+@media (hover:hover){
+  #vaers-breakdowns tbody tr:hover td{
+    background: color-mix(in srgb, var(--accent) 6%, #fff);
+  }
+}
+
+/* Fallback if a very old browser lacks color-mix: use solid accent */
+@supports not (color: color-mix(in srgb, #000, #fff)){
+  #vaers-breakdowns,
+  #vaers-breakdowns table:nth-of-type(1),
+  #vaers-breakdowns table:nth-of-type(2),
+  #vaers-breakdowns thead th{
+    border-color: var(--accent);
+  }
+  #vaers-breakdowns tbody td{ border-top-color: var(--accent); }
+}
