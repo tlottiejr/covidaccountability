@@ -85,6 +85,7 @@
 
     const title = player.querySelector('.video-title');
     const frame = player.querySelector('iframe');
+    frame.setAttribute('allow', 'accelerometer; autoplay; clipboard-write; encrypted-media; picture-in-picture; web-share');
 
     title.textContent = it.title;
     title.href = it.url;
