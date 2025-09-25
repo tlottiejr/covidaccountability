@@ -56,28 +56,26 @@
     </section>
 
     <!-- VAERS Figures (Official Data) — plain section, no card/wrapper -->
-    <section id="vaers-charts-section" data-summary="/data/vaers-summary.json"
-         aria-labelledby="vaers-charts" aria-labelledby="vaers-charts">
-  <h2 id="vaers-charts">VAERS Figures (Official Data)</h2>
-
-  <div class="chart-grid">
-    <div class="chart-card">
-      <h3>All Deaths Reported to VAERS by Year</h3>
-      <div id="chartDeathsByYear" class="chart-box"></div>
+    <section id="vaers-charts-section" class="section" data-summary="/data/vaers-summary.json">
+    <h2>VAERS Figures (Official Data)</h2>
+  
+    <div class="cards">
+      <div class="card">
+        <h3>All Deaths Reported to VAERS by Year</h3>
+        <div id="chartDeathsByYear" class="chart-box" role="img" aria-label="VAERS deaths by year bar chart"></div>
+      </div>
+  
+      <div class="card">
+        <h3>COVID Vaccine Reports of Death by Month</h3>
+        <div id="chartCovidByMonth" class="chart-box" role="img" aria-label="COVID vaccine deaths by month line chart"></div>
+      </div>
+  
+      <div class="card">
+        <h3>VAERS COVID/FLU Vaccine Reported Deaths by Days to Onset (All Ages)</h3>
+        <div id="chartDaysToOnset" class="chart-box" role="img" aria-label="Days to onset histogram for COVID vs Flu vaccines"></div>
+      </div>
     </div>
-
-    <div class="chart-card">
-      <h3>COVID Vaccine Reports of Death by Month</h3>
-      <div id="chartCovidDeathsByMonth" class="chart-box"></div>
-    </div>
-
-    <div class="chart-card">
-      <h3>VAERS COVID/FLU Vaccine Reported Deaths by Days to Onset (All Ages)</h3>
-      <div id="chartDaysToOnset" class="chart-box"></div>
-    </div>
-    <div id="vaers-breakdowns" class="chart-card chart-span-2"></div>
-  </div>
-</section>
+  </section>
 
 <!-- Page-local styles (lightweight, matches your theme) -->
 <style>
