@@ -1364,3 +1364,13 @@ section[aria-labelledby="vaers-figures"] .grid {
 button[aria-label="Close navigation"] {
   display: none !important;
 }
+/* === VAERS charts sizing === */
+.chart-box {
+  height: 360px;           /* desktop/tablet default */
+}
+
+@media (max-width: 580px) {
+  .chart-box {
+    height: 260px;         /* mobile */
+  }
+}
