@@ -5,27 +5,27 @@
   "type": "module",
   "engines": { "node": ">=20" },
   "scripts": {
-    "d1:migrate": "wrangler d1 migrations apply medportal_db --remote",
-    "d1:seed:boards": "node scripts/seed-boards-from-json.mjs",
-    "export:state-links": "node scripts/export-state-links-from-d1.mjs",
-    "validate:state-links": "node scripts/validate-state-links.mjs",
-    "audit:states": "node scripts/audit-states.mjs",
-    "audit:refs": "node scripts/audit-refs.mjs",
-    "audit:all": "npm run audit:states && npm run audit:refs",
-    "discover:states": "node scripts/discover-states.mjs",
-    "discover:refs": "node scripts/discover-refs.mjs",
-    "discover:all": "npm run discover:states && npm run discover:refs",
-    "apply:states": "node scripts/apply-states.mjs",
-    "apply:refs": "node scripts/apply-refs.mjs",
-    "apply:all": "npm run apply:states && npm run apply:refs"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.46.0"
-  },
-  "scripts": {
-    "test:e2e": "playwright test tests/e2e",
-    "test:contracts": "playwright test tests/contracts",
-    "test:visual": "playwright test tests/visual",
-    "test:all": "playwright test"
+  "dev": "wrangler pages dev public --local",
+  "build": "echo 'Pages uses /public; nothing to build'",
+
+  "d1:migrate": "wrangler d1 migrations apply DB",
+  "d1:console": "wrangler d1 execute DB --command '.tables'",
+  "d1:export-state-links": "node scripts/export-state-links-from-d1.mjs",
+  "d1:seed-boards": "node scripts/seed-boards-from-json.mjs",
+
+  "refs:discover": "node scripts/discover-refs.mjs",
+  "refs:validate": "node scripts/validate-refs.mjs",
+  "refs:check": "node scripts/check-references.mjs",
+  "refs:check-links": "node scripts/check-reference-links.mjs",
+  "states:discover": "node scripts/discover-states.mjs",
+  "states:export": "node scripts/export-states.mjs",
+  "states:normalize": "node scripts/tools/normalize-states.mjs",
+  "audit:refs": "node scripts/audit-refs.mjs",
+
+  "test": "playwright test",
+  "test:e2e": "playwright test tests/e2e",
+  "test:contracts": "playwright test tests/contracts",
+  "test:ui": "playwright test --ui",
+  "test:report": "playwright show-report"
   }
 }
