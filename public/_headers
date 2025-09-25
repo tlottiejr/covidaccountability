@@ -4,9 +4,7 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()
 
-  # CSP — inline allowed (keeps current posture). 
-  # YouTube (incl. privacy-enhanced) + Rumble allowed in frames.
-  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self'; frame-src https://challenges.cloudflare.com https://www.youtube-nocookie.com https://www.youtube.com https://rumble.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self' https:; object-src 'none'; upgrade-insecure-requests; report-uri /api/csp-report
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data: https:; font-src 'self' https://fonts.gstatic.com data:; connect-src 'self'; frame-src https://challenges.cloudflare.com https://www.youtube-nocookie.com https://www.youtube.com https://rumble.com; frame-ancestors 'self'; base-uri 'self'; form-action 'self' https:; object-src 'none'; upgrade-insecure-requests; report-uri /api/csp-report
   Reporting-Endpoints: csp="/api/csp-report"
 
 /assets/state-links.json
