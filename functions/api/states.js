@@ -40,26 +40,18 @@ async function fromStatic(origin) {
 async function fromD1(env) {
   const DB = env.DB || env.D1 || env.db;
   if (!DB) return null;
-
-  // Expect a schema like: states(code TEXT, name TEXT), boards(id INT, state_code TEXT, board TEXT, url TEXT, primary INTEGER)
   const rows = (await DB.prepare(`
     SELECT s.code as code, s.name as name, b.board as board, b.url as url, b.primary as primary
     FROM boards b
     JOIN states s ON s.code = b.state_code
     ORDER BY s.code ASC, b.primary DESC, b.board ASC
   `).all()).results || [];
-
   const byState = new Map();
   for (const r of rows) {
     if (!byState.has(r.code)) byState.set(r.code, { code: r.code, name: r.name, links: [] });
-    byState.get(r.code).links.push({
-      board: r.board,
-      url: r.url,
-      primary: !!r.primary,
-    });
+    byState.get(r.code).links.push({ board: r.board, url: r.url, primary: !!r.primary });
   }
-  const states = Array.from(byState.values());
-  return coerceOnePrimaryPerState(states);
+  return coerceOnePrimaryPerState(Array.from(byState.values()));
 }
 
 export const onRequestGet = async ({ request, env }) => {
@@ -77,10 +69,7 @@ export const onRequestGet = async ({ request, env }) => {
   // Fallback to D1
   const d1Data = await fromD1(env);
   if (d1Data && d1Data.length) {
-    return json(d1Data, 200, {
-      "x-source": "d1-fallback",
-      "cache-control": "no-store",
-    });
+    return json(d1Data, 200, { "x-source": "d1-fallback", "cache-control": "no-store" });
   }
 
   return json({ ok: false, reason: "no-data" }, 503, { "cache-control": "no-store" });
