@@ -8,20 +8,20 @@
   --contact-text: #0f172a;
   --contact-muted: #334155;
   --contact-shadow: 0 6px 16px rgba(0,0,0,0.16);
-  --contact-radius: 0; /* square */
+  --contact-radius: 0; /* square corners */
   --contact-focus: 0 0 0 3px rgba(37, 99, 235, 0.5);
   --contact-link: #0a58ca; /* overridden by JS to match site link color */
 }
 
+/* Dim page but DO NOT block scrolling or background clicks */
 .contact-overlay {
   position: fixed;
   inset: 0;
   background: var(--contact-overlay-bg);
   display: none;
   z-index: 10000;
-  pointer-events: none; /* allow page to scroll */
+  pointer-events: none;
 }
-
 .contact-overlay[aria-hidden="false"] { display: block; }
 
 .contact-dialog {
@@ -30,11 +30,11 @@
   display: grid;
   place-items: center;
   z-index: 10001;
-  pointer-events: none; /* clicks only on panel */
+  pointer-events: none; /* only the panel is interactive */
 }
 
 .contact-panel {
-  width: min(480px, 92vw);
+  width: min(480px, 92vw);   /* slightly smaller */
   max-height: 86vh;
   overflow: auto;
   background: var(--contact-panel-bg);
@@ -46,9 +46,6 @@
 }
 
 .contact-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
   padding: 12px 14px;
   border-bottom: 1px solid var(--contact-border);
 }
@@ -58,18 +55,6 @@
   font-size: 1.05rem;
   font-weight: 700;
 }
-
-.contact-close {
-  appearance: none;
-  border: 1px solid var(--contact-border);
-  border-radius: var(--contact-radius);
-  background: #f8fafc;
-  padding: 6px 10px;
-  cursor: pointer;
-  font-size: 0.9rem;
-}
-
-.contact-close:focus-visible { outline: none; box-shadow: var(--contact-focus); }
 
 .contact-body {
   padding: 14px;
@@ -99,7 +84,6 @@
   justify-content: center;
   font-weight: 600;
 }
-
 .contact-btn:hover,
 .contact-btn:focus-visible { outline: none; box-shadow: var(--contact-focus); }
 
@@ -108,14 +92,13 @@
   color: #0f172a;
 }
 
-/* Provider picker */
+/* Provider picker list */
 .contact-providers {
   display: grid;
   grid-template-columns: 1fr;
   gap: 8px;
   padding: 10px 14px 14px;
 }
-
 .contact-provider {
   display: flex;
   align-items: center;
@@ -127,10 +110,10 @@
   text-decoration: none;
   color: var(--contact-text);
 }
-
 .contact-provider:hover,
 .contact-provider:focus-visible { outline: none; box-shadow: var(--contact-focus); }
-
 .contact-provider strong { color: var(--contact-text); }
-
 .contact-provider small { color: var(--contact-muted); }
+
+/* Class left intentionally unused – we no longer freeze scroll */
+.body--contact-open { }
