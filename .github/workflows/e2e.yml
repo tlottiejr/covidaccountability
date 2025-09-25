@@ -1,33 +1,37 @@
-name: E2E (Playwright, live)
-
-on:
-  schedule:
-    - cron: "30 7 * * *"   # daily
-  workflow_dispatch:
-
-permissions:
-  contents: read
+name: e2e
+on: [push, pull_request, workflow_dispatch]
 
 jobs:
   e2e:
     runs-on: ubuntu-latest
+    env:
+      SITE_BASE_URL: ${{ secrets.SITE_BASE_URL }}
     steps:
       - uses: actions/checkout@v4
 
-      - name: Assert SITE_BASE_URL is set
-        run: |
-          if [ -z "${{ secrets.SITE_BASE_URL }}" ]; then
-            echo "SITE_BASE_URL secret is missing"; exit 1;
-          fi
-          echo "SITE_BASE_URL=${{ secrets.SITE_BASE_URL }}" >> $GITHUB_ENV
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
 
-      - name: Install Playwright
-        run: |
-          npm init -y >/dev/null 2>&1
-          npm i -D @playwright/test@1.47.x
-          npx playwright install --with-deps chromium
+      - run: npm ci
 
-      - name: Run E2E tests (desktop + mobile)
-        env:
-          SITE_BASE_URL: ${{ secrets.SITE_BASE_URL }}
-        run: npx playwright test tests/e2e/portal.spec.js
+      - name: Install Playwright browsers
+        run: npx playwright install --with-deps
+
+      - name: Contracts
+        run: npx playwright test tests/contracts --reporter=line
+
+      - name: E2E portal flow
+        run: npx playwright test tests/e2e --reporter=line
+
+      - name: Visual regression
+        run: npx playwright test tests/visual --reporter=line
+
+      - name: Upload Playwright report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report
+          retention-days: 7
