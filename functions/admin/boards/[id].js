@@ -33,14 +33,14 @@ export const onRequestPatch = async ({ params, env }) => {
   const tx = await DB.batch([
     // Optionally demote siblings if primary=true
     ...(primary === true
-      ? [DB.prepare("UPDATE boards SET primary = 0 WHERE state_code = ?").bind(existing.state_code)]
+      ? [DB.prepare("UPDATE boards SET primary_flag = 0 WHERE state_code = ?").bind(existing.state_code)]
       : []),
     // Update target fields (only those provided)
     DB.prepare(
       `UPDATE boards
          SET board = COALESCE(?, board),
              url   = COALESCE(?, url),
-             primary = COALESCE(?, primary)
+             primary_flag = COALESCE(?, primary)
        WHERE id = ?`
     ).bind(board ?? null, url ?? null, typeof primary === "boolean" ? (primary ? 1 : 0) : null, id),
   ]);
