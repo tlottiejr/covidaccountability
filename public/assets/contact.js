@@ -1,13 +1,7 @@
 // public/assets/contact.js
-// CSP-friendly contact modal (no inline styles). Auto-loads contact.css.
-// Opens when clicking:
-//   1) any element with [data-contact-open], OR
-//   2) any <a> that looks like a Contact link (href/text contains "contact").
-//
-// Fixes:
-// - Email button inside the modal is NOT intercepted by the auto-wiring.
-// - Only a single Close button (in the header).
-// - Overlay keeps page scroll; square corners & theme handled by CSS.
+// CSP-friendly contact modal: no inline styles, square corners, theme-aware.
+// Fixes: Close button works (robust delegation), Email flow shows provider picker.
+// Providers open in a new tab and the modal closes automatically.
 
 (function () {
   const CSS_HREF = "/assets/contact.css";
@@ -28,12 +22,12 @@
 
   // Derive site link color and set --contact-link CSS var
   function syncThemeFromSite() {
-    const probe = document.querySelector("a[href]") || null;
+    const probe = document.querySelector("a[href]");
     if (!probe) return;
     try {
       const computed = getComputedStyle(probe).color;
       document.documentElement.style.setProperty("--contact-link", computed);
-    } catch { /* ignore */ }
+    } catch {}
   }
 
   const qs = (root, sel) => (root || document).querySelector(sel);
@@ -43,7 +37,7 @@
     if (modalReady) return;
     modalReady = true;
 
-    // Overlay (visual dim only)
+    // Overlay (visual only; page scroll remains)
     const overlay = document.createElement("div");
     overlay.className = "contact-overlay";
     overlay.setAttribute("aria-hidden", "true");
@@ -73,6 +67,7 @@
     closeBtn.className = "contact-close";
     closeBtn.setAttribute("aria-label", "Dismiss contact dialog");
     closeBtn.textContent = "Close";
+    closeBtn.setAttribute("data-contact-close", ""); // for delegation
 
     header.appendChild(title);
     header.appendChild(closeBtn);
@@ -83,27 +78,35 @@
     body.id = "contact-desc";
 
     // Reuse existing mailto link if present
-    const mailtoEl = qs(document, 'a[href^="mailto:"]');
+    const mailtoEl = document.querySelector('a[href^="mailto:"]');
     const emailHref = mailtoEl ? mailtoEl.getAttribute("href") : null;
+    const emailAddr = emailHref ? emailHref.replace(/^mailto:/i, "").split("?")[0] : "";
 
     body.innerHTML = `
       <p>Don’t hesitate to reach out regarding any questions or issues.</p>
-      ${emailHref
-        ? `<p>You can email us directly at <a href="${emailHref}">${emailHref.replace('mailto:', '')}</a>.</p>`
+      ${emailAddr
+        ? `<p>You can email us directly at <a href="mailto:${emailAddr}" data-contact-ignore>${emailAddr}</a>.</p>`
         : `<p>You can also use the “Email Us” button below.</p>`}
     `;
 
-    // Actions (single primary button)
+    // Actions (primary Email, secondary Close)
     const actions = document.createElement("div");
     actions.className = "contact-actions";
 
-    const primary = document.createElement("a");
-    primary.className = "contact-btn";
-    primary.textContent = "Email Us";
-    primary.href = emailHref || "/contact.html";
-    primary.rel = "noopener";
-    primary.setAttribute("data-contact-ignore", ""); // <-- prevent auto-wiring interception
-    actions.appendChild(primary);
+    const emailBtn = document.createElement("button");
+    emailBtn.type = "button";
+    emailBtn.className = "contact-btn";
+    emailBtn.textContent = "Email Us";
+    emailBtn.setAttribute("data-contact-email", ""); // triggers provider picker
+
+    const closeBtn2 = document.createElement("button");
+    closeBtn2.type = "button";
+    closeBtn2.className = "contact-btn secondary";
+    closeBtn2.textContent = "Close";
+    closeBtn2.setAttribute("data-contact-close", "");
+
+    actions.appendChild(emailBtn);
+    actions.appendChild(closeBtn2);
 
     // Assemble
     panel.appendChild(header);
@@ -115,37 +118,48 @@
     document.body.appendChild(overlay);
     document.body.appendChild(dialog);
 
-    // Events
-    function esc(e) {
-      if (e.key === "Escape") close();
-    }
-    function trapFocus(e) {
+    // Global key handlers
+    document.addEventListener("keydown", (e) => {
       if (!isOpen) return;
-      const focusables = qsa(
-        panel,
-        'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"]),input,select,textarea'
-      ).filter((el) => el.offsetParent !== null);
-      if (focusables.length === 0) return;
-      const first = focusables[0];
-      const last = focusables[focusables.length - 1];
+      if (e.key === "Escape") close();
       if (e.key === "Tab") {
+        // focus trap
+        const focusables = qsa(
+          panel,
+          'a[href],button:not([disabled]),[tabindex]:not([tabindex="-1"]),input,select,textarea'
+        ).filter((el) => el.offsetParent !== null);
+        if (focusables.length === 0) return;
+        const first = focusables[0];
+        const last = focusables[focusables.length - 1];
         if (e.shiftKey && document.activeElement === first) {
           e.preventDefault(); last.focus();
         } else if (!e.shiftKey && document.activeElement === last) {
           e.preventDefault(); first.focus();
         }
       }
-    }
+    });
 
-    document.addEventListener("keydown", esc);
-    document.addEventListener("keydown", trapFocus);
+    // Robust click delegation (fixes edge cases where direct listeners miss)
+    document.addEventListener("click", (e) => {
+      const t = e.target;
+      // Close buttons
+      if (t && (t.closest('[data-contact-close]') || t.closest('.contact-close'))) {
+        e.preventDefault();
+        close();
+        return;
+      }
+      // Provider links (inside modal)
+      const provider = t && t.closest("a.contact-provider");
+      if (isOpen && provider) {
+        // open in new tab and close modal
+        e.preventDefault();
+        window.open(provider.href, "_blank", "noopener");
+        close();
+      }
+    });
 
-    // Close button in header
-    closeBtn.addEventListener("click", close);
-
-    // ARIA wiring
-    dialog.setAttribute("aria-labelledby", title.id);
-    dialog.setAttribute("aria-describedby", body.id);
+    // Expose helpers on window for debugging if needed:
+    // Object.assign(window, { contact_open: open, contact_close: close });
   }
 
   function open() {
@@ -161,8 +175,9 @@
     dialog.setAttribute("aria-hidden", "false");
     isOpen = true;
 
-    const firstAction = qs(dialog, ".contact-btn") || qs(dialog, ".contact-close");
-    if (firstAction) firstAction.focus();
+    // Focus first action
+    const first = dialog.querySelector(".contact-btn, .contact-close");
+    if (first) first.focus();
   }
 
   function close() {
@@ -178,14 +193,76 @@
       lastActive.focus();
       lastActive = null;
     }
+
+    // Reset provider UI if it was shown
+    const providers = document.querySelector(".contact-providers");
+    if (providers) providers.remove();
   }
 
-  // --- Auto-wiring ---
+  // --- Provider picker ---
+
+  function buildProviderHref(baseEmail, subject, body) {
+    const enc = encodeURIComponent;
+    return {
+      defaultMail: `mailto:${baseEmail}?subject=${enc(subject)}&body=${enc(body)}`,
+      gmail: `https://mail.google.com/mail/?view=cm&to=${enc(baseEmail)}&su=${enc(subject)}&body=${enc(body)}`,
+      outlook: `https://outlook.live.com/owa/?path=/mail/action/compose&to=${enc(baseEmail)}&subject=${enc(subject)}&body=${enc(body)}`,
+      yahoo: `https://compose.mail.yahoo.com/?to=${enc(baseEmail)}&subject=${enc(subject)}&body=${enc(body)}`,
+      proton: `mailto:${baseEmail}?subject=${enc(subject)}&body=${enc(body)}`, // Proton respects mailto handler
+    };
+  }
+
+  function showProviderPicker() {
+    const dialog = qs(document, ".contact-dialog");
+    if (!dialog) return;
+
+    const mailtoEl = document.querySelector('a[href^="mailto:"]');
+    const emailAddr = mailtoEl ? mailtoEl.getAttribute("href").replace(/^mailto:/i, "").split("?")[0] : "";
+    if (!emailAddr) {
+      // Fallback: just navigate to /contact.html in same tab
+      window.location.href = "/contact.html";
+      return;
+    }
+
+    const subject = "Inquiry from COVID Accountability Now";
+    const body =
+      "Hi,\n\nI have a question regarding your site. Please get back to me when you can.\n\nThanks,\n";
+    const hrefs = buildProviderHref(emailAddr, subject, body);
+
+    // If already present, replace it
+    const exist = qs(dialog, ".contact-providers");
+    if (exist) exist.remove();
+
+    const container = document.createElement("div");
+    container.className = "contact-providers";
+    container.innerHTML = `
+      <a class="contact-provider" href="${hrefs.gmail}" data-contact-ignore>
+        <strong>Gmail</strong> <small>Open compose</small>
+      </a>
+      <a class="contact-provider" href="${hrefs.outlook}" data-contact-ignore>
+        <strong>Outlook.com</strong> <small>Open compose</small>
+      </a>
+      <a class="contact-provider" href="${hrefs.yahoo}" data-contact-ignore>
+        <strong>Yahoo Mail</strong> <small>Open compose</small>
+      </a>
+      <a class="contact-provider" href="${hrefs.defaultMail}" data-contact-ignore>
+        <strong>Default Mail App</strong> <small>Use mailto</small>
+      </a>
+    `;
+    const actions = qs(dialog, ".contact-actions");
+    if (actions) actions.after(container);
+
+    // Focus first provider
+    const first = container.querySelector("a.contact-provider");
+    if (first) first.focus();
+  }
+
+  // --- Auto-wiring (header/footer links) ---
 
   function looksLikeContactLink(a) {
     if (!a || a.tagName !== "A") return false;
-    if (a.hasAttribute("data-contact-ignore")) return false; // don't intercept modal's own button
-    if (a.closest(".contact-dialog")) return false; // ignore anything inside the modal
+    if (a.hasAttribute("data-contact-ignore")) return false; // ignore modal internals
+    if (a.closest(".contact-dialog")) return false;
     const href = (a.getAttribute("href") || "").toLowerCase();
     const txt = (a.textContent || "").trim().toLowerCase();
     return (
@@ -199,7 +276,7 @@
   }
 
   function wireTriggers(root) {
-    // 1) Explicit triggers
+    // Explicit triggers
     qsa(root || document, "[data-contact-open]").forEach((el) => {
       if (!el.__contactWired) {
         el.__contactWired = true;
@@ -212,7 +289,7 @@
       }
     });
 
-    // 2) Existing links that look like Contact (nav/footer/etc.)
+    // Contact-looking links
     qsa(root || document, "a").forEach((a) => {
       if (looksLikeContactLink(a) && !a.__contactWired) {
         a.__contactWired = true;
@@ -223,6 +300,15 @@
             open();
           }
         });
+      }
+    });
+
+    // Inside the modal: click on the Email button shows provider picker
+    document.addEventListener("click", (e) => {
+      const emailBtn = e.target && e.target.closest("[data-contact-email]");
+      if (isOpen && emailBtn) {
+        e.preventDefault();
+        showProviderPicker();
       }
     });
   }
