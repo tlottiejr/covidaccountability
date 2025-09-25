@@ -1,52 +1,46 @@
 /* public/assets/contact.css */
-/* CSP-safe styles. No inline styling anywhere. */
+/* CSP-safe styles (no inline). Square corners, theme-aware link color. */
 
-/* Colors inherit from the site; fallback vars are conservative. */
 :root {
-  --contact-overlay-bg: rgba(15, 23, 42, 0.35); /* subtle dim */
+  --contact-overlay-bg: rgba(15, 23, 42, 0.35);
   --contact-panel-bg: #ffffff;
-  --contact-border: #d1d5db; /* neutral border */
-  --contact-text: #0f172a;   /* slate-900-ish */
-  --contact-muted: #334155;  /* slate-700-ish */
+  --contact-border: #d1d5db;
+  --contact-text: #0f172a;
+  --contact-muted: #334155;
   --contact-shadow: 0 6px 16px rgba(0,0,0,0.16);
-  --contact-radius: 0;       /* square corners per spec */
+  --contact-radius: 0; /* square */
   --contact-focus: 0 0 0 3px rgba(37, 99, 235, 0.5);
-  --contact-link: #0a58ca;   /* will be overridden from JS to match site link color */
+  --contact-link: #0a58ca; /* overridden by JS to match site link color */
 }
 
-/* Overlay dims but DOES NOT block page scroll */
 .contact-overlay {
   position: fixed;
   inset: 0;
   background: var(--contact-overlay-bg);
   display: none;
   z-index: 10000;
-  pointer-events: none; /* allow scrolling / page interaction behind */
+  pointer-events: none; /* allow page to scroll */
 }
 
-.contact-overlay[aria-hidden="false"] {
-  display: block;
-}
+.contact-overlay[aria-hidden="false"] { display: block; }
 
-/* Dialog centers panel. Container itself doesn't capture pointer events. */
 .contact-dialog {
   position: fixed;
   inset: 0;
   display: grid;
   place-items: center;
   z-index: 10001;
-  pointer-events: none;
+  pointer-events: none; /* clicks only on panel */
 }
 
-/* Panel is the only element that accepts clicks. */
 .contact-panel {
-  width: min(480px, 92vw);   /* slightly smaller */
+  width: min(480px, 92vw);
   max-height: 86vh;
   overflow: auto;
   background: var(--contact-panel-bg);
   color: var(--contact-text);
   border: 1px solid var(--contact-border);
-  border-radius: var(--contact-radius); /* square */
+  border-radius: var(--contact-radius);
   box-shadow: var(--contact-shadow);
   pointer-events: auto;
 }
@@ -75,10 +69,7 @@
   font-size: 0.9rem;
 }
 
-.contact-close:focus-visible {
-  outline: none;
-  box-shadow: var(--contact-focus);
-}
+.contact-close:focus-visible { outline: none; box-shadow: var(--contact-focus); }
 
 .contact-body {
   padding: 14px;
@@ -93,7 +84,7 @@
   border-top: 1px solid var(--contact-border);
 }
 
-/* Buttons match the site's link color via --contact-link (set in JS). */
+/* Buttons use site link color via --contact-link */
 .contact-btn {
   appearance: none;
   border: 1px solid var(--contact-link);
@@ -110,15 +101,36 @@
 }
 
 .contact-btn:hover,
-.contact-btn:focus-visible {
-  outline: none;
-  box-shadow: var(--contact-focus);
-}
+.contact-btn:focus-visible { outline: none; box-shadow: var(--contact-focus); }
 
 .contact-btn.secondary {
   border-color: var(--contact-border);
   color: #0f172a;
 }
 
-/* We used to prevent body scroll; now we don't. Keep class unused. */
-.body--contact-open { /* intentionally empty */ }
+/* Provider picker */
+.contact-providers {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 8px;
+  padding: 10px 14px 14px;
+}
+
+.contact-provider {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border: 1px solid var(--contact-border);
+  border-radius: var(--contact-radius);
+  padding: 10px 12px;
+  background: #fff;
+  text-decoration: none;
+  color: var(--contact-text);
+}
+
+.contact-provider:hover,
+.contact-provider:focus-visible { outline: none; box-shadow: var(--contact-focus); }
+
+.contact-provider strong { color: var(--contact-text); }
+
+.contact-provider small { color: var(--contact-muted); }
