@@ -13,7 +13,7 @@
   --contact-link: #0a58ca; /* overridden by JS to match site link color */
 }
 
-/* Dim page but DO NOT block scrolling or background clicks */
+/* Dim page but DO NOT block scrolling/clicks behind */
 .contact-overlay {
   position: fixed;
   inset: 0;
@@ -30,11 +30,11 @@
   display: grid;
   place-items: center;
   z-index: 10001;
-  pointer-events: none; /* only the panel is interactive */
+  pointer-events: none; /* clicks only on panel */
 }
 
 .contact-panel {
-  width: min(480px, 92vw);   /* slightly smaller */
+  width: min(480px, 92vw);
   max-height: 86vh;
   overflow: auto;
   background: var(--contact-panel-bg);
@@ -64,6 +64,7 @@
 
 .contact-actions {
   display: flex;
+  justify-content: flex-end;
   gap: 10px;
   padding: 12px 14px 14px;
   border-top: 1px solid var(--contact-border);
@@ -92,28 +93,5 @@
   color: #0f172a;
 }
 
-/* Provider picker list */
-.contact-providers {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 8px;
-  padding: 10px 14px 14px;
-}
-.contact-provider {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  border: 1px solid var(--contact-border);
-  border-radius: var(--contact-radius);
-  padding: 10px 12px;
-  background: #fff;
-  text-decoration: none;
-  color: var(--contact-text);
-}
-.contact-provider:hover,
-.contact-provider:focus-visible { outline: none; box-shadow: var(--contact-focus); }
-.contact-provider strong { color: var(--contact-text); }
-.contact-provider small { color: var(--contact-muted); }
-
-/* Class left intentionally unused – we no longer freeze scroll */
+/* legacy (unused) */
 .body--contact-open { }
