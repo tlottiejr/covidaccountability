@@ -1,36 +1,28 @@
-/*
-  X-Content-Type-Options: nosniff
-  X-Frame-Options: SAMEORIGIN
-  Referrer-Policy: strict-origin-when-cross-origin
-  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()
-
-  # CSP — keep current “inline-allowed” posture to avoid regressions.
-  # If/when you remove inline code we can tighten this later without breaking prod.
-  Content-Security-Policy: default-src 'self'; \
-    script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; \
-    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
-    img-src 'self' data: https:; \
-    font-src 'self' https://fonts.gstatic.com data:; \
-    connect-src 'self'; \
-    frame-src https://challenges.cloudflare.com; \
-    frame-ancestors 'self'; \
-    base-uri 'self'; \
-    form-action 'self' https:; \
-    object-src 'none'; \
-    upgrade-insecure-requests; \
-    report-uri /csp-report
-
-  # (Optional) Report-Only during soak tests:
-  # Content-Security-Policy-Report-Only: default-src 'self'; report-uri /csp-report
-
-/assets/state-links.json
-  Cache-Control: public, max-age=31536000, immutable
-
-/assets/version.json
-  Cache-Control: public, max-age=300, s-maxage=300
-
-/assets/vendor/*
-  Cache-Control: public, max-age=31536000, immutable
-
-/assets/*
-  Cache-Control: public, max-age=31536000, immutable
+{
+  "name": "covidaccountability-tools",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "engines": { "node": ">=20" },
+  "scripts": {
+    "d1:migrate": "wrangler d1 migrations apply medportal_db --remote",
+    "d1:seed:boards": "node scripts/seed-boards-from-json.mjs",
+    "export:state-links": "node scripts/export-state-links-from-d1.mjs",
+    "validate:state-links": "node scripts/validate-state-links.mjs",
+    "audit:states": "node scripts/audit-states.mjs",
+    "audit:refs": "node scripts/audit-refs.mjs",
+    "audit:all": "npm run audit:states && npm run audit:refs",
+    "discover:states": "node scripts/discover-states.mjs",
+    "discover:refs": "node scripts/discover-refs.mjs",
+    "apply:states": "node scripts/apply-states.mjs",
+    "apply:refs": "node scripts/apply-refs.mjs",
+    "apply:all": "npm run apply:states && npm run apply:refs",
+    "test:e2e": "playwright test tests/e2e",
+    "test:contracts": "playwright test tests/contracts",
+    "test:visual": "playwright test tests/visual",
+    "test:all": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.46.0"
+  }
+}
