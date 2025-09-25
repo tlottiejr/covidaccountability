@@ -1,7 +1,7 @@
 // Playwright API contract test for /api/states
 // Run with: npx playwright test tests/contracts/states.contract.spec.js
 
-const { test, expect, request } = require('@playwright/test');
+import { test, expect, request } from '@playwright/test';
 
 test.describe('GET /api/states contract', () => {
   test('returns canonical shape and x-source header', async ({}, testInfo) => {
