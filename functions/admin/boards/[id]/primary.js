@@ -19,8 +19,8 @@ export const onRequestPost = async ({ params, env }) => {
   if (!row) return json({ ok: false, reason: "not_found" }, 404);
 
   await DB.batch([
-    DB.prepare("UPDATE boards SET primary = 0 WHERE state_code = ?").bind(row.state_code),
-    DB.prepare("UPDATE boards SET primary = 1 WHERE id = ?").bind(id),
+    DB.prepare("UPDATE boards SET primary_flag = 0 WHERE state_code = ?").bind(row.state_code),
+    DB.prepare("UPDATE boards SET primary_flag = 1 WHERE id = ?").bind(id),
   ]);
 
   const updated = await DB.prepare("SELECT id, state_code, board, url, primary FROM boards WHERE id = ?").bind(id).first();
