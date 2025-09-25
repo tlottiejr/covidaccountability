@@ -24,13 +24,17 @@
 }
 .contact-overlay[aria-hidden="false"] { display: block; }
 
+/* Dialog is HIDDEN by default; shown only when aria-hidden="false" */
 .contact-dialog {
   position: fixed;
   inset: 0;
-  display: grid;
+  display: none;                 /* hidden by default */
   place-items: center;
   z-index: 10001;
-  pointer-events: none; /* clicks only on panel */
+  pointer-events: none;          /* clicks only on panel */
+}
+.contact-dialog[aria-hidden="false"] {
+  display: grid;                 /* show when open */
 }
 
 .contact-panel {
@@ -94,4 +98,4 @@
 }
 
 /* legacy (unused) */
-.body--contact-open { }
+.body--contact-open {}
