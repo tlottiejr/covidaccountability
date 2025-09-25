@@ -1,10 +1,36 @@
 /*
-  Content-Security-Policy: default-src 'self'; script-src 'self' https://cdn.jsdelivr.net https://challenges.cloudflare.com https://static.cloudflareinsights.com; style-src 'self' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com data:; img-src 'self' https: data:; connect-src 'self' https://cloudflareinsights.com; frame-src https://challenges.cloudflare.com https://www.youtube-nocookie.com https://*.youtube-nocookie.com https://www.youtube.com https://*.youtube.com https://rumble.com https://*.rumble.com; base-uri 'self'; form-action 'self'; object-src 'none'; frame-ancestors 'self'; upgrade-insecure-requests; report-uri /csp-report
-  Referrer-Policy: no-referrer-when-downgrade
   X-Content-Type-Options: nosniff
   X-Frame-Options: SAMEORIGIN
-  X-XSS-Protection: 0
-  Cross-Origin-Opener-Policy: same-origin
-  Cross-Origin-Resource-Policy: same-site
-  Permissions-Policy: geolocation=(), microphone=(), camera=(), payment=()
-  Cache-Control: public, max-age=600
+  Referrer-Policy: strict-origin-when-cross-origin
+  Permissions-Policy: geolocation=(), camera=(), microphone=(), payment=()
+
+  # CSP — keep current “inline-allowed” posture to avoid regressions.
+  # If/when you remove inline code we can tighten this later without breaking prod.
+  Content-Security-Policy: default-src 'self'; \
+    script-src 'self' 'unsafe-inline' https://challenges.cloudflare.com; \
+    style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; \
+    img-src 'self' data: https:; \
+    font-src 'self' https://fonts.gstatic.com data:; \
+    connect-src 'self'; \
+    frame-src https://challenges.cloudflare.com; \
+    frame-ancestors 'self'; \
+    base-uri 'self'; \
+    form-action 'self' https:; \
+    object-src 'none'; \
+    upgrade-insecure-requests; \
+    report-uri /csp-report
+
+  # (Optional) Report-Only during soak tests:
+  # Content-Security-Policy-Report-Only: default-src 'self'; report-uri /csp-report
+
+/assets/state-links.json
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/version.json
+  Cache-Control: public, max-age=300, s-maxage=300
+
+/assets/vendor/*
+  Cache-Control: public, max-age=31536000, immutable
+
+/assets/*
+  Cache-Control: public, max-age=31536000, immutable
