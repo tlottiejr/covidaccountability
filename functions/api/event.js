@@ -60,7 +60,7 @@ function ymdUTC(d = new Date()) {
 }
 
 export const onRequestGet = async ({ request, env }) => {
-  const KV = env.OPEN_BOARD_KV || env.ANALYTICS || env.EVENTS;
+  const KV = env.OPEN_BOARD_KV;
   if (!KV) return json({ ok: false, reason: "kv_unavailable" }, 500);
 
   const url = new URL(request.url);
@@ -75,7 +75,7 @@ export const onRequestGet = async ({ request, env }) => {
 };
 
 export const onRequestPost = async ({ request, env }) => {
-  const KV = env.OPEN_BOARD_KV || env.ANALYTICS || env.EVENTS;
+  const KV = env.OPEN_BOARD_KV;
   if (!KV) return json({ ok: false, reason: "kv_unavailable" }, 500);
 
   let payload;
