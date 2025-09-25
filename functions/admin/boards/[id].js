@@ -46,7 +46,7 @@ export const onRequestPatch = async ({ params, env }) => {
   ]);
 
   // Return the updated board
-  const updated = await DB.prepare("SELECT id, state_code, board, url, primary_flag FROM boards WHERE id = ?").bind(id).first();
+  const updated = await DB.prepare("SELECT id, state_code, board, url, primary_flag AS primary FROM boards WHERE id = ?").bind(id).first();
   return json({ ok: true, board: { ...updated, primary: !!updated.primary } });
 };
 
