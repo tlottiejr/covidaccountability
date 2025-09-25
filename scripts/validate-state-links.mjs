@@ -1,34 +1,26 @@
-#!/usr/bin/env node
-/**
- * Validates public/assets/state-links.json shape.
- * (Lightweight; no extra deps.)
- */
+// Validate /public/assets/state-links.json offline
+import fs from 'node:fs';
+import path from 'node:path';
+const file = path.resolve('public/assets/state-links.json');
+const raw = fs.readFileSync(file, 'utf8');
+const data = JSON.parse(raw);
 
-import fs from "node:fs/promises";
-import path from "node:path";
-
-const ROOT = process.cwd();
-const JSON_PATH = path.join(ROOT, "public", "assets", "state-links.json");
-
-function isHttpUrl(s) { return /^https?:\/\//i.test(s); }
-
-async function main() {
-  const data = JSON.parse(await fs.readFile(JSON_PATH, "utf8"));
-
-  if (!Array.isArray(data)) throw new Error("Top-level must be an array.");
-
-  for (const s of data) {
-    if (typeof s.code !== "string" || s.code.length !== 2) throw new Error("Invalid state code.");
-    if (typeof s.name !== "string" || !s.name) throw new Error(`Invalid state name for ${s.code}.`);
-    if (!Array.isArray(s.links)) throw new Error(`links must be array for ${s.code}.`);
-    for (const l of s.links) {
-      if (typeof l.board !== "string" || !l.board) throw new Error(`Invalid board in ${s.code}.`);
-      if (typeof l.url !== "string" || !isHttpUrl(l.url)) throw new Error(`Invalid url in ${s.code}.`);
-      if ("primary" in l && typeof l.primary !== "boolean") throw new Error(`primary must be boolean in ${s.code}.`);
+let ok = true;
+for (const s of data) {
+  if (!/^[A-Z]{2}$/.test(s.code)) { console.error('Bad code:', s.code); ok = false; }
+  if (!Array.isArray(s.links) || s.links.length === 0) { console.error('No links for', s.code); ok = false; }
+  let primaryCount = 0;
+  for (const l of s.links) {
+    try {
+      const u = new URL(l.url);
+      if (u.protocol !== 'https:') throw new Error('not https');
+    } catch {
+      console.error('Bad URL for', s.code, l.url);
+      ok = false;
     }
+    if (l.primary === true) primaryCount++;
   }
-
-  console.log("state-links.json is valid.");
+  if (primaryCount !== 1) { console.error('Primary count != 1 for', s.code); ok = false; }
 }
-
-main().catch(e => { console.error(e); process.exit(1); });
+if (!ok) process.exit(1);
+console.log('state-links.json OK');
