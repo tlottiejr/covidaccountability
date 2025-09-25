@@ -56,38 +56,41 @@
     </section>
 
     <!-- VAERS Figures (Official Data) — plain section, no card/wrapper -->
-    <section aria-labelledby="vaers-figures" style="margin-top:24px">
-      <h2 id="vaers-figures">VAERS Figures (Official Data)</h2>
+    <section aria-labelledby="vaers-charts">
+  <h2 id="vaers-charts">VAERS Figures (Official Data)</h2>
 
-      <!-- Charts: 3-up on desktop, 1-up on mobile -->
-      <div class="grid grid-3" style="margin-top:12px">
-        <div id="vaers-by-year" style="height:320px"></div>
-        <div id="vaers-covid-deaths-monthly" style="height:320px"></div>
-        <div id="vaers-days-to-onset" style="height:320px"></div>
-      </div>
+  <div class="chart-grid">
+    <div class="chart-card">
+      <h3>All Deaths Reported to VAERS by Year</h3>
+      <div id="chartDeathsByYear" class="chart-box"></div>
+    </div>
 
-      <!-- ONE wide table (Manufacturer / Sex / Age) -->
-      <div id="vaers-breakdowns" style="margin-top:16px"></div>
+    <div class="chart-card">
+      <h3>COVID Vaccine Reports of Death by Month</h3>
+      <div id="chartCovidDeathsByMonth" class="chart-box"></div>
+    </div>
 
-      <!-- “As of …” and citations -->
-      <p class="muted" id="vaers-asof" style="margin-top:8px"></p>
-      <ul class="vaers-citation muted" style="margin:8px 0 0 0; padding-left:18px; font-size:.9em;">
-        <li>Sources: CDC/FDA VAERS “All Years” CSV bundles (Domestic &amp; Non-Domestic)</li>
-        <li>Data regenerated monthly</li>
-        <li>VAERS datasets: <a href="https://vaers.hhs.gov/data/datasets.html" rel="noopener">vaers.hhs.gov/data/datasets.html</a></li>
-      </ul>
-    </section>
-  </main>
+    <div class="chart-card">
+      <h3>VAERS COVID/FLU Vaccine Reported Deaths by Days to Onset (All Ages)</h3>
+      <div id="chartDaysToOnset" class="chart-box"></div>
+    </div>
+  </div>
 
-  <footer class="container">
-    <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
-  </footer>
+  <p id="charts-unavailable" class="muted" aria-live="polite"></p>
+</section>
 
-  <!-- ECharts (UMD via CDN; allowed by CSP in /public/_headers) -->
-  <script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js" defer></script>
+<!-- Page-local styles (lightweight, matches your theme) -->
+<style>
+.chart-grid { display:grid; grid-template-columns: 1fr; gap: 1.25rem; }
+@media (min-width: 1024px) { .chart-grid { grid-template-columns: 1fr 1fr; } .chart-grid .chart-card:first-child { grid-column: 1 / -1; } }
+.chart-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 12px 4px; box-shadow: 0 1px 2px rgba(15,23,42,.04); }
+.chart-card h3 { margin: 0 0 .5rem; color: #0f172a; font-size: 1rem; font-weight: 600; }
+.chart-box { width: 100%; height: 360px; }
+.muted { color:#475569; }
+</style>
 
-  <!-- VAERS renderers -->
-  <script src="/assets/js/vaers-charts.js" defer></script>
-  <script src="/assets/js/vaers-tables.js" defer></script>
+<!-- Scripts: ECharts + our renderer -->
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script src="/assets/js/vaers-charts.js"></script>
 </body>
 </html>
