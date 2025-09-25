@@ -1,26 +1,16 @@
-/**
- * VAERS charts bootstrapping
- * - Loads ECharts (prefers local vendor if present; else CDN)
- * - Loads summary data from common repo paths
- * - Renders 3 charts into #chartDeathsByYear, #chartCovidDeathsByMonth, #chartDaysToOnset
- * - Never throws uncaught (won’t break rest of page)
- */
 (() => {
   const $ = (sel, root=document) => root.querySelector(sel);
 
-  // ---- robust DOM ready ----
   function onReady(fn){
     if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, {once:true});
     else queueMicrotask(fn);
   }
 
-  // ---- load ECharts: local vendor first, then jsDelivr fallback ----
   function loadScript(src){
-    return new Promise((resolve, reject) => {
+    return new Promise((res, rej) => {
       const s = document.createElement('script');
       s.src = src; s.async = true; s.defer = true;
-      s.onload = () => resolve();
-      s.onerror = () => reject(new Error('script_load_failed:'+src));
+      s.onload = res; s.onerror = () => rej(new Error('script_load_failed:'+src));
       document.head.appendChild(s);
     });
   }
@@ -30,69 +20,62 @@
       '/assets/vendor/echarts.min.js',
       'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'
     ];
-    let lastErr = null;
-    for (const url of candidates){
-      try { await loadScript(url); if (window.echarts) return window.echarts; }
-      catch (e){ lastErr = e; /* try next */ }
-    }
-    throw lastErr || new Error('echarts_unavailable');
+    let last;
+    for (const u of candidates){ try { await loadScript(u); if (window.echarts) return window.echarts; } catch(e){ last=e; } }
+    throw last || new Error('echarts_unavailable');
   }
 
-  // ---- data loader: try several known locations ----
-  async function fetchJson(url){
-    const res = await fetch(url, { headers: { accept:'application/json' }, cache:'no-store' });
-    if (!res.ok) throw new Error('http '+res.status+' for '+url);
-    return res.json();
+  async function fetchJson(u){
+    const r = await fetch(u, { headers: { accept:'application/json' } });
+    if (!r.ok) throw new Error('http '+r.status+' for '+u);
+    return r.json();
   }
   async function loadSummary(){
-    const paths = [
-      '/data/vaers-summary.json',
+    const explicit = window.VAERS_SUMMARY_URL;
+    const tries = explicit ? [explicit] : [
       '/assets/health/analytics/vaers-summary.json',
+      '/data/vaers-summary.json',
       '/assets/health/analytics/vaers.json',
       '/data/vaers.json'
     ];
-    for (const p of paths){
-      try { return await fetchJson(p); } catch {/* next */}
+    let lastErr;
+    for (const p of tries){
+      try { const j = await fetchJson(p); console.info('[vaers] loaded', p); return j; }
+      catch(e){ lastErr = e; }
     }
     if (window.VAERS_SUMMARY) return window.VAERS_SUMMARY;
-    throw new Error('vaers_summary_not_found');
+    console.error('[vaers] summary not found; tried:', tries, 'lastErr:', lastErr);
+    throw lastErr || new Error('vaers_summary_not_found');
   }
 
-  // ---- helpers / theme ----
-  const pick = (o, keys, dflt) => { for (const k of keys) if (o && o[k]!=null) return o[k]; return dflt; };
-  const num  = v => (v==null ? 0 : +v);
+  const pick = (o, keys, d) => { for (const k of keys) if (o && o[k]!=null) return o[k]; return d; };
+  const num  = v => (v==null?0:+v);
 
-  function normYearly(src){
-    const rows = pick(src, ['yearly','byYear','deathsByYear','yearlyDeaths'], []);
-    const arr = Array.isArray(rows) ? rows : [];
-    return arr.map(r => ({
+  function normYearly(s){
+    const rows = pick(s, ['yearly','byYear','deathsByYear','yearlyDeaths'], []);
+    return (Array.isArray(rows)?rows:[]).map(r => ({
       year: String(pick(r, ['year','Year','y'])),
       total: num(pick(r, ['total','DeathsTotal','reports','all'])),
       nonCovid: num(pick(r, ['nonCovid','DeathsNonCovid','other','non_covid']))
     })).filter(x => x.year);
   }
-  function normMonthlyCovid(src){
-    const rows = pick(src, ['covidMonthly','covidByMonth','covidDeathsByMonth'], []);
-    const arr = Array.isArray(rows) ? rows : [];
-    return arr.map(r => ({
+  function normMonthlyCovid(s){
+    const rows = pick(s, ['covidMonthly','covidByMonth','covidDeathsByMonth'], []);
+    return (Array.isArray(rows)?rows:[]).map(r => ({
       month: String(pick(r, ['month','Month'])),
       us:    num(pick(r, ['domestic','US','us','UnitedStates'])),
       foreign: num(pick(r, ['foreign','NonUS','nonUS','Foreign']))
     })).filter(x => x.month);
   }
-  function normOnset(src){
-    const cv = pick(src, ['covidOnset','daysToOnsetCovid','onsetCovid','covid'], []);
-    const fl = pick(src, ['fluOnset','daysToOnsetFlu','onsetFlu','flu'], []);
+  function normOnset(s){
+    const cv = pick(s, ['covidOnset','daysToOnsetCovid','onsetCovid','covid'], []);
+    const fl = pick(s, ['fluOnset','daysToOnsetFlu','onsetFlu','flu'], []);
     const to = a => (Array.isArray(a)?a:[]).map(r => ({ day:num(pick(r,['day','d','x'],0)), n:num(pick(r,['count','n','y'],0)) }));
     return { covid: to(cv), flu: to(fl) };
   }
 
-  const THEME = {
-    text:'#0f172a', sub:'#475569', axis:'#94a3b8', grid:'#e2e8f0',
-    red:'#ef4444', blue:'#38bdf8', teal:'#14b8a6'
-  };
+  const THEME = { text:'#0f172a', sub:'#475569', axis:'#94a3b8', grid:'#e2e8f0', red:'#ef4444', blue:'#38bdf8', teal:'#14b8a6' };
 
-  // ---- renderers ----
   function chartDeathsByYear(el, data, ec){
     const inst = ec.init(el);
     inst.setOption({
@@ -145,7 +128,6 @@
     return inst;
   }
 
-  // ---- boot sequence ----
   onReady(async () => {
     const c1 = $('#chartDeathsByYear'), c2 = $('#chartCovidDeathsByMonth'), c3 = $('#chartDaysToOnset');
     if (!c1 && !c2 && !c3) return;
@@ -167,7 +149,6 @@
         const msg = document.getElementById('charts-unavailable');
         if (msg) msg.textContent = 'Charts unavailable.';
       }
-
       addEventListener('resize', () => instances.forEach(i => i.resize()), {passive:true});
     } catch (e){
       console.error('[vaers-charts]', e);
