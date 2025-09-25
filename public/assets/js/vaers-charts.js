@@ -221,13 +221,15 @@
 
   // ----- theme -----
   const THEME = {
-    text: "#0f172a",
-    sub: "#475569",
-    axis: "#94a3b8",
-    grid: "#e2e8f0",
-    red: "#ef4444",
-    blue: "#38bdf8",
-    teal: "#14b8a6",
+  bg: "transparent",
+  ink: "#0f172a",
+  sub: "#334155",
+  axis: "#64748b",
+  grid: "rgba(0,0,0,0.08)",
+  // Use blue shades for series
+  red:  "#2563eb", // primary blue (used where code used 'red')
+  blue: "#60a5fa", // secondary blue
+  teal: "#38bdf8", // accent blue/cyan
   };
 
   // ----- renderers -----
