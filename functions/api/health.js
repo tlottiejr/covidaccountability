@@ -26,7 +26,7 @@ export const onRequestGet = async ({ request, env }) => {
   } catch { /* ignore */ }
 
   let kv = "skip";
-  const KV = env.OPEN_BOARD_KV || env.ANALYTICS || env.EVENTS;
+  const KV = env.OPEN_BOARD_KV;
   if (KV) {
     try {
       await timeout(KV.get("health-probe"), 1000);
