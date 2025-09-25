@@ -1,50 +1,35 @@
-// functions/api/verify-turnstile.js
-// POST /api/verify-turnstile  { response, remoteip? } -> { success, data }
-
+// /functions/api/verify-turnstile.js
+// Server-side verify for Cloudflare Turnstile
 function json(body, status = 200, headers = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-      "cache-control": "no-store",
-      ...headers,
-    },
+    headers: { "content-type": "application/json; charset=utf-8", ...headers },
   });
 }
 
-async function readJson(request) {
-  const text = await request.text();
-  try {
-    return JSON.parse(text || "{}");
-  } catch {
-    return {};
-  }
+async function readJsonSafe(req) {
+  try { return await req.json(); } catch { return {}; }
 }
 
-export async function onRequestPost({ request, env }) {
-  try {
-    const { response, remoteip } = await readJson(request);
-    if (!response || typeof response !== "string") {
-      return json({ success: false, error: "missing-response" }, 400);
-    }
+export const onRequestPost = async ({ request, env }) => {
+  const { response, remoteip } = await readJsonSafe(request);
+  const secret = env.TURNSTILE_SECRET || env.TURNSTILE_SERVER_SECRET;
+  if (!secret) return json({ success: false, reason: "secret_missing" }, 500);
+  if (!response) return json({ success: false, reason: "response_missing" }, 400);
 
-    const form = new URLSearchParams();
-    form.set("secret", env.TURNSTILE_SECRET);
-    form.set("response", response);
-    if (remoteip) form.set("remoteip", remoteip);
+  const form = new FormData();
+  form.append("secret", secret);
+  form.append("response", response);
+  if (remoteip) form.append("remoteip", String(remoteip));
 
-    const verify = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
-      method: "POST",
-      body: form,
-      headers: { "content-type": "application/x-www-form-urlencoded" },
-    });
+  const res = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
+    method: "POST",
+    body: form,
+  });
 
-    const data = await verify.json().catch(() => ({}));
-    const success = !!data.success;
+  let data = null;
+  try { data = await res.json(); } catch { /* ignore */ }
 
-    return json({ success, data }, 200);
-  } catch (err) {
-    console.error("[/api/verify-turnstile] error", err);
-    return json({ success: false, error: "internal-error" }, 500);
-  }
-}
+  const success = !!(data && data.success);
+  return json({ success, data }, success ? 200 : 400);
+};
