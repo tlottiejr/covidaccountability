@@ -1,31 +1,27 @@
-// functions/api/version.js
-// GET /api/version -> { version, builtAt } from static file if present, else synthesized.
+// /functions/api/version.js
+// Prefer static /assets/version.json; fallback to env vars.
 
 function json(body, status = 200, headers = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-      "cache-control": "public, max-age=60, s-maxage=3600",
-      ...headers,
-    },
+    headers: { "content-type": "application/json; charset=utf-8", ...headers },
   });
 }
 
-export async function onRequestGet({ request, env }) {
-  try {
-    // Try static file
-    const url = new URL("/assets/version.json", request.url).toString();
-    const res = await fetch(url, { headers: { accept: "application/json" } });
-    if (res.ok) {
-      const data = await res.json();
-      return json(data);
-    }
-  } catch {
-    // fall through
-  }
+export const onRequestGet = async ({ request, env }) => {
+  const origin = new URL(request.url).origin;
 
-  const version = env.GIT_COMMIT || "unknown";
-  const builtAt = env.BUILT_AT || null;
-  return json({ version, builtAt });
-}
+  try {
+    const res = await fetch(`${origin}/assets/version.json`, { headers: { accept: "application/json" } });
+    if (res.ok) {
+      const body = await res.json();
+      return json(body, 200, { "x-source": "static" });
+    }
+  } catch { /* ignore and fall back */ }
+
+  const body = {
+    version: env.GIT_COMMIT || env.COMMIT_SHA || "unknown",
+    builtAt: env.BUILT_AT || null,
+  };
+  return json(body, 200, { "x-source": "env" });
+};
