@@ -1,13 +1,8 @@
 // public/assets/contact.js
 // Minimal CSP-friendly contact modal (singleton).
-// - One Close button (bottom).
-// - Static email text.
-// - No page freeze. Overlay is visual only.
-// - Close works even if other scripts stop propagation (capturing listener).
-// - Defensive against duplicate script loads.
+// Fix: dialog is now actually hidden on close (CSS + explicit display toggle).
 
 (function () {
-  // ---- Singleton guard ----
   if (window.__CAN_CONTACT_INIT__) return;
   window.__CAN_CONTACT_INIT__ = true;
 
@@ -31,7 +26,6 @@
       link.href = CSS_HREF;
       document.head.appendChild(link);
     }
-    // Derive site <a> color -> --contact-link
     const probe = document.querySelector("a[href]");
     if (probe) {
       try {
@@ -42,7 +36,6 @@
   }
 
   function cleanupOldInstances() {
-    // Remove any prior overlays/dialogs from older builds or duplicate inits
     qsa(document, `${OVERLAY_SEL}, ${DIALOG_SEL}`).forEach((el) => el.remove());
   }
 
@@ -52,23 +45,20 @@
 
     cleanupOldInstances();
 
-    // Overlay (visual only — doesn't trap clicks/scroll)
     const overlay = document.createElement("div");
     overlay.className = "contact-overlay";
     overlay.setAttribute("aria-hidden", "true");
 
-    // Dialog container
     const dialog = document.createElement("div");
     dialog.className = "contact-dialog";
     dialog.setAttribute("role", "dialog");
     dialog.setAttribute("aria-modal", "true");
     dialog.setAttribute("aria-hidden", "true");
+    dialog.style.display = "none"; // explicit hidden
 
-    // Panel
     const panel = document.createElement("div");
     panel.className = "contact-panel";
 
-    // Header (title only)
     const header = document.createElement("div");
     header.className = "contact-header";
     const title = document.createElement("h2");
@@ -77,7 +67,6 @@
     title.textContent = "Contact Us";
     header.appendChild(title);
 
-    // Body (static blip)
     const body = document.createElement("div");
     body.className = "contact-body";
     body.id = "contact-desc";
@@ -86,7 +75,6 @@
       <p>Email: info@covidaccountabilitynow.com</p>
     `;
 
-    // Actions (Close only)
     const actions = document.createElement("div");
     actions.className = "contact-actions";
     const closeBtn = document.createElement("button");
@@ -96,7 +84,6 @@
     closeBtn.setAttribute("data-contact-close", "");
     actions.appendChild(closeBtn);
 
-    // Assemble
     panel.appendChild(header);
     panel.appendChild(body);
     panel.appendChild(actions);
@@ -104,14 +91,12 @@
     document.body.appendChild(overlay);
     document.body.appendChild(dialog);
 
-    // Direct close listener (fast path)
     closeBtn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
       close();
     });
 
-    // Keyboard: ESC + focus trap
     document.addEventListener("keydown", (e) => {
       if (!isOpen) return;
       if (e.key === "Escape") {
@@ -135,21 +120,20 @@
       }
     });
 
-    // SAFETY NET: capture-phase click handler (wins even if bubbling is stopped)
+    // Capture-phase safety net
     document.addEventListener(
       "click",
       (e) => {
         if (!isOpen) return;
         const t = e.target;
-        if (t && (t.closest('[data-contact-close]'))) {
+        if (t && t.closest('[data-contact-close]')) {
           e.preventDefault();
           close();
         }
       },
-      true // capture
+      true
     );
 
-    // ARIA wiring
     dialog.setAttribute("aria-labelledby", title.id);
     dialog.setAttribute("aria-describedby", body.id);
   }
@@ -162,11 +146,13 @@
     if (!overlay || !dialog) return;
 
     lastActive = document.activeElement;
+
     overlay.setAttribute("aria-hidden", "false");
     dialog.setAttribute("aria-hidden", "false");
+    dialog.style.display = "grid";   // ensure visible
+
     isOpen = true;
 
-    // Focus Close for easy dismissal
     const closeBtn = dialog.querySelector('[data-contact-close]');
     if (closeBtn) closeBtn.focus();
   }
@@ -178,6 +164,8 @@
 
     overlay.setAttribute("aria-hidden", "true");
     dialog.setAttribute("aria-hidden", "true");
+    dialog.style.display = "none";   // ensure hidden
+
     isOpen = false;
 
     if (lastActive && typeof lastActive.focus === "function") {
@@ -186,7 +174,6 @@
     }
   }
 
-  // ---- Auto-wire header/footer "Contact" links (open modal, no nav) ----
   function looksLikeContactLink(a) {
     if (!a || a.tagName !== "A") return false;
     if (a.hasAttribute("data-contact-ignore")) return false;
@@ -203,7 +190,6 @@
   function wireTriggers(root) {
     const scope = root || document;
 
-    // Explicit triggers
     qsa(scope, "[data-contact-open]").forEach((el) => {
       if (!el.__contactWired) {
         el.__contactWired = true;
@@ -216,7 +202,6 @@
       }
     });
 
-    // Existing "Contact" links
     qsa(scope, "a").forEach((a) => {
       if (looksLikeContactLink(a) && !a.__contactWired) {
         a.__contactWired = true;
@@ -244,7 +229,6 @@
     wireTriggers(document);
   });
 
-  // Rewire late-inserted nav/footer if needed (but don't rebuild modal)
   let retries = 4;
   const late = () => { wireTriggers(document); if (retries-- > 0) setTimeout(late, 300); };
   ready(() => setTimeout(late, 200));
