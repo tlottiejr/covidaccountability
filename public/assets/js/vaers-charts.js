@@ -1,217 +1,183 @@
 <script>
-(async () => {
-  // ---------- small helpers ----------
-  const $ = (sel, root = document) => root.querySelector(sel);
+/**
+ * VAERS charts bootstrapping
+ * - Loads ECharts (prefers local vendor if present; else CDN)
+ * - Loads summary data from common repo paths
+ * - Renders 3 charts into #chartDeathsByYear, #chartCovidDeathsByMonth, #chartDaysToOnset
+ * - Never throws uncaught (won’t break rest of page)
+ */
+(() => {
+  const $ = (sel, root=document) => root.querySelector(sel);
 
-  // Load ECharts from CDN if not present
-  async function ensureECharts() {
-    if (window.echarts) return window.echarts;
-    await new Promise((resolve, reject) => {
+  // ---- robust DOM ready ----
+  function onReady(fn){
+    if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', fn, {once:true});
+    else queueMicrotask(fn);
+  }
+
+  // ---- load ECharts: local vendor first, then jsDelivr fallback ----
+  function loadScript(src){
+    return new Promise((resolve, reject) => {
       const s = document.createElement('script');
-      s.src = 'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js';
-      s.async = true;
-      s.onload = resolve;
-      s.onerror = () => reject(new Error('echarts_load_error'));
+      s.src = src; s.async = true; s.defer = true;
+      s.onload = () => resolve();
+      s.onerror = () => reject(new Error('script_load_failed:'+src));
       document.head.appendChild(s);
     });
-    return window.echarts;
+  }
+  async function ensureECharts(){
+    if (window.echarts) return window.echarts;
+    const candidates = [
+      '/assets/vendor/echarts.min.js',
+      'https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js'
+    ];
+    let lastErr = null;
+    for (const url of candidates){
+      try { await loadScript(url); if (window.echarts) return window.echarts; }
+      catch (e){ lastErr = e; /* try next */ }
+    }
+    throw lastErr || new Error('echarts_unavailable');
   }
 
-  // Try several known data paths (first that exists wins)
-  async function loadSummary() {
-    const candidates = [
+  // ---- data loader: try several known locations ----
+  async function fetchJson(url){
+    const res = await fetch(url, { headers: { accept:'application/json' }, cache:'no-store' });
+    if (!res.ok) throw new Error('http '+res.status+' for '+url);
+    return res.json();
+  }
+  async function loadSummary(){
+    const paths = [
       '/data/vaers-summary.json',
       '/assets/health/analytics/vaers-summary.json',
+      '/assets/health/analytics/vaers.json',
       '/data/vaers.json'
     ];
-    for (const p of candidates) {
-      try {
-        const res = await fetch(p, { headers: { accept: 'application/json' }});
-        if (res.ok) return await res.json();
-      } catch { /* next */ }
+    for (const p of paths){
+      try { return await fetchJson(p); } catch {/* next */}
     }
-    throw new Error('summary_not_found');
+    if (window.VAERS_SUMMARY) return window.VAERS_SUMMARY; // absolute fallback if page embeds data
+    throw new Error('vaers_summary_not_found');
   }
 
-  // Defensive pick helpers
-  const pick = (o, keys, dflt = undefined) => {
-    for (const k of keys) if (o && o[k] != null) return o[k];
-    return dflt;
-  };
-  const toNum = x => (x == null ? 0 : +x);
+  // ---- helpers / theme ----
+  const pick = (o, keys, dflt) => { for (const k of keys) if (o && o[k]!=null) return o[k]; return dflt; };
+  const num  = v => (v==null ? 0 : +v);
 
-  // Normalize inputs into the shapes the charts need
-  function normalizeYearly(summary) {
-    const src = pick(summary, ['yearly', 'byYear', 'deathsByYear', 'yearlyDeaths'], []);
-    const rows = Array.isArray(src) ? src : [];
-    // Accept shapes like: {year, total, nonCovid} or {Year, DeathsTotal, DeathsNonCovid} etc.
-    return rows.map(r => ({
-      year: String(pick(r, ['year', 'Year'])),
-      total: toNum(pick(r, ['total', 'DeathsTotal', 'reports', 'all'])),
-      nonCovid: toNum(pick(r, ['nonCovid', 'DeathsNonCovid', 'non_covid', 'other']))
-    })).filter(x => x.year && (x.total || x.nonCovid));
+  function normYearly(src){
+    const rows = pick(src, ['yearly','byYear','deathsByYear','yearlyDeaths'], []);
+    const arr = Array.isArray(rows) ? rows : [];
+    return arr.map(r => ({
+      year: String(pick(r, ['year','Year','y'])),
+      total: num(pick(r, ['total','DeathsTotal','reports','all'])),
+      nonCovid: num(pick(r, ['nonCovid','DeathsNonCovid','other','non_covid']))
+    })).filter(x => x.year);
   }
-
-  function normalizeMonthlyCovid(summary) {
-    const src = pick(summary, ['covidMonthly', 'covidByMonth', 'covidDeathsByMonth'], []);
-    const rows = Array.isArray(src) ? src : [];
-    return rows.map(r => ({
-      month: String(pick(r, ['month', 'Month'])),
-      domestic: toNum(pick(r, ['domestic', 'US', 'us', 'UnitedStates'])),
-      foreign: toNum(pick(r, ['foreign', 'nonUS', 'NonUS', 'Foreign']))
+  function normMonthlyCovid(src){
+    const rows = pick(src, ['covidMonthly','covidByMonth','covidDeathsByMonth'], []);
+    const arr = Array.isArray(rows) ? rows : [];
+    return arr.map(r => ({
+      month: String(pick(r, ['month','Month'])),
+      us:    num(pick(r, ['domestic','US','us','UnitedStates'])),
+      foreign: num(pick(r, ['foreign','NonUS','nonUS','Foreign']))
     })).filter(x => x.month);
   }
-
-  function normalizeOnset(summary) {
-    // { covid: [{day,count}], flu:[{day,count}] } or variants
-    const covid = pick(summary, ['covidOnset', 'daysToOnsetCovid', 'onsetCovid', 'covid'], []);
-    const flu = pick(summary, ['fluOnset', 'daysToOnsetFlu', 'onsetFlu', 'flu'], []);
-    const norm = arr => (Array.isArray(arr) ? arr : []).map(r => ({
-      day: toNum(pick(r, ['day', 'd', 'x'])),
-      count: toNum(pick(r, ['count', 'y', 'n']))
-    })).filter(x => Number.isFinite(x.day));
-    return { covid: norm(covid), flu: norm(flu) };
+  function normOnset(src){
+    const cv = pick(src, ['covidOnset','daysToOnsetCovid','onsetCovid','covid'], []);
+    const fl = pick(src, ['fluOnset','daysToOnsetFlu','onsetFlu','flu'], []);
+    const to = a => (Array.isArray(a)?a:[]).map(r => ({ day:num(pick(r,['day','d','x'],0)), n:num(pick(r,['count','n','y'],0)) }));
+    return { covid: to(cv), flu: to(fl) };
   }
 
-  // ---------- theme ----------
   const THEME = {
-    text: '#0f172a',        // slate-900
-    subText: '#475569',     // slate-600
-    grid: '#e2e8f0',        // slate-200
-    axis: '#94a3b8',        // slate-400
-    red: '#ef4444',         // red-500
-    blue: '#38bdf8',        // sky-400
-    teal: '#14b8a6'         // teal-500
+    text:'#0f172a', sub:'#475569', axis:'#94a3b8', grid:'#e2e8f0',
+    red:'#ef4444', blue:'#38bdf8', teal:'#14b8a6'
   };
 
-  // ---------- rendering ----------
-  function chartDeathsByYear(el, data, echarts) {
-    const years = data.map(d => d.year);
-    const total = data.map(d => d.total);
-    const nonCovid = data.map(d => d.nonCovid);
-
-    const inst = echarts.init(el);
+  // ---- renderers ----
+  function chartDeathsByYear(el, data, ec){
+    const inst = ec.init(el);
     inst.setOption({
-      backgroundColor: 'transparent',
-      grid: { left: 56, right: 24, top: 48, bottom: 48 },
-      tooltip: { trigger: 'axis' },
-      legend: { top: 8, textStyle: { color: THEME.subText } },
-      xAxis: {
-        type: 'category',
-        data: years,
-        axisLine: { lineStyle: { color: THEME.axis }},
-        axisTick: { show: false },
-        axisLabel: { color: THEME.subText, interval: 2 }
-      },
-      yAxis: {
-        type: 'value',
-        axisLine: { lineStyle: { color: THEME.axis }},
-        splitLine: { lineStyle: { color: THEME.grid }},
-        axisLabel: { color: THEME.subText }
-      },
-      series: [
-        { name: 'Reports of Death', type: 'bar', data: total, itemStyle: { color: THEME.red }},
-        { name: 'All Non COVID-Vaccine Deaths', type: 'bar', data: nonCovid, itemStyle: { color: THEME.blue }}
+      backgroundColor:'transparent',
+      grid:{left:56,right:24,top:48,bottom:48},
+      tooltip:{trigger:'axis'},
+      legend:{top:8,textStyle:{color:THEME.sub}},
+      xAxis:{type:'category',data:data.map(d=>d.year),axisLine:{lineStyle:{color:THEME.axis}},axisTick:{show:false},axisLabel:{color:THEME.sub,interval:2}},
+      yAxis:{type:'value',axisLine:{lineStyle:{color:THEME.axis}},splitLine:{lineStyle:{color:THEME.grid}},axisLabel:{color:THEME.sub}},
+      series:[
+        {name:'Reports of Death',type:'bar',data:data.map(d=>d.total),itemStyle:{color:THEME.red}},
+        {name:'All Non COVID-Vaccine Deaths',type:'bar',data:data.map(d=>d.nonCovid),itemStyle:{color:THEME.blue}}
+      ]
+    });
+    return inst;
+  }
+  function chartCovidByMonth(el, data, ec){
+    const inst = ec.init(el);
+    inst.setOption({
+      backgroundColor:'transparent',
+      grid:{left:56,right:24,top:48,bottom:56},
+      tooltip:{trigger:'axis'},
+      legend:{top:8,textStyle:{color:THEME.sub}},
+      xAxis:{type:'category',data:data.map(d=>d.month),axisLine:{lineStyle:{color:THEME.axis}},axisTick:{show:false},axisLabel:{color:THEME.sub,interval:2,rotate:40}},
+      yAxis:{type:'value',axisLine:{lineStyle:{color:THEME.axis}},splitLine:{lineStyle:{color:THEME.grid}},axisLabel:{color:THEME.sub}},
+      series:[
+        {name:'US/Territories',type:'line',smooth:true,data:data.map(d=>d.us),lineStyle:{width:3,color:THEME.red}},
+        {name:'Foreign',type:'line',smooth:true,data:data.map(d=>d.foreign),lineStyle:{width:3,color:THEME.blue}}
+      ]
+    });
+    return inst;
+  }
+  function chartOnset(el, ds, ec){
+    const max = Math.max(19, ...ds.covid.map(x=>x.day), ...ds.flu.map(x=>x.day));
+    const days = Array.from({length:max+1},(_,i)=>i);
+    const v = (arr) => days.map(d => (arr.find(x=>x.day===d)?.n)||0);
+    const inst = ec.init(el);
+    inst.setOption({
+      backgroundColor:'transparent',
+      grid:{left:56,right:24,top:48,bottom:48},
+      tooltip:{trigger:'axis'},
+      legend:{top:8,textStyle:{color:THEME.sub}},
+      xAxis:{type:'category',data:days,name:'Days to Onset',nameLocation:'middle',nameGap:32,axisLine:{lineStyle:{color:THEME.axis}},axisTick:{show:false},axisLabel:{color:THEME.sub}},
+      yAxis:{type:'value',axisLine:{lineStyle:{color:THEME.axis}},splitLine:{lineStyle:{color:THEME.grid}},axisLabel:{color:THEME.sub}},
+      series:[
+        {name:'Covid Vaccines',type:'bar',data:v(ds.covid),itemStyle:{color:THEME.red}},
+        {name:'Flu Vaccines',type:'bar',data:v(ds.flu),itemStyle:{color:THEME.teal}}
       ]
     });
     return inst;
   }
 
-  function chartCovidDeathsByMonth(el, data, echarts) {
-    const months = data.map(d => d.month);
-    const domestic = data.map(d => d.domestic);
-    const foreign = data.map(d => d.foreign);
+  // ---- boot sequence ----
+  onReady(async () => {
+    // Exit early if containers aren’t present — do NOT interfere with rest of page
+    const c1 = $('#chartDeathsByYear'), c2 = $('#chartCovidDeathsByMonth'), c3 = $('#chartDaysToOnset');
+    if (!c1 && !c2 && !c3) return;
 
-    const inst = echarts.init(el);
-    inst.setOption({
-      backgroundColor: 'transparent',
-      grid: { left: 56, right: 24, top: 48, bottom: 48 },
-      tooltip: { trigger: 'axis' },
-      legend: { top: 8, textStyle: { color: THEME.subText } },
-      xAxis: {
-        type: 'category',
-        data: months,
-        axisLine: { lineStyle: { color: THEME.axis }},
-        axisTick: { show: false },
-        axisLabel: { color: THEME.subText, interval: 2, rotate: 40 }
-      },
-      yAxis: {
-        type: 'value',
-        axisLine: { lineStyle: { color: THEME.axis }},
-        splitLine: { lineStyle: { color: THEME.grid }},
-        axisLabel: { color: THEME.subText }
-      },
-      series: [
-        { name: 'US/Territories', type: 'line', smooth: true, data: domestic, lineStyle: { width: 3, color: THEME.red }},
-        { name: 'Foreign', type: 'line', smooth: true, data: foreign, lineStyle: { width: 3, color: THEME.blue }}
-      ]
-    });
-    return inst;
-  }
+    try {
+      const ec = await ensureECharts();
+      const summary = await loadSummary();
 
-  function chartDaysToOnset(el, dataset, echarts) {
-    const maxDay = Math.max(
-      ...dataset.covid.map(d => d.day || 0),
-      ...dataset.flu.map(d => d.day || 0),
-      19
-    );
-    const days = Array.from({ length: maxDay + 1 }, (_, i) => i);
-    const vCovid = days.map(d => (dataset.covid.find(x => x.day === d)?.count) || 0);
-    const vFlu   = days.map(d => (dataset.flu.find(x => x.day === d)?.count) || 0);
+      const yearly = normYearly(summary);
+      const monthly = normMonthlyCovid(summary);
+      const onset   = normOnset(summary);
 
-    const inst = echarts.init(el);
-    inst.setOption({
-      backgroundColor: 'transparent',
-      grid: { left: 56, right: 24, top: 48, bottom: 48 },
-      tooltip: { trigger: 'axis' },
-      legend: { top: 8, textStyle: { color: THEME.subText } },
-      xAxis: {
-        type: 'category',
-        data: days,
-        name: 'Days to Onset',
-        nameLocation: 'middle',
-        nameGap: 32,
-        axisLine: { lineStyle: { color: THEME.axis }},
-        axisTick: { show: false },
-        axisLabel: { color: THEME.subText }
-      },
-      yAxis: {
-        type: 'value',
-        axisLine: { lineStyle: { color: THEME.axis }},
-        splitLine: { lineStyle: { color: THEME.grid }},
-        axisLabel: { color: THEME.subText }
-      },
-      series: [
-        { name: 'Covid Vaccines', type: 'bar', data: vCovid, itemStyle: { color: THEME.red }},
-        { name: 'Flu Vaccines',   type: 'bar', data: vFlu,   itemStyle: { color: THEME.teal }}
-      ]
-    });
-    return inst;
-  }
+      const instances = [];
+      if (c1 && yearly.length)  instances.push(chartDeathsByYear(c1, yearly, ec));
+      if (c2 && monthly.length) instances.push(chartCovidByMonth(c2, monthly, ec));
+      if (c3 && (onset.covid.length || onset.flu.length)) instances.push(chartOnset(c3, onset, ec));
 
-  // ---------- boot ----------
-  try {
-    const echarts = await ensureECharts();
-    const summary = await loadSummary();
+      // show a friendly note when no data
+      if (instances.length === 0){
+        const msg = document.getElementById('charts-unavailable');
+        if (msg) msg.textContent = 'Charts unavailable.';
+      }
 
-    const yearly = normalizeYearly(summary);
-    const monthlyCovid = normalizeMonthlyCovid(summary);
-    const onset = normalizeOnset(summary);
-
-    const charts = [];
-    const c1 = $('#chartDeathsByYear');
-    const c2 = $('#chartCovidDeathsByMonth');
-    const c3 = $('#chartDaysToOnset');
-    if (c1 && yearly.length) charts.push(chartDeathsByYear(c1, yearly, echarts));
-    if (c2 && monthlyCovid.length) charts.push(chartCovidDeathsByMonth(c2, monthlyCovid, echarts));
-    if (c3 && (onset.covid.length || onset.flu.length)) charts.push(chartDaysToOnset(c3, onset, echarts));
-
-    // simple responsive
-    window.addEventListener('resize', () => charts.forEach(ch => ch.resize()));
-  } catch (e) {
-    console.error('[vaers-charts] failed:', e);
-    const container = document.getElementById('charts-unavailable');
-    if (container) container.textContent = 'Charts unavailable.';
-  }
+      // responsive
+      addEventListener('resize', () => instances.forEach(i => i.resize()), {passive:true});
+    } catch (e){
+      console.error('[vaers-charts]', e);
+      const msg = document.getElementById('charts-unavailable');
+      if (msg) msg.textContent = 'Charts unavailable.';
+    }
+  });
 })();
 </script>
