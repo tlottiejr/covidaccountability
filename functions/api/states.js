@@ -1,100 +1,87 @@
-// functions/api/states.js
-// GET /api/states  -> canonical state-links (static JSON, then D1 fallback, else 503)
+// /functions/api/states.js
+// Serves canonical state->board links.
+// Strategy: static-first (/assets/state-links.json) with strong cache; fallback to D1 canonicalization.
+// Response headers include: x-source: static|d1-fallback
 
-import { ID_ALIAS, all } from "../_lib/db.js";
-
-/** Small JSON response helper */
 function json(body, status = 200, headers = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-      "cache-control": "public, max-age=600, s-maxage=3600",
-      ...headers,
-    },
+    headers: { "content-type": "application/json; charset=utf-8", ...headers },
   });
 }
 
-async function fetchStaticStateLinks(request) {
-  // Pages will serve the static asset for this URL.
-  const url = new URL("/assets/state-links.json", request.url).toString();
-  const res = await fetch(url, { headers: { accept: "application/json" } });
+function coerceOnePrimaryPerState(states) {
+  // If multiple primaries exist, keep the first and flip the rest to false.
+  for (const s of states) {
+    let seen = false;
+    for (const link of s.links) {
+      if (link.primary === true) {
+        if (seen) link.primary = false;
+        seen = true;
+      }
+    }
+    // If none marked, make the first one primary (defensive)
+    if (!seen && s.links.length > 0) s.links[0].primary = true;
+  }
+  return states;
+}
+
+async function fromStatic(origin) {
+  const res = await fetch(`${origin}/assets/state-links.json`, {
+    headers: { accept: "application/json" },
+    cf: { cacheTtl: 600, cacheEverything: true },
+  });
   if (!res.ok) return null;
   const data = await res.json();
-  return data;
+  if (!Array.isArray(data)) return null;
+  return coerceOnePrimaryPerState(data);
 }
 
-function coerceOnePrimaryPerState(items) {
-  // items: [{ code, name, links:[{board,url,primary?}] }]
-  return items.map((s) => {
-    if (!Array.isArray(s.links) || s.links.length <= 1) return s;
-    const primaries = s.links.filter((l) => l.primary);
-    if (primaries.length <= 1) return s;
-    // Coerce: keep the first primary, unset the rest
-    let seen = false;
-    const links = s.links.map((l) => {
-      if (l.primary && !seen) {
-        seen = true;
-        return l;
-      }
-      return { ...l, primary: false };
-    });
-    return { ...s, links };
-  });
-}
+async function fromD1(env) {
+  const DB = env.DB || env.D1 || env.db;
+  if (!DB) return null;
 
-async function d1FallbackCanonical(env) {
-  // Build canonical shape from D1 active boards
-  const rows = await all(
-    env.DB,
-    `
-    SELECT s.code, s.name,
-           ${ID_ALIAS},
-           b.board, b.url, (b.primary_flag = 1) AS primary
-    FROM states s
-    JOIN boards b ON b.state_code = s.code AND b.active = 1
-    ORDER BY s.code, (b.primary_flag = 1) DESC, b.board ASC
-    `,
-    [],
-  );
+  // Expect a schema like: states(code TEXT, name TEXT), boards(id INT, state_code TEXT, board TEXT, url TEXT, primary INTEGER)
+  const rows = (await DB.prepare(`
+    SELECT s.code as code, s.name as name, b.board as board, b.url as url, b.primary as primary
+    FROM boards b
+    JOIN states s ON s.code = b.state_code
+    ORDER BY s.code ASC, b.primary DESC, b.board ASC
+  `).all()).results || [];
 
-  if (!rows || rows.length === 0) return [];
-
-  // Group by state code/name
-  /** @type {Record<string,{code:string,name:string,links:Array}>} */
-  const map = {};
+  const byState = new Map();
   for (const r of rows) {
-    const code = r.code;
-    if (!map[code]) map[code] = { code, name: r.name, links: [] };
-    map[code].links.push({
+    if (!byState.has(r.code)) byState.set(r.code, { code: r.code, name: r.name, links: [] });
+    byState.get(r.code).links.push({
       board: r.board,
       url: r.url,
       primary: !!r.primary,
     });
   }
-  const result = Object.values(map);
-  return coerceOnePrimaryPerState(result);
+  const states = Array.from(byState.values());
+  return coerceOnePrimaryPerState(states);
 }
 
-export async function onRequestGet({ request, env }) {
-  try {
-    // 1) Prefer static JSON (authoritative)
-    const staticData = await fetchStaticStateLinks(request);
-    if (Array.isArray(staticData) && staticData.length > 0) {
-      return json(coerceOnePrimaryPerState(staticData));
-    }
+export const onRequestGet = async ({ request, env }) => {
+  const origin = new URL(request.url).origin;
 
-    // 2) Fallback to D1 (canonicalized)
-    const canonical = await d1FallbackCanonical(env);
-    if (canonical.length > 0) {
-      // Mark as fallback in a header for observability
-      return json(canonical, 200, { "x-source": "d1-fallback" });
-    }
-
-    // 3) No data
-    return json({ ok: false, reason: "no-data" }, 503, { "cache-control": "no-store" });
-  } catch (err) {
-    console.error("[/api/states] error", err);
-    return json({ ok: false, error: "internal-error" }, 500, { "cache-control": "no-store" });
+  // Static-first
+  const staticData = await fromStatic(origin);
+  if (staticData) {
+    return json(staticData, 200, {
+      "x-source": "static",
+      "cache-control": "public, max-age=300, s-maxage=300",
+    });
   }
-}
+
+  // Fallback to D1
+  const d1Data = await fromD1(env);
+  if (d1Data && d1Data.length) {
+    return json(d1Data, 200, {
+      "x-source": "d1-fallback",
+      "cache-control": "no-store",
+    });
+  }
+
+  return json({ ok: false, reason: "no-data" }, 503, { "cache-control": "no-store" });
+};
