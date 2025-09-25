@@ -1,10 +1,10 @@
 {
   "summary": {
     "boards": {
-      "ok": 56,
-      "redirects": 0,
+      "ok": 55,
+      "redirects": 1,
       "errors": 12,
-      "updatedAt": "2025-09-24T08:30:27.073Z"
+      "updatedAt": "2025-09-25T08:30:26.327Z"
     },
     "references": {
       "ok": 7,
