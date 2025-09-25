@@ -1,4 +1,3 @@
-<script>
 /**
  * VAERS charts bootstrapping
  * - Loads ECharts (prefers local vendor if present; else CDN)
@@ -55,7 +54,7 @@
     for (const p of paths){
       try { return await fetchJson(p); } catch {/* next */}
     }
-    if (window.VAERS_SUMMARY) return window.VAERS_SUMMARY; // absolute fallback if page embeds data
+    if (window.VAERS_SUMMARY) return window.VAERS_SUMMARY;
     throw new Error('vaers_summary_not_found');
   }
 
@@ -148,7 +147,6 @@
 
   // ---- boot sequence ----
   onReady(async () => {
-    // Exit early if containers aren’t present — do NOT interfere with rest of page
     const c1 = $('#chartDeathsByYear'), c2 = $('#chartCovidDeathsByMonth'), c3 = $('#chartDaysToOnset');
     if (!c1 && !c2 && !c3) return;
 
@@ -165,13 +163,11 @@
       if (c2 && monthly.length) instances.push(chartCovidByMonth(c2, monthly, ec));
       if (c3 && (onset.covid.length || onset.flu.length)) instances.push(chartOnset(c3, onset, ec));
 
-      // show a friendly note when no data
       if (instances.length === 0){
         const msg = document.getElementById('charts-unavailable');
         if (msg) msg.textContent = 'Charts unavailable.';
       }
 
-      // responsive
       addEventListener('resize', () => instances.forEach(i => i.resize()), {passive:true});
     } catch (e){
       console.error('[vaers-charts]', e);
@@ -180,4 +176,3 @@
     }
   });
 })();
-</script>
