@@ -1,59 +1,31 @@
-// functions/csp-report.js
-// POST endpoint for CSP reporting (legacy + Reporting API)
+// /functions/csp-report.js
+// Accepts both legacy "application/csp-report" and modern "application/reports+json" batches.
+// Always returns 204 to avoid client retries.
 
-function noContent(headers = {}) {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      "cache-control": "no-store",
-      ...headers,
-    },
-  });
+function text(body = "", status = 204, headers = {}) {
+  return new Response(body, { status, headers });
 }
 
-export async function onRequestPost({ request }) {
+export const onRequestPost = async ({ request, env }) => {
+  const ct = request.headers.get("content-type") || "";
   try {
-    const ct = (request.headers.get("content-type") || "").toLowerCase();
-
     if (ct.includes("application/csp-report")) {
-      // Legacy single-report format
-      const body = await request.json().catch(() => ({}));
-      const rep = body["csp-report"] || body;
-      const record = {
-        violatedDirective: rep["violated-directive"] || rep.violatedDirective || null,
-        effectiveDirective: rep.effectiveDirective || null,
-        blockedURI: rep["blocked-uri"] || rep.blockedURI || null,
-        disposition: rep.disposition || null,
-        referrer: rep.referrer || null,
-        originalPolicy: rep["original-policy"] || rep.originalPolicy || null,
-        userAgent: request.headers.get("user-agent") || null,
-      };
-      console.warn("[CSP-LEGACY]", JSON.stringify(record));
-      return noContent();
-    }
-
-    // Reporting API (application/reports+json) or generic JSON array
-    const arr = await request.json().catch(() => []);
-    if (Array.isArray(arr)) {
-      for (const item of arr) {
-        const body = (item && item.body) || item || {};
-        const rep = body["csp-report"] || body;
-        const record = {
-          violatedDirective: rep["violated-directive"] || rep.violatedDirective || null,
-          effectiveDirective: rep.effectiveDirective || null,
-          blockedURI: rep["blocked-uri"] || rep.blockedURI || null,
-          disposition: rep.disposition || null,
-          referrer: rep.referrer || null,
-          originalPolicy: rep["original-policy"] || rep.originalPolicy || null,
-          userAgent: request.headers.get("user-agent") || null,
-        };
-        console.warn("[CSP-REPORT]", JSON.stringify(record));
+      const { "csp-report": report } = await request.json();
+      await env?.KV_LOG?.put?.(`csp:${Date.now()}:${Math.random()}`, JSON.stringify(report || {}), { expirationTtl: 7 * 24 * 60 * 60 });
+    } else if (ct.includes("application/reports+json")) {
+      const arr = await request.json();
+      if (Array.isArray(arr)) {
+        for (const r of arr) {
+          await env?.KV_LOG?.put?.(`csp:${Date.now()}:${Math.random()}`, JSON.stringify(r || {}), { expirationTtl: 7 * 24 * 60 * 60 });
+        }
       }
+    } else {
+      // Best-effort parse
+      const obj = await request.json().catch(() => ({}));
+      await env?.KV_LOG?.put?.(`csp:${Date.now()}:${Math.random()}`, JSON.stringify(obj || {}), { expirationTtl: 7 * 24 * 60 * 60 });
     }
-
-    return noContent();
-  } catch (err) {
-    console.error("[/csp-report] error", err);
-    return noContent();
+  } catch {
+    // don't fail the caller
   }
-}
+  return text();
+};
