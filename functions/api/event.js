@@ -1,98 +1,115 @@
-// functions/api/event.js
+// /functions/api/event.js
 // GET /api/event?date=YYYY-MM-DD  -> return aggregate
-// POST /api/event { type:'open_board', state:'XX', url:'https://..', host:'...' } -> aggregate counters in KV
+// POST /api/event { type:'open_board', state:'XX', url:'https://…', host:'…' } -> aggregate counters in KV
 
 /** Small JSON response helper */
 function json(body, status = 200, headers = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: {
-      "content-type": "application/json; charset=utf-8",
-      "cache-control": "no-store",
-      ...headers,
-    },
+    headers: { "content-type": "application/json; charset=utf-8", ...headers },
   });
 }
 
-function todayISO(date = new Date()) {
-  return date.toISOString().slice(0, 10);
+/** Parse JSON safely (with size cap) */
+async function readJson(req, max = 32 * 1024) {
+  const reader = req.body?.getReader?.();
+  if (!reader) return {};
+  let received = 0;
+  const chunks = [];
+  while (true) {
+    const { value, done } = await reader.read();
+    if (done) break;
+    received += value.byteLength;
+    if (received > max) throw new Error("payload_too_large");
+    chunks.push(value);
+  }
+  const buf = new Uint8Array(received);
+  let offset = 0;
+  for (const c of chunks) {
+    buf.set(c, offset);
+    offset += c.byteLength;
+  }
+  return JSON.parse(new TextDecoder().decode(buf || new Uint8Array()));
 }
 
-function isStateCode(v) {
-  return typeof v === "string" && /^[A-Z]{2}$/.test(v);
-}
+/** Validate event payload */
+function validateEvent(evt) {
+  const errors = [];
+  if (!evt || typeof evt !== "object") return ["invalid_json"];
+  const { type, state, url, host } = evt;
 
-function isHttpUrl(v) {
+  if (type !== "open_board") errors.push("type_invalid");
+  if (!/^[A-Z]{2}$/.test(String(state || ""))) errors.push("state_invalid");
   try {
-    const u = new URL(v);
-    return u.protocol === "http:" || u.protocol === "https:";
+    const u = new URL(String(url || ""));
+    if (u.protocol !== "https:") errors.push("url_must_be_https");
   } catch {
-    return false;
+    errors.push("url_invalid");
   }
+  if (!host || typeof host !== "string" || !host.length) errors.push("host_invalid");
+
+  return errors;
 }
 
-async function readJson(request) {
-  const text = await request.text();
-  try {
-    return JSON.parse(text || "{}");
-  } catch {
-    return {};
-  }
+/** Return YYYY-MM-DD in UTC */
+function ymdUTC(d = new Date()) {
+  const y = d.getUTCFullYear();
+  const m = `${d.getUTCMonth() + 1}`.padStart(2, "0");
+  const day = `${d.getUTCDate()}`.padStart(2, "0");
+  return `${y}-${m}-${day}`;
 }
 
-const EMPTY_AGG = () => ({ totals: 0, byState: {}, byHost: {} });
+export const onRequestGet = async ({ request, env }) => {
+  const KV = env.KV || env.ANALYTICS || env.EVENTS || env.kv;
+  if (!KV) return json({ ok: false, reason: "kv_unavailable" }, 500);
 
-export async function onRequestGet({ request, env }) {
-  try {
-    const { searchParams } = new URL(request.url);
-    const date = searchParams.get("date") || todayISO();
-    const key = `open_board:${date}`;
-
-    const val = await env.OPEN_BOARD_KV.get(key, "json");
-    const agg = val && typeof val === "object" ? val : EMPTY_AGG();
-
-    return json({ date, ...agg });
-  } catch (err) {
-    console.error("[/api/event GET] error", err);
-    return json({ ok: false, error: "internal-error" }, 500);
+  const url = new URL(request.url);
+  const date = url.searchParams.get("date") || ymdUTC();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(date)) {
+    return json({ ok: false, reason: "date_invalid" }, 400);
   }
-}
 
-export async function onRequestPost({ request, env }) {
+  const key = `events:${date}`;
+  const data = (await KV.get(key, "json")) || {};
+  return json({ ok: true, date, data });
+};
+
+export const onRequestPost = async ({ request, env }) => {
+  const KV = env.KV || env.ANALYTICS || env.EVENTS || env.kv;
+  if (!KV) return json({ ok: false, reason: "kv_unavailable" }, 500);
+
+  let payload;
   try {
-    const body = await readJson(request);
-    const { type, state, url, host } = body || {};
+    payload = await readJson(request);
+  } catch (e) {
+    if (e.message === "payload_too_large") return json({ ok: false, reason: "payload_too_large" }, 413);
+    return json({ ok: false, reason: "invalid_json" }, 400);
+  }
 
-    if (type !== "open_board" || !isStateCode(state) || !isHttpUrl(url) || typeof host !== "string" || !host) {
-      return json({ ok: false, error: "bad-request" }, 400);
+  const errors = validateEvent(payload);
+  if (errors.length) return json({ ok: false, errors }, 400);
+
+  const date = ymdUTC();
+  const key = `events:${date}`;
+
+  // Merge-with-retry (CAS-like)
+  for (let i = 0; i < 2; i++) {
+    const existing = (await KV.get(key, "json")) || {};
+    const next = { ...existing };
+
+    const { type, state } = payload;
+    next[type] = next[type] || {};
+    next[type][state] = (next[type][state] || 0) + 1;
+
+    try {
+      // We don't have native CAS; accept last write wins with a short retry loop.
+      await KV.put(key, JSON.stringify(next), {
+        expirationTtl: 45 * 24 * 60 * 60, // 45 days
+      });
+      return json({ ok: true }, 202);
+    } catch {
+      // retry
     }
-
-    const date = todayISO();
-    const key = `open_board:${date}`;
-    // 2-try optimistic merge (simple since KV lacks atomic ops)
-    let tries = 0;
-    do {
-      tries++;
-      const current = (await env.OPEN_BOARD_KV.get(key, "json")) || EMPTY_AGG();
-      current.totals = (current.totals || 0) + 1;
-      current.byState = current.byState || {};
-      current.byHost = current.byHost || {};
-      current.byState[state] = (current.byState[state] || 0) + 1;
-      current.byHost[host] = (current.byHost[host] || 0) + 1;
-
-      try {
-        await env.OPEN_BOARD_KV.put(key, JSON.stringify(current), {
-          expirationTtl: 45 * 24 * 60 * 60, // 45 days
-        });
-        return json({ ok: true }, 202);
-      } catch (e) {
-        if (tries >= 2) throw e;
-      }
-    } while (tries < 2);
-
-    return json({ ok: false, error: "kv-write-failed" }, 500);
-  } catch (err) {
-    console.error("[/api/event POST] error", err);
-    return json({ ok: false, error: "internal-error" }, 500);
   }
-}
+  return json({ ok: false, reason: "kv_write_failed" }, 500);
+};
