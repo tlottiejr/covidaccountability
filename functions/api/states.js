@@ -41,10 +41,10 @@ async function fromD1(env) {
   const DB = env.DB || env.D1 || env.db;
   if (!DB) return null;
   const rows = (await DB.prepare(`
-    SELECT s.code as code, s.name as name, b.board as board, b.url as url, b.primary as primary
+    SELECT s.code as code, s.name as name, b.board as board, b.url as url, b.primary_flag as primary
     FROM boards b
     JOIN states s ON s.code = b.state_code
-    ORDER BY s.code ASC, b.primary DESC, b.board ASC
+    ORDER BY s.code ASC, b.primary_flag DESC, b.board ASC
   `).all()).results || [];
   const byState = new Map();
   for (const r of rows) {
