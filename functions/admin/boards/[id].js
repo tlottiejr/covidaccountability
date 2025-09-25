@@ -1,130 +1,53 @@
-// functions/admin/boards/[id].js
-// PATCH { board?, url?, primary? } -> update board; if primary true, demote siblings
-// DELETE -> 405 (disabled)
+// /functions/admin/boards/[id].js
+// PATCH: update board fields; if primary=true, demote siblings in same state within a transaction.
 
-import { one } from "../../_lib/db.js";
-import { assertUrl, assertNonEmpty, bad } from "../../_lib/validate.js";
-
-function json(body, status = 200) {
+function json(body, status = 200, headers = {}) {
   return new Response(JSON.stringify(body), {
     status,
-    headers: { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" },
+    headers: { "content-type": "application/json; charset=utf-8", ...headers },
   });
 }
 
-async function getBoard(env, id) {
-  return await one(
-    env.DB,
-    `
-    SELECT COALESCE(id, rowid) AS id, state_code, board, url,
-           (primary_flag = 1) AS primary,
-           active, created_at, updated_at
-    FROM boards
-    WHERE COALESCE(id, rowid) = ?
-    `,
-    [id],
-  );
+async function readJsonSafe(req) {
+  try { return await req.json(); } catch { return {}; }
 }
 
-export async function onRequestPatch({ request, env, params, data }) {
-  const id = params.id;
-  if (!id) return bad(400, "missing id");
+export const onRequestPatch = async ({ params, env }) => {
+  const id = Number(params.id);
+  if (!Number.isFinite(id)) return json({ ok: false, reason: "id_invalid" }, 400);
 
-  const existing = await getBoard(env, id);
-  if (!existing) return bad(404, "not found");
+  const DB = env.DB || env.D1 || env.db;
+  if (!DB) return json({ ok: false, reason: "db_unavailable" }, 500);
 
-  let body;
-  try {
-    body = await request.json();
-  } catch {
-    return bad(400, "invalid json");
-  }
+  const payload = await readJsonSafe({ json: () => Promise.resolve({}) }) || {};
+  // If Cloudflare Pages strips body on PATCH in your setup, switch to POST override; otherwise:
+  const body = await readJsonSafe(this?.request || {});
+  Object.assign(payload, body);
 
-  const fields = {};
-  if (body.board != null) {
-    assertNonEmpty(body.board, "board");
-    fields.board = String(body.board);
-  }
-  if (body.url != null) {
-    assertUrl(body.url);
-    fields.url = String(body.url);
-  }
-  if (body.primary != null) {
-    fields.primary = !!body.primary;
-  }
+  const { board, url, primary } = payload;
 
-  if (Object.keys(fields).length === 0) {
-    return json({ ok: true, board: existing }, 200);
-  }
+  // Fetch current to get state_code
+  const existing = await DB.prepare("SELECT id, state_code FROM boards WHERE id = ?").bind(id).first();
+  if (!existing) return json({ ok: false, reason: "not_found" }, 404);
 
-  const now = new Date().toISOString();
+  const tx = await DB.batch([
+    // Optionally demote siblings if primary=true
+    ...(primary === true
+      ? [DB.prepare("UPDATE boards SET primary = 0 WHERE state_code = ?").bind(existing.state_code)]
+      : []),
+    // Update target fields (only those provided)
+    DB.prepare(
+      `UPDATE boards
+         SET board = COALESCE(?, board),
+             url   = COALESCE(?, url),
+             primary = COALESCE(?, primary)
+       WHERE id = ?`
+    ).bind(board ?? null, url ?? null, typeof primary === "boolean" ? (primary ? 1 : 0) : null, id),
+  ]);
 
-  try {
-    // Transaction-ish: demote siblings if promoting this one
-    if (fields.primary === true) {
-      await env.DB
-        .prepare("UPDATE boards SET primary_flag = 0, updated_at = ? WHERE state_code = ? AND active = 1")
-        .bind(now, existing.state_code)
-        .run();
-    }
+  // Return the updated board
+  const updated = await DB.prepare("SELECT id, state_code, board, url, primary FROM boards WHERE id = ?").bind(id).first();
+  return json({ ok: true, board: { ...updated, primary: !!updated.primary } });
+};
 
-    const next = {
-      ...existing,
-      ...(fields.board != null ? { board: fields.board } : {}),
-      ...(fields.url != null ? { url: fields.url } : {}),
-      ...(fields.primary != null ? { primary: fields.primary } : {}),
-      updated_at: now,
-    };
-
-    await env.DB
-      .prepare(
-        `
-        UPDATE boards
-        SET board = COALESCE(?, board),
-            url = COALESCE(?, url),
-            primary_flag = COALESCE(?, primary_flag),
-            updated_at = ?
-        WHERE COALESCE(id, rowid) = ?
-        `,
-      )
-      .bind(
-        fields.board ?? null,
-        fields.url ?? null,
-        fields.primary != null ? (fields.primary ? 1 : 0) : null,
-        now,
-        id,
-      )
-      .run();
-
-    const updated = await getBoard(env, id);
-
-    // Audit
-    const actor = (data && data.actor) || "token";
-    await env.DB
-      .prepare(
-        `
-        INSERT INTO board_events (board_id, actor, action, prev_json, next_json, created_at)
-        VALUES (?,?,?,?,?,?)
-      `,
-      )
-      .bind(
-        updated.id,
-        actor,
-        "update",
-        JSON.stringify(existing),
-        JSON.stringify(updated),
-        now,
-      )
-      .run();
-
-    return json({ ok: true, board: updated }, 200);
-  } catch (err) {
-    console.error("[admin/boards PATCH] error", err);
-    return json({ ok: false, error: "db-error" }, 500);
-  }
-}
-
-export async function onRequestDelete() {
-  // Deletion disabled per product decision
-  return json({ ok: false, error: "delete-disabled" }, 405);
-}
+// (Optional) onRequestGet to fetch a single board could be added if you use it elsewhere.
