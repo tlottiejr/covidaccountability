@@ -23,6 +23,6 @@ export const onRequestPost = async ({ params, env }) => {
     DB.prepare("UPDATE boards SET primary_flag = 1 WHERE id = ?").bind(id),
   ]);
 
-  const updated = await DB.prepare("SELECT id, state_code, board, url, primary FROM boards WHERE id = ?").bind(id).first();
+  const updated = await DB.prepare("SELECT id, state_code, board, url, primary_flag FROM boards WHERE id = ?").bind(id).first();
   return json({ ok: true, board: { ...updated, primary: !!updated.primary } });
 };
