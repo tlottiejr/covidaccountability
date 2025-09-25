@@ -40,13 +40,13 @@ export const onRequestPatch = async ({ params, env }) => {
       `UPDATE boards
          SET board = COALESCE(?, board),
              url   = COALESCE(?, url),
-             primary_flag = COALESCE(?, primary)
+             primary_flag = COALESCE(?, primary_flag)
        WHERE id = ?`
     ).bind(board ?? null, url ?? null, typeof primary === "boolean" ? (primary ? 1 : 0) : null, id),
   ]);
 
   // Return the updated board
-  const updated = await DB.prepare("SELECT id, state_code, board, url, primary FROM boards WHERE id = ?").bind(id).first();
+  const updated = await DB.prepare("SELECT id, state_code, board, url, primary_flag FROM boards WHERE id = ?").bind(id).first();
   return json({ ok: true, board: { ...updated, primary: !!updated.primary } });
 };
 
