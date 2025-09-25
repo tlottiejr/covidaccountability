@@ -56,7 +56,8 @@
     </section>
 
     <!-- VAERS Figures (Official Data) — plain section, no card/wrapper -->
-    <section aria-labelledby="vaers-charts">
+    <section id="vaers-charts-section" data-summary="/assets/health/analytics/vaers-summary.json"
+         aria-labelledby="vaers-charts" aria-labelledby="vaers-charts">
   <h2 id="vaers-charts">VAERS Figures (Official Data)</h2>
 
   <div class="chart-grid">
@@ -89,9 +90,17 @@
 .muted { color:#475569; }
 </style>
 
+<!-- Make the chosen data URL globally visible -->
+<script>
+  window.VAERS_SUMMARY_URL =
+    document.getElementById('vaers-charts-section')?.dataset.summary ||
+    window.VAERS_SUMMARY_URL || null;
+</script>
+
 <!-- Charts -->
 <script src="/assets/js/vaers-charts.js" defer></script>
-<!-- Tables (keep your existing tables script) -->
+
+<!-- Tables (keep this — it renders the big table) -->
 <script src="/assets/js/vaers-tables.js" defer></script>
 <footer class="container">
     <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
