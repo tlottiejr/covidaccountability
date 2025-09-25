@@ -1,8 +1,9 @@
 // public/assets/contact.js
 // Minimal CSP-friendly contact modal:
-// - One Close button (bottom) with direct listener (works even if other scripts stop propagation)
-// - Shows email info blip with a normal mailto link
-// - No provider picker, no extra buttons, no page freeze, square corners
+// - One Close button (bottom).
+// - Shows static email text.
+// - Page doesn't freeze (overlay is visual only).
+// - Close works even if other scripts stop propagation (capturing listener).
 
 (function () {
   const CSS_HREF = "/assets/contact.css";
@@ -23,7 +24,7 @@
       link.href = CSS_HREF;
       document.head.appendChild(link);
     }
-    // Derive site link color -> --contact-link
+    // Match site link color
     const probe = document.querySelector("a[href]");
     if (probe) {
       try {
@@ -33,16 +34,23 @@
     }
   }
 
+  function cleanupOld() {
+    // Remove any prior instances left by older builds
+    qsa(document, ".contact-overlay, .contact-dialog").forEach((el) => el.remove());
+  }
+
   function build() {
     if (built) return;
     built = true;
+
+    cleanupOld();
 
     // Overlay (visual only)
     const overlay = document.createElement("div");
     overlay.className = "contact-overlay";
     overlay.setAttribute("aria-hidden", "true");
 
-    // Dialog container
+    // Dialog
     const dialog = document.createElement("div");
     dialog.className = "contact-dialog";
     dialog.setAttribute("role", "dialog");
@@ -62,28 +70,23 @@
     title.textContent = "Contact Us";
     header.appendChild(title);
 
-    // Body (info blip)
+    // Body
     const body = document.createElement("div");
     body.className = "contact-body";
     body.id = "contact-desc";
-
-    const mailtoEl = document.querySelector('a[href^="mailto:"]');
-    const emailAddr = mailtoEl ? mailtoEl.getAttribute("href").replace(/^mailto:/i, "").split("?")[0] : "";
-    const emailHref = emailAddr ? `mailto:${emailAddr}` : null;
-
-    // Replace the entire existing body.innerHTML template with this:
     body.innerHTML = `
       <p>Don’t hesitate to reach out regarding any questions or issues.</p>
       <p>Email: info@covidaccountabilitynow.com</p>
     `;
 
-    // Actions (Close only)
+    // Actions (single Close)
     const actions = document.createElement("div");
     actions.className = "contact-actions";
     const closeBtn = document.createElement("button");
     closeBtn.type = "button";
     closeBtn.className = "contact-btn secondary";
     closeBtn.textContent = "Close";
+    closeBtn.setAttribute("data-contact-close", ""); // tag for global handler
     actions.appendChild(closeBtn);
 
     // Assemble
@@ -94,14 +97,13 @@
     document.body.appendChild(overlay);
     document.body.appendChild(dialog);
 
-    // --- DIRECT listeners (no delegation) ---
-
+    // Direct listener on the button (fast path)
     closeBtn.addEventListener("click", (e) => {
       e.preventDefault();
       close();
     });
 
-    // Keyboard: ESC + focus trap
+    // Keyboard: ESC + basic focus trap
     document.addEventListener("keydown", (e) => {
       if (!isOpen) return;
       if (e.key === "Escape") {
@@ -125,9 +127,27 @@
       }
     });
 
+    // SAFETY NET: capturing-phase global click handler
+    // Ensures Close works even if other code stops bubbling
+    document.addEventListener(
+      "click",
+      (e) => {
+        if (!isOpen) return;
+        const t = e.target;
+        if (t && (t.closest('[data-contact-close]') || t.closest('.contact-btn.secondary'))) {
+          e.preventDefault();
+          close();
+        }
+      },
+      true // capture!
+    );
+
     // ARIA wiring
     dialog.setAttribute("aria-labelledby", title.id);
     dialog.setAttribute("aria-describedby", body.id);
+
+    // Expose helpers for quick manual debug if needed
+    // Object.assign(window, { contact_open: open, contact_close: close });
   }
 
   function open() {
@@ -142,7 +162,7 @@
     dialog.setAttribute("aria-hidden", "false");
     isOpen = true;
 
-    // Focus the Close button for quick dismissal
+    // Focus Close for easy dismissal
     const closeBtn = dialog.querySelector(".contact-btn.secondary");
     if (closeBtn) closeBtn.focus();
   }
@@ -166,7 +186,7 @@
 
   function looksLikeContactLink(a) {
     if (!a || a.tagName !== "A") return false;
-    if (a.hasAttribute("data-contact-ignore")) return false; // don't intercept internal links
+    if (a.hasAttribute("data-contact-ignore")) return false;
     if (a.closest(".contact-dialog")) return false;
     const href = (a.getAttribute("href") || "").toLowerCase();
     const txt  = (a.textContent || "").trim().toLowerCase();
@@ -190,7 +210,6 @@
         });
       }
     });
-
     // Existing "Contact" links
     qsa(root || document, "a").forEach((a) => {
       if (looksLikeContactLink(a) && !a.__contactWired) {
