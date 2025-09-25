@@ -1,0 +1,38 @@
+name: build-version
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  version:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Write version.json
+        run: node scripts/write-version-json.mjs
+        env:
+          GITHUB_SHA: ${{ github.sha }}
+
+      # Commit version.json for PR previews; on push/PR we keep a small, clean delta.
+      - name: Commit version.json
+        run: |
+          if [[ -n "$(git status --porcelain)" ]]; then
+            git config user.name "github-actions[bot]"
+            git config user.email "github-actions[bot]@users.noreply.github.com"
+            git add public/assets/version.json
+            git commit -m "chore: update version.json (${GITHUB_SHA::7})"
+            git push
+          fi
