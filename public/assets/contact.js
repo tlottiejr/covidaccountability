@@ -71,13 +71,10 @@
     const emailAddr = mailtoEl ? mailtoEl.getAttribute("href").replace(/^mailto:/i, "").split("?")[0] : "";
     const emailHref = emailAddr ? `mailto:${emailAddr}` : null;
 
+    // Replace the entire existing body.innerHTML template with this:
     body.innerHTML = `
       <p>Don’t hesitate to reach out regarding any questions or issues.</p>
-      ${
-        emailHref
-          ? `<p>Email: <a href="${emailHref}" data-contact-ignore>${emailAddr}</a></p>`
-          : `<p>Visit the <a href="/contact.html" data-contact-ignore>contact page</a> for details.</p>`
-      }
+      <p>Email: info@covidaccountabilitynow.com</p>
     `;
 
     // Actions (Close only)
