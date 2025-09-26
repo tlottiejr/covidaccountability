@@ -14,36 +14,20 @@
   };
 
   const $ = (s) => document.querySelector(s);
-  const num = (v) => (typeof v === "number" ? v : Number(String(v).replace(/[, ]/g, "")) || 0);
 
-  const ensureECharts = (t=4000)=>new Promise((res,rej)=>{
-    const t0=performance.now();
-    (function tick(){
-      if (window.echarts && typeof echarts.init==="function") return res(echarts);
-      if (performance.now()-t0>t) return rej(new Error("ECharts not loaded"));
-      requestAnimationFrame(tick);
-    })();
-  });
+  const num = (x) => {
+    const n = Number(x);
+    return Number.isFinite(n) ? n : 0;
+  };
 
-  async function fetchJSON(url) {
-    const r = await fetch(url, { cache:"no-cache" });
-    if (!r.ok) throw new Error(`${url}: ${r.status}`);
-    return r.json();
-  }
-
-  async function loadSummary() {
-    const root = $("#vaers-charts-section");
-    const url = root?.dataset.summary || "/data/vaers-summary.json";
-    try { return await fetchJSON(url); }
-    catch { return {}; }
-  }
-
-  // ---------- helpers ----------
-  const fromPairs = (pairs=[]) => {
-    const labels=[], values=[];
-    for (const p of pairs||[]) { if (!p || p.length<2) continue;
-      labels.push(String(p[0])); values.push(num(p[1])); }
-    return {labels, values};
+  const fromPairs = (pairs = []) => {
+    const labels = [];
+    const values = [];
+    for (const [k, v] of pairs) {
+      labels.push(String(k));
+      values.push(num(v));
+    }
+    return { labels, values };
   };
 
   const aggregateYearTotals = (monthPairs=[])=>{
@@ -76,26 +60,24 @@
   }
 
   function buildByYearSeries(summary) {
-    const deathsPairs = getDeathsByYearPairs(summary);
-    if (!deathsPairs) return {_error:"Deaths-per-year missing in /data/vaers-summary.json"};
+    const pairs = getDeathsByYearPairs(summary);
+    if (!pairs) {
+      return { _error: "Data unavailable: reports_by_year.deaths_by_year.all" };
+    }
+    const { labels, values } = fromPairs(pairs);
 
-    const ALL = fromPairs(deathsPairs); // all-vaccine deaths per year (1990..present)
+    const covidMonthPairs = summary?.covid_deaths_by_month?.total || [];
+    const covidYear = aggregateYearTotals(covidMonthPairs);
+    const covidMap = new Map(covidYear.labels.map((y,i)=>[y,covidYear.values[i]]));
+    const nonCovid = values.map((v,i)=>Math.max(0, v - (covidMap.get(labels[i]) || 0)));
 
-    // COVID deaths per year from monthly totals (for computing Non-COVID)
-    const COVIDm = summary?.covid_deaths_by_month?.total || [];
-    const COVID  = aggregateYearTotals(COVIDm);
-    const covidMap = new Map(COVID.labels.map((y,i)=>[y,COVID.values[i]]));
-
-    const covidAligned = ALL.labels.map(y => covidMap.get(y) || 0);
-    const nonCovid = ALL.values.map((v,i)=>Math.max(0, v - covidAligned[i]));
-
-    return { labels: ALL.labels, deathsAll: ALL.values, deathsNonCovid: nonCovid };
+    return { labels, deathsAll: values, deathsNonCovid: nonCovid };
   }
 
   function getMonthlySeries(summary) {
     const b = summary?.covid_deaths_by_month || {};
     return {
-      total:   fromPairs(b.total   || []),
+      total:   fromPairs(b.total   || []), // kept for completeness; not plotted
       us:      fromPairs(b.us_terr_unk || b.us || []),
       foreign: fromPairs(b.foreign || [])
     };
@@ -158,30 +140,34 @@
         type: "category",
         name: "Received Year",
         nameLocation: "middle",
-        nameGap: 38,
+        nameGap: 32,
         data: data.labels,
-        axisLabel: { color: THEME.ink, rotate: 45, interval: 0, fontSize: 10 },
+        axisLabel: { color: THEME.ink, fontSize: 10 },
         axisLine:  { lineStyle: { color: THEME.axis } }
       },
       yAxis: {
         type: "value",
         name: "Reports of Death",
         nameLocation: "middle",
-        nameGap: 48,
+        nameGap: 46,
         splitLine: { lineStyle: { color: THEME.grid } },
         axisLabel: { color: THEME.ink, formatter: (v)=>v.toLocaleString() }
       },
       series: [
-        { name:"Reports of Death",             type:"bar", barMaxWidth:16, data:data.deathsAll,      itemStyle:{ color:THEME.primary } },
-        { name:"All Non COVID-Vaccine Deaths", type:"bar", barMaxWidth:16, data:data.deathsNonCovid, itemStyle:{ color:THEME.secondary } }
+        { name:"All Vaccines",   type:"bar", data:data.deathsAll,      itemStyle:{ color:THEME.primary   } },
+        { name:"Non-COVID Vacc", type:"bar", data:data.deathsNonCovid, itemStyle:{ color:THEME.secondary } }
       ]
     });
-
     window.addEventListener("resize", ()=>ec.resize());
   }
 
+  // *** UPDATED: matches OpenVAERS — ONLY US/Territories and Foreign* (no Total) ***
   function renderMonthly(sel, m) {
     const el = $(sel); if (!el) return;
+    if (!m || !m.us || !m.foreign) {
+      console.warn("Monthly series missing; skipping chart.", m);
+      return;
+    }
     const ec = echarts.init(el, null, {renderer:"canvas"});
     ec.setOption({
       backgroundColor: THEME.bg,
@@ -189,13 +175,12 @@
       legend:{top: 6},
       grid:{ left:60, right:24, bottom:52, top: 40 },
       xAxis:{ type:"category", name:"Received Month", nameLocation:"middle", nameGap:32,
-              data:m.total.labels, axisLabel:{ color:THEME.ink, fontSize:10 },
+              data:m.us.labels, axisLabel:{ color:THEME.ink, fontSize:10 },
               axisLine:{ lineStyle:{ color:THEME.axis } } },
       yAxis:{ type:"value", name:"Reports of Death", nameLocation:"middle", nameGap:46,
               splitLine:{ lineStyle:{ color:THEME.grid } },
               axisLabel:{ color:THEME.ink, formatter:(v)=>v.toLocaleString() } },
       series:[
-        { name:"Total",          type:"line", smooth:.2, symbolSize:2, data:m.total.values,   lineStyle:{ color:THEME.primary } },
         { name:"US/Territories", type:"line", smooth:.2, symbolSize:2, data:m.us.values,      lineStyle:{ color:THEME.accent } },
         { name:"Foreign*",       type:"line", smooth:.2, symbolSize:2, data:m.foreign.values, lineStyle:{ color:THEME.secondary } }
       ]
@@ -235,9 +220,15 @@
   }
 
   // ---------- bootstrap ----------
-  window.addEventListener("DOMContentLoaded", async ()=>{
+  async function loadSummary() {
+    const url = window.VAERS_SUMMARY_URL || "/data/vaers-summary.json";
+    const res = await fetch(url, { cache: "no-cache" });
+    if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status}`);
+    return res.json();
+  }
+
+  document.addEventListener("DOMContentLoaded", async () => {
     try {
-      await ensureECharts();
       const summary = await loadSummary();
 
       renderByYear("#chartDeathsByYear", buildByYearSeries(summary));
