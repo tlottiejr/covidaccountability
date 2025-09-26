@@ -1465,3 +1465,91 @@ button[aria-label="Close navigation"] {
 #vaersBreakdownsTable .table-simple thead th { text-align: left; border-bottom: 1px solid rgba(0,0,0,.08); padding: 8px 6px; }
 #vaersBreakdownsTable .table-simple tbody td { padding: 8px 6px; border-bottom: 1px solid rgba(0,0,0,.05); }
 #vaersBreakdownsTable .vaers-note { color:#64748b; font-size: 0.9rem; margin-top: 8px; }
+/* ===== VAERS Breakdowns 3-column block (reactivate legacy look) ===== */
+#vaers-breakdowns {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;                 /* vertical separators already drawn by borders/gradients */
+}
+
+#vaers-breakdowns > table {
+  width: 100%;            /* fill each grid column */
+  margin: 0;              /* kill default table margin so headers align to the top */
+  border-collapse: collapse;
+}
+
+#vaers-breakdowns > table thead th {
+  text-align: left;
+}
+
+#vaers-breakdowns > table td:last-child,
+#vaers-breakdowns > table th:last-child {
+  text-align: right;      /* right-align the Cases column like before */
+  font-variant-numeric: tabular-nums;
+}
+
+/* Stack on small screens (keeps desktop look unchanged) */
+@media (max-width: 1024px) {
+  #vaers-breakdowns {
+    grid-template-columns: 1fr;
+  }
+}
+/* ===== Restore legacy 3-column layout for the Breakdowns block ===== */
+/* The CSS below makes #vaers-breakdowns behave like a 3-cell table, so the
+   three <table> children align to the top and inherit the existing gradients
+   and borders already defined in your theme. */
+#vaers-breakdowns {
+  display: table;
+  width: 100%;
+  border-collapse: separate; /* keep your subtle separators/gradients */
+  border-spacing: 0;
+}
+
+#vaers-breakdowns > table {
+  display: table-cell;       /* 3 equal columns */
+  width: 33.3333%;
+  vertical-align: top;       /* <-- critical: puts the headers at the top */
+  margin: 0;                 /* kill default margins that caused drift */
+  border-collapse: collapse;
+}
+
+#vaers-breakdowns > table:first-of-type {
+  /* your card already draws the outer border; keep left edge clean */
+  border-left: none;
+}
+
+#vaers-breakdowns > table thead th {
+  text-align: left;
+  padding: 12px 16px;
+}
+
+#vaers-breakdowns > table tbody td {
+  padding: 10px 16px;
+}
+
+#vaers-breakdowns > table th:last-child,
+#vaers-breakdowns > table td:last-child {
+  text-align: right;         /* right align "Cases", like the target shot */
+  font-variant-numeric: tabular-nums;
+}
+
+/* Zebra rows (keeps the light-blue wash in your theme) */
+#vaers-breakdowns > table tbody tr:nth-child(even) {
+  background: rgba(64, 120, 255, 0.04);
+}
+
+/* Mobile: stack the three tables vertically */
+@media (max-width: 1024px) {
+  #vaers-breakdowns {
+    display: block;
+  }
+  #vaers-breakdowns > table {
+    display: block;
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid rgba(0,0,0,0.06);
+  }
+  #vaers-breakdowns > table:first-of-type {
+    border-top: none;
+  }
+}
