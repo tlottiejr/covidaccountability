@@ -1,7 +1,14 @@
 #!/usr/bin/env python3
-import os, io, sys, json, math, zipfile, csv, argparse, glob
+import os, io, sys, json, zipfile, csv, argparse, glob
 from datetime import datetime, date
 from collections import defaultdict
+from itertools import chain
+
+# Make sure CSV can handle large fields
+try:
+    csv.field_size_limit(10_000_000)
+except Exception:
+    pass
 
 MIN_YEAR, MAX_YEAR = 1990, 2100
 COVID_KEYS = {"COVID19", "COVID-19", "COVID"}
@@ -19,104 +26,111 @@ def year_of(d): return d.year if isinstance(d, (datetime, date)) else None
 def month_key(d): return f"{d.year:04d}-{d.month:02d}" if isinstance(d,(datetime,date)) else None
 def clamp_day(delta): return 0 if (delta is not None and delta < 0) else delta
 
-def read_csv_from_zip(zf: zipfile.ZipFile, name_contains):
-    for n in zf.namelist():
-        if name_contains.lower() in n.lower() and n.lower().endswith(".csv"):
-            data = zf.read(n)
-            f = io.StringIO(data.decode("utf-8", errors="ignore"))
-            rdr = csv.DictReader(f)
-            return [ {k.strip(): v.strip() for k,v in r.items()} for r in rdr ]
-    raise FileNotFoundError(f"CSV containing '{name_contains}' not found in {zf.filename}")
+# ---------- CSV iterators (read ALL matching files) ----------
+def iter_csv_from_zip(zf: zipfile.ZipFile, token):
+    names = [n for n in zf.namelist() if token.lower() in n.lower() and n.lower().endswith(".csv")]
+    if not names:
+        raise FileNotFoundError(f"No CSV containing '{token}' in {zf.filename}")
+    for n in sorted(names):
+        data = zf.read(n)
+        f = io.StringIO(data.decode("utf-8", errors="ignore"))
+        rdr = csv.DictReader(f)
+        for r in rdr:
+            yield { (k or "").strip(): (v or "").strip() for k,v in r.items() }
 
-def read_csv_from_dir(root, name_contains):
-    pats = [
-        f"**/*{name_contains}*.csv",
-        f"**/{name_contains.upper()}*.csv",
-        f"**/{name_contains.lower()}*.csv",
-    ]
+def iter_csv_from_dir(root, token):
+    pats = [f"**/*{token}*.csv", f"**/{token.upper()}*.csv", f"**/{token.lower()}*.csv"]
     files = []
     for p in pats: files += glob.glob(os.path.join(root, p), recursive=True)
     files = [f for f in files if os.path.isfile(f)]
     if not files:
-        raise FileNotFoundError(f"No CSV containing '{name_contains}' found under {root}")
-    path = sorted(files, key=lambda s: len(s))[0]
-    with open(path, "r", encoding="utf-8", errors="ignore") as f:
-        rdr = csv.DictReader(f)
-        return [ {k.strip(): v.strip() for k,v in r.items()} for r in rdr ]
+        raise FileNotFoundError(f"No CSV containing '{token}' under {root}")
+    for path in sorted(files):
+        with open(path, "r", encoding="utf-8", errors="ignore") as f:
+            rdr = csv.DictReader(f)
+            for r in rdr:
+                yield { (k or "").strip(): (v or "").strip() for k,v in r.items() }
 
 def load_vaers_source(path, is_foreign=False):
-    """
-    path: .zip (any compression) OR a directory with extracted CSVs
-    returns data_rows, vax_rows
-    """
+    """returns (data_iter, vax_iter) as generators; DATA rows get _foreign flag"""
     if os.path.isdir(path):
-        data_rows = read_csv_from_dir(path, "VAERSDATA")
-        vax_rows  = read_csv_from_dir(path, "VAERSVAX")
+        data_iter = iter_csv_from_dir(path, "VAERSDATA")
+        vax_iter  = iter_csv_from_dir(path, "VAERSVAX")
     else:
-        # try python zipfile first
         try:
-            with zipfile.ZipFile(path, "r") as zf:
-                data_rows = read_csv_from_zip(zf, "VAERSDATA")
-                vax_rows  = read_csv_from_zip(zf, "VAERSVAX")
+            zf = zipfile.ZipFile(path, "r")
+        except zipfile.BadZipFile:
+            raise SystemExit(f"❌ Not a ZIP: {path}")
+        try:
+            data_iter = iter_csv_from_zip(zf, "VAERSDATA")
+            vax_iter  = iter_csv_from_zip(zf, "VAERSVAX")
         except NotImplementedError:
-            # Deflate64 etc. → ask user to extract with 7z and rerun with --dom/--frn set to folders
             raise SystemExit(
-                f"\n❌ {os.path.basename(path)} uses a compression zipfile cannot read.\n"
-                f"   Run:\n"
-                f"     7z x {os.path.basename(path)} -o/tmp/extract_here\n"
-                f"   then re-run this script with --dom/--frn pointing to those folders."
+                f"\n❌ {os.path.basename(path)} uses a compression Python can't read.\n"
+                f"   Extract with 7z and re-run with --dom/--frn pointing to folders."
             )
-    for r in data_rows: r["_foreign"] = is_foreign
-    return data_rows, vax_rows
 
-def build_type_index(vax_rows):
+    def data_with_flag():
+        for r in data_iter:
+            r["_foreign"] = is_foreign
+            yield r
+
+    return data_with_flag(), vax_iter
+
+def build_type_index(vax_iter):
+    """Stream build VAERS_ID -> set(VAX_TYPE) and earliest VAX_DATE per VAERS_ID"""
     types = defaultdict(set)
     vdate = {}
-    for r in vax_rows:
+    seen = 0
+    for r in vax_iter:
         vid = r.get("VAERS_ID","").strip()
-        if not vid: continue
+        if not vid: 
+            continue
         t = r.get("VAX_TYPE","").strip().upper()
         if t: types[vid].add(t)
         vd = parse_date(r.get("VAX_DATE",""))
         if vd and (vid not in vdate or vd < vdate[vid]): vdate[vid] = vd
+        seen += 1
+        if seen % 250_000 == 0:
+            print(f"[index] processed VAERSVAX rows: {seen}", flush=True)
     return types, vdate
 
 def summarize(dom_path, frn_path, out_json):
-    dom_data, dom_vax = load_vaers_source(dom_path, is_foreign=False)
-    frn_data, frn_vax = load_vaers_source(frn_path, is_foreign=True)
+    dom_data_iter, dom_vax_iter = load_vaers_source(dom_path, is_foreign=False)
+    frn_data_iter, frn_vax_iter = load_vaers_source(frn_path, is_foreign=True)
 
-    all_data = dom_data + frn_data
-    all_vax  = dom_vax  + frn_vax
-
-    type_index, vax_date_index = build_type_index(all_vax)
+    # Build index by STREAMING both vax iterators
+    print("[index] building vaccine type/date index...", flush=True)
+    types, vax_date_index = build_type_index(chain(dom_vax_iter, frn_vax_iter))
+    print(f"[index] VAERS_ID with vax info: {len(types)}", flush=True)
 
     deaths_by_year_all   = defaultdict(int)
     covid_deaths_by_year = defaultdict(int)
-
     covid_month_total = defaultdict(int)
     covid_month_us    = defaultdict(int)
     covid_month_fore  = defaultdict(int)
-
     d2o_covid_exact = defaultdict(int); d2o_covid_gte20 = 0; d2o_covid_unk = 0
     d2o_flu_exact   = defaultdict(int); d2o_flu_gte20   = 0; d2o_flu_unk   = 0
 
-    seen = set()
-    for r in all_data:
+    print("[data] streaming VAERSDATA (domestic + foreign)...", flush=True)
+    seen = 0
+    for r in chain(dom_data_iter, frn_data_iter):
         vid = r.get("VAERS_ID","").strip()
-        if not vid or vid in seen: continue
-        seen.add(vid)
-
-        if r.get("DIED","").strip().upper() != "Y": continue
+        if not vid: 
+            continue
+        if r.get("DIED","").strip().upper() != "Y": 
+            continue
 
         recvd = parse_date(r.get("RECVDATE",""))
         y = year_of(recvd)
-        if not y or y < MIN_YEAR or y >= MAX_YEAR: continue
+        if not y or y < MIN_YEAR or y >= MAX_YEAR:
+            continue
 
         deaths_by_year_all[y] += 1
 
-        types = {t.upper() for t in type_index.get(vid, set())}
-        is_covid = bool(types & COVID_KEYS)
-        is_flu   = bool(types & FLU_KEYS)
+        tset = {t.upper() for t in types.get(vid, set())}
+        is_covid = bool(tset & COVID_KEYS)
+        is_flu   = bool(tset & FLU_KEYS)
 
         if is_covid:
             covid_deaths_by_year[y] += 1
@@ -131,7 +145,6 @@ def summarize(dom_path, frn_path, out_json):
             d = clamp_day((onset - vdate).days)
             if d is not None:
                 if is_covid:
-                    (d2o_covid_exact if 0 <= d <= 19 else (lambda x: None))(d)
                     if 0 <= d <= 19: d2o_covid_exact[d] += 1
                     elif d >= 20:    d2o_covid_gte20   += 1
                 if is_flu:
@@ -140,6 +153,10 @@ def summarize(dom_path, frn_path, out_json):
         else:
             if is_covid: d2o_covid_unk += 1
             if is_flu:   d2o_flu_unk   += 1
+
+        seen += 1
+        if seen % 250_000 == 0:
+            print(f"[data] processed VAERSDATA deaths: {seen}", flush=True)
 
     years = sorted(set(deaths_by_year_all) | set(covid_deaths_by_year))
     years = [y for y in years if MIN_YEAR <= y < MAX_YEAR]
@@ -171,9 +188,9 @@ def summarize(dom_path, frn_path, out_json):
             "flu":   { "exact_0_19": d2o_flu_exact_arr,   "gte_20": d2o_flu_gte20,   "unknown": d2o_flu_unk }
         },
         "provenance": {
-            "domestic_path": os.path.basename(dom_path),
-            "foreign_path":  os.path.basename(frn_path),
-            "notes": "All per-year totals are Domestic+Foreign; COVID by VAX_TYPE∈{COVID19}."
+            "domestic_source": os.path.basename(dom_path),
+            "foreign_source":  os.path.basename(frn_path),
+            "notes": "All per-year totals are Domestic+Foreign; COVID by VAX_TYPE∈{COVID19}; months by RECVDATE."
         }
     }
 
