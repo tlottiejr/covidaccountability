@@ -6,26 +6,7 @@
   Permissions-Policy: accelerometer=(), ambient-light-sensor=(), autoplay=(), camera=(), clipboard-read=(), clipboard-write=(), display-capture=(), encrypted-media=(), fullscreen=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Resource-Policy: same-origin
-  Content-Security-Policy:
-    default-src 'self';
-    base-uri 'self';
-    form-action 'self';
-    object-src 'none';
-    script-src 'self' https://challenges.cloudflare.com;
-    style-src 'self' 'unsafe-inline';
-    img-src 'self' data: https:;
-    font-src 'self' https: data:;
-    connect-src 'self' https:;
-    /* allow YouTube + Rumble iframes */
-    frame-src 'self'
-      https://www.youtube.com
-      https://www.youtube-nocookie.com
-      https://rumble.com
-      https://embed.rumble.com
-      https://challenges.cloudflare.com;
-    frame-ancestors 'self';
-    upgrade-insecure-requests;
-    report-uri /api/csp-report
+  Content-Security-Policy: default-src 'self'; base-uri 'self'; form-action 'self'; object-src 'none'; script-src 'self' https://challenges.cloudflare.com; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https: data:; connect-src 'self' https:; frame-src 'self' https://www.youtube.com https://www.youtube-nocookie.com https://rumble.com https://embed.rumble.com https://challenges.cloudflare.com; frame-ancestors 'self'; upgrade-insecure-requests; report-uri /api/csp-report
 
 /assets/*
   Cache-Control: public, max-age=31536000, immutable
@@ -38,3 +19,4 @@
 
 /api/*
   Cache-Control: no-store
+*/
