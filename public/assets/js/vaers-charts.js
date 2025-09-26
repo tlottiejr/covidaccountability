@@ -221,15 +221,15 @@
 
   // ----- theme -----
   const THEME = {
-  bg: "transparent",
-  ink: "#0f172a",
-  sub: "#334155",
-  axis: "#64748b",
-  grid: "rgba(0,0,0,0.08)",
-  // Use blue shades for series
-  red:  "#2563eb", // primary blue (used where code used 'red')
-  blue: "#60a5fa", // secondary blue
-  teal: "#38bdf8", // accent blue/cyan
+    bg: "transparent",
+    ink: "#0f172a",
+    sub: "#334155",
+    axis: "#64748b",
+    grid: "rgba(0,0,0,0.08)",
+    // use your blues instead of red
+    red:  "#2563eb", // primary series (blue)
+    blue: "#60a5fa", // secondary series
+    teal: "#38bdf8", // accent
   };
 
   // ----- renderers -----
