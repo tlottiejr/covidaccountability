@@ -1,82 +1,51 @@
 // public/assets/js/vaers-tables.js
-// Restores the breakdown table INSIDE the gradient card and keeps the wrapper intact.
+// Renders three sibling <table>s inside #vaers-breakdowns to match existing CSS.
 
 (function () {
-  const $ = (s) => document.querySelector(s);
+  const container = document.getElementById("vaers-breakdowns");
+  if (!container) return;
 
-  async function loadSummary() {
+  const loadSummary = async () => {
     const url = window.VAERS_SUMMARY_URL || "/data/vaers-summary.json";
     const res = await fetch(url, { cache: "no-cache" });
     if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status}`);
     return res.json();
-  }
+  };
 
-  function renderRows(rows = []) {
-    return rows
-      .map((row) => {
-        let k, v;
-        if (Array.isArray(row)) {
-          [k, v] = row;
-        } else if (row && typeof row === "object") {
-          k = row.category ?? row.key ?? "Unknown";
-          v = row.count ?? row.value ?? 0;
-        } else {
-          return "";
-        }
-        return `<tr><td>${k}</td><td style="text-align:right">${Number(v || 0).toLocaleString()}</td></tr>`;
-      })
-      .join("");
-  }
+  const norm = (rows = []) =>
+    rows.map((row) =>
+      Array.isArray(row)
+        ? { category: row[0], count: Number(row[1] || 0) }
+        : { category: row?.category ?? row?.key ?? "Unknown", count: Number(row?.count ?? row?.value ?? 0) }
+    );
 
-  function renderTable(el, breakdowns) {
-    if (!el) return;
-    // IMPORTANT: assume #vaersBreakdownsTable is the gradient WRAPPER
-    // We render into a child content container to avoid nuking the gradient.
-    let content = el.querySelector(".vaers-table-content");
-    if (!content) {
-      content = document.createElement("div");
-      content.className = "vaers-table-content";
-      el.appendChild(content);
-    }
+  const tableHTML = (title, rows) => {
+    const data = norm(rows);
+    const head = `<thead><tr><th>${esc(title)}</th><th>Cases</th></tr></thead>`;
+    const body =
+      "<tbody>" +
+      data
+        .map(({ category, count }) => `<tr><td>${esc(category)}</td><td style="text-align:right">${Number(count).toLocaleString()}</td></tr>`)
+        .join("") +
+      "</tbody>";
+    return `<table class="stats-table">${head}${body}</table>`;
+  };
 
-    const m = breakdowns?.manufacturer || [];
-    const s = breakdowns?.sex || [];
-    const a = breakdowns?.age_bins || [];
+  const esc = (s) => String(s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
 
-    const empty = !m.length && !s.length && !a.length;
-
-    content.innerHTML = `
-      <div class="vaers-section">
-        <h4 class="vaers-title">Manufacturer (COVID, US/Territories)</h4>
-        <table class="table-simple">
-          <thead><tr><th>Category</th><th style="text-align:right">Count</th></tr></thead>
-          <tbody>${renderRows(m)}</tbody>
-        </table>
-      </div>
-      <div class="vaers-section">
-        <h4 class="vaers-title">Sex (COVID, US/Territories)</h4>
-        <table class="table-simple">
-          <thead><tr><th>Category</th><th style="text-align:right">Count</th></tr></thead>
-          <tbody>${renderRows(s)}</tbody>
-        </table>
-      </div>
-      <div class="vaers-section">
-        <h4 class="vaers-title">Age (COVID, US/Territories)</h4>
-        <table class="table-simple">
-          <thead><tr><th>Category</th><th style="text-align:right">Count</th></tr></thead>
-          <tbody>${renderRows(a)}</tbody>
-        </table>
-      </div>
-      ${empty ? '<div class="vaers-note">No data available.</div>' : ""}
-    `;
-  }
-
-  document.addEventListener("DOMContentLoaded", async () => {
+  (async () => {
     try {
-      const d = await loadSummary();
-      renderTable(document.getElementById("vaersBreakdownsTable"), d.covid_deaths_breakdowns);
-    } catch (e) {
-      console.error("VAERS table failed:", e);
+      const summary = await loadSummary();
+      const b = summary?.covid_deaths_breakdowns || {};
+
+      // IMPORTANT: append exactly three <table> siblings; CSS uses nth-of-type rules
+      container.innerHTML =
+        tableHTML("Manufacturer", b.manufacturer || []) +
+        tableHTML("Sex", b.sex || []) +
+        tableHTML("Age", b.age_bins || []);
+    } catch (err) {
+      console.error("render breakdowns failed:", err);
+      container.innerHTML = '<div class="vaers-note">Charts unavailable.</div>';
     }
-  });
+  })();
 })();

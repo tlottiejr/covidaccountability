@@ -36,20 +36,17 @@
         <li>Critical thinking and proper scientific methodology in vaccine clinical research.</li>
         <li>Physician competency at benefit-risk assessment regarding new medical treatments.</li>
         <li>Physician competency at communicating risks and benefits to patients.</li>
-        <li>Ethical behavior in medicine, including respect for patient autonomy and informed
-            consent or refusal.</li>
+        <li>Ethical behavior in medicine, including respect for patient autonomy and informed consent or refusal.</li>
       </ol>
     </section>
 
     <section class="card">
       <h2>Goals</h2>
       <ol>
-        <li>Facilitate wider public attention to and transparency for problems associated with the
-            gene based treatment.</li>
+        <li>Facilitate wider public attention to and transparency for problems associated with the gene based treatment.</li>
         <li>Expand funding for nonprofit organizations attempting to assist those in need.</li>
         <li>Decelerate the ongoing morbidity and mortality associated with this treatment.</li>
-        <li>Foster physician reeducation involving basic interpretation of the medical literature
-            and medical ethics for the general benefit of public health.</li>
+        <li>Foster physician reeducation involving basic interpretation of the medical literature and medical ethics.</li>
         <li>Curtail misinformation spread by public health <a href="https://www.whitehouse.gov/wp-content/uploads/2024/05/NATIONAL-BIODEFENSE-POSTURE-—-Report-on-Lessons-Learned-and-the-Path-Forward.pdf">officials.</a></li>
         <li>Prevent future “mass iatrogenic” <a href="https://www.researchgate.net/publication/374768240_Does_COVID-19_vaccination_increase_age-adjusted_mortality_A_preliminary_analysis_of_age-adjusted_mortality_in_the_Southern_Hemisphere">events.</a></li>
       </ol>
@@ -67,7 +64,6 @@
 
         <div class="card">
           <h3>COVID Vaccine Reports of Death by Month</h3>
-          <!-- FIXED: removed stray 'div' before id -->
           <div id="chartCovidDeathsByMonth" class="viz-360 mt-6" role="img" aria-label="COVID vaccine deaths by month line chart"></div>
         </div>
 
@@ -77,42 +73,27 @@
         </div>
       </div>
 
-      <!-- Big table container (required by vaers-tables.js) -->
-      <div class="card chart-span-2">
-        <h3>Breakdowns</h3>
-        <div id="vaersBreakdownsTable" class="mt-6"></div>
-      </div>
-      <!-- FIXED: removed extra stray </div> that broke layout -->
+      <!-- The breakdowns CSS in /assets/site.css targets #vaers-breakdowns directly
+           and expects THREE <table> siblings (no extra wrappers). -->
+      <h3>Breakdowns</h3>
+      <div id="vaers-breakdowns" class="mt-6"></div>
     </section>
 
-    <!-- Page-local styles (lightweight, matches your theme) -->
+    <!-- Page-local helpers (heights only) -->
     <style>
-      .chart-grid { display:grid; grid-template-columns: 1fr; gap: 1.25rem; }
-      @media (min-width: 1024px) { .chart-grid { grid-template-columns: 1fr 1fr; } .chart-grid .chart-card:first-child { grid-column: 1 / -1; } }
-      .chart-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 12px 4px; box-shadow: 0 1px 2px rgba(15,23,42,.04); }
-      .chart-card h3 { margin: 0 0 .5rem; color: #0f172a; font-size: 1rem; font-weight: 600; }
-      .chart-box { width: 100%; height: 360px; }
-      .muted { color:#475569; }
-      @media (min-width: 1024px) { .chart-span-2 { grid-column: 1 / -1; } }
-      #vaers-breakdowns, #vaers-breakdowns table { width: 100%; }
-      #vaers-breakdowns table { border-collapse: collapse; }
-
-      /* Ensure chart containers have a real height under your global CSS */
       .viz-360 { position: relative; width: 100%; min-height: 320px; height: 360px; }
       .viz-360 > canvas { width: 100% !important; height: 100% !important; display: block; }
     </style>
 
-    <!-- Make the chosen data URL globally visible -->
     <script>
       window.VAERS_SUMMARY_URL =
         document.getElementById('vaers-charts-section')?.dataset.summary ||
         window.VAERS_SUMMARY_URL || null;
     </script>
 
-    <!-- Charts & tables (local, CSP-compliant) -->
-  <script src="/assets/vendor/echarts.min.js" defer></script>
-  <script src="/assets/js/vaers-charts.js" defer></script>
-  <script src="/assets/js/vaers-tables.js" defer></script>
+    <script src="/assets/vendor/echarts.min.js" defer></script>
+    <script src="/assets/js/vaers-charts.js" defer></script>
+    <script src="/assets/js/vaers-tables.js" defer></script>
 
     <footer class="container">
       <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
