@@ -76,13 +76,15 @@
         <div id="chartDaysToOnset" class="chart-box" role="img" aria-label="Days to onset histogram for COVID vs Flu vaccines"></div>
       </div>
     </div>
-
+  </section>
+  <script defer src="/assets/vendor/echarts.min.js"></script>
+  <script defer src="/assets/js/vaers-charts.js"></script>
+  <script defer src="/assets/js/vaers-tables.js"></script>
   <!-- Big table container (required by vaers-tables.js) -->
   <div class="card chart-span-2">
     <h3>Breakdowns</h3>
     <div id="vaers-breakdowns"></div>
   </div>
-</section>
 <!-- Page-local styles (lightweight, matches your theme) -->
 <style>
 .chart-grid { display:grid; grid-template-columns: 1fr; gap: 1.25rem; }
@@ -107,12 +109,6 @@
     document.getElementById('vaers-charts-section')?.dataset.summary ||
     window.VAERS_SUMMARY_URL || null;
 </script>
-
-<!-- Charts -->
-<script src="/assets/js/vaers-charts.js" defer></script>
-
-<!-- Tables (keep this — it renders the big table) -->
-<script src="/assets/js/vaers-tables.js" defer></script>
 
 <footer class="container">
     <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
