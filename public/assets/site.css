@@ -1374,3 +1374,23 @@ button[aria-label="Close navigation"] {
     height: 260px;         /* mobile */
   }
 }
+/* === VAERS charts sizing === */
+.chart-box {
+  height: 360px;           /* desktop/tablet */
+}
+
+@media (max-width: 580px) {
+  .chart-box {
+    height: 260px;         /* mobile */
+  }
+}
+
+/* grid helper so the table card can span full width on desktop */
+@media (min-width: 1024px) {
+  .chart-span-2 { grid-column: 1 / -1; }
+}
+
+/* table width normalization */
+#vaers-breakdowns,
+#vaers-breakdowns table { width: 100%; }
+#vaers-breakdowns table { border-collapse: collapse; }
