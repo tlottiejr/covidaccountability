@@ -63,9 +63,10 @@
   function buildByYearSeries(summary) {
     // Total deaths by year (US + Foreign)
     const totalPairs = pick(summary, [
-      "reports_by_year.deaths_by_year.all",
-      "reports_by_year.deaths.all", // fallback if earlier builder
-    ]);
+   "reports_by_year.deaths_by_year.all", // Python builder
+   "reports_by_year.deaths.all",         // older shape
+   "reports_by_year.all",                // Node builder (current scripts/vaers-build.mjs)
+ ]);
     if (!Array.isArray(totalPairs) || !totalPairs.length) {
       return { _error: "Data unavailable: reports_by_year.deaths_by_year.all" };
     }
