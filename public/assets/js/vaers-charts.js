@@ -110,7 +110,7 @@
   }
 
   function buildDaysToOnset(summary) {
-    const d2o = pick(summary, ["deaths_days_to_onset"]) || {};
+    const d2o = pick(summary, ["deaths_days_to_onset", "days_to_onset"]) || {};
     const covidPairs =
       pick(d2o, ["covid.exact_0_19"]) ||
       pick(d2o, ["covid"]) ||

@@ -13,10 +13,18 @@
 
   function renderRows(rows = []) {
     return rows
-      .map(
-        ([k, v]) =>
-          `<tr><td>${k ?? "Unknown"}</td><td style="text-align:right">${Number(v || 0).toLocaleString()}</td></tr>`
-      )
+      .map((row) => {
+        let k, v;
+        if (Array.isArray(row)) {
+          [k, v] = row;
+        } else if (row && typeof row === "object") {
+          k = row.category ?? row.key ?? "Unknown";
+          v = row.count ?? row.value ?? 0;
+        } else {
+          return "";
+        }
+        return `<tr><td>${k}</td><td style="text-align:right">${Number(v || 0).toLocaleString()}</td></tr>`;
+      })
       .join("");
   }
 
