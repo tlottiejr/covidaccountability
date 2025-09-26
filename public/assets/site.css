@@ -1455,3 +1455,13 @@ button[aria-label="Close navigation"] {
   border-bottom: 1px solid rgba(0,0,0,.05);
 }
 #vaersBreakdownsTable h4 { margin: 18px 0 8px; }
+/* ==== Charts & Table utilities (scoped) ==== */
+.viz-360 { position: relative; width: 100%; min-height: 320px; height: 360px; }
+.viz-360 > canvas { width: 100% !important; height: 100% !important; display: block; }
+
+/* Table inside gradient wrapper */
+#vaersBreakdownsTable .vaers-title { margin: 18px 0 8px; }
+#vaersBreakdownsTable .table-simple { width: 100%; border-collapse: collapse; font-size: 0.95rem; }
+#vaersBreakdownsTable .table-simple thead th { text-align: left; border-bottom: 1px solid rgba(0,0,0,.08); padding: 8px 6px; }
+#vaersBreakdownsTable .table-simple tbody td { padding: 8px 6px; border-bottom: 1px solid rgba(0,0,0,.05); }
+#vaersBreakdownsTable .vaers-note { color:#64748b; font-size: 0.9rem; margin-top: 8px; }

@@ -55,63 +55,67 @@
       </ol>
     </section>
 
-    <!-- VAERS Figures (Official Data) — plain section, no card/wrapper -->
-      <section id="vaers-charts-section" class="section" data-summary="/data/vaers-summary.json">
-    <h2>VAERS Figures (Official Data)</h2>
-  
-    <div class="cards">
-      <div class="card">
-        <h3>All Deaths Reported to VAERS by Year</h3>
-        <div id="chartDeathsByYear" class="viz-360" role="img" aria-label="VAERS deaths by year bar chart"></div>
-      </div>
-  
-      <div class="card">
-        <h3>COVID Vaccine Reports of Death by Month</h3>
-        <!-- IMPORTANT: ID must be chartCovidDeathsByMonth (not chartCovidByMonth) -->
-        <div div id="chartCovidDeathsByMonth" class="viz-360 mt-6" role="img" aria-label="COVID vaccine deaths by month line chart"></div>
-      </div>
-  
-      <div class="card">
-        <h3>VAERS COVID/FLU Vaccine Reported Deaths by Days to Onset (All Ages)</h3>
-        <div id="chartDaysToOnset" class="viz-360 mt-6" role="img" aria-label="Days to onset histogram for COVID vs Flu vaccines"></div>
-      </div>
-    </div>
-    <!-- Big table container (required by vaers-tables.js) -->
-    <div class="card chart-span-2">
-      <h3>Breakdowns</h3>
-      <div id="vaersBreakdownsTable" class="mt-6"></div>
-  </div>
-  </section>
-  <script defer src="/assets/vendor/echarts.min.js"></script>
-  <script defer src="/assets/js/vaers-charts.js"></script>
-  <script defer src="/assets/js/vaers-tables.js"></script>
-<!-- Page-local styles (lightweight, matches your theme) -->
-<style>
-.chart-grid { display:grid; grid-template-columns: 1fr; gap: 1.25rem; }
-@media (min-width: 1024px) { .chart-grid { grid-template-columns: 1fr 1fr; } .chart-grid .chart-card:first-child { grid-column: 1 / -1; } }
-.chart-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 12px 4px; box-shadow: 0 1px 2px rgba(15,23,42,.04); }
-.chart-card h3 { margin: 0 0 .5rem; color: #0f172a; font-size: 1rem; font-weight: 600; }
-.chart-box { width: 100%; height: 360px; }
-.muted { color:#475569; }
-/* Make the table card span full width on desktop to match the big card */
-@media (min-width: 1024px) {
-  .chart-span-2 { grid-column: 1 / -1; }
-}
+    <!-- VAERS Figures (Official Data) -->
+    <section id="vaers-charts-section" class="section" data-summary="/data/vaers-summary.json">
+      <h2>VAERS Figures (Official Data)</h2>
 
-/* Ensure the rendered table uses full width inside the card */
-#vaers-breakdowns, #vaers-breakdowns table { width: 100%; }
-#vaers-breakdowns table { border-collapse: collapse; }
-</style>
+      <div class="cards">
+        <div class="card">
+          <h3>All Deaths Reported to VAERS by Year</h3>
+          <div id="chartDeathsByYear" class="viz-360" role="img" aria-label="VAERS deaths by year bar chart"></div>
+        </div>
 
-<!-- Make the chosen data URL globally visible -->
-<script>
-  window.VAERS_SUMMARY_URL =
-    document.getElementById('vaers-charts-section')?.dataset.summary ||
-    window.VAERS_SUMMARY_URL || null;
-</script>
+        <div class="card">
+          <h3>COVID Vaccine Reports of Death by Month</h3>
+          <!-- FIXED: removed stray 'div' before id -->
+          <div id="chartCovidDeathsByMonth" class="viz-360 mt-6" role="img" aria-label="COVID vaccine deaths by month line chart"></div>
+        </div>
 
-<footer class="container">
-    <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
-  </footer>
+        <div class="card">
+          <h3>VAERS COVID/FLU Vaccine Reported Deaths by Days to Onset (All Ages)</h3>
+          <div id="chartDaysToOnset" class="viz-360 mt-6" role="img" aria-label="Days to onset histogram for COVID vs Flu vaccines"></div>
+        </div>
+      </div>
+
+      <!-- Big table container (required by vaers-tables.js) -->
+      <div class="card chart-span-2">
+        <h3>Breakdowns</h3>
+        <div id="vaersBreakdownsTable" class="mt-6"></div>
+      </div>
+      <!-- FIXED: removed extra stray </div> that broke layout -->
+    </section>
+
+    <script defer src="/assets/vendor/echarts.min.js"></script>
+    <script defer src="/assets/js/vaers-charts.js"></script>
+    <script defer src="/assets/js/vaers-tables.js"></script>
+
+    <!-- Page-local styles (lightweight, matches your theme) -->
+    <style>
+      .chart-grid { display:grid; grid-template-columns: 1fr; gap: 1.25rem; }
+      @media (min-width: 1024px) { .chart-grid { grid-template-columns: 1fr 1fr; } .chart-grid .chart-card:first-child { grid-column: 1 / -1; } }
+      .chart-card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 12px 12px 4px; box-shadow: 0 1px 2px rgba(15,23,42,.04); }
+      .chart-card h3 { margin: 0 0 .5rem; color: #0f172a; font-size: 1rem; font-weight: 600; }
+      .chart-box { width: 100%; height: 360px; }
+      .muted { color:#475569; }
+      @media (min-width: 1024px) { .chart-span-2 { grid-column: 1 / -1; } }
+      #vaers-breakdowns, #vaers-breakdowns table { width: 100%; }
+      #vaers-breakdowns table { border-collapse: collapse; }
+
+      /* Ensure chart containers have a real height under your global CSS */
+      .viz-360 { position: relative; width: 100%; min-height: 320px; height: 360px; }
+      .viz-360 > canvas { width: 100% !important; height: 100% !important; display: block; }
+    </style>
+
+    <!-- Make the chosen data URL globally visible -->
+    <script>
+      window.VAERS_SUMMARY_URL =
+        document.getElementById('vaers-charts-section')?.dataset.summary ||
+        window.VAERS_SUMMARY_URL || null;
+    </script>
+
+    <footer class="container">
+      <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
+    </footer>
+  </main>
 </body>
 </html>
