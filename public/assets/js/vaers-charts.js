@@ -1,4 +1,9 @@
 // public/assets/js/vaers-charts.js
+// Renders the 3 VAERS charts using your JSON summary.
+// Fixes:
+// 1) "By Year" now uses *deaths per year* from the JSON (not all reports).
+//    Non-COVID deaths = (all deaths per year) − (COVID deaths per year).
+// 2) Days-to-Onset bins: 0..19 with **19 = 19+** (everything >=19 and non-numeric).
 (function () {
   const THEME = {
     bg: "transparent",
@@ -33,7 +38,7 @@
     return res.json();
   }
 
-  // ---- helpers ----
+  // --- helpers ---
   function fromPairs(pairs = []) {
     const labels = [];
     const values = [];
@@ -48,61 +53,101 @@
   function aggregateYearTotals(monthPairs = []) {
     const map = new Map();
     for (const p of monthPairs || []) {
-      const month = p?.[0];
+      const m = p?.[0];
       const v = num(p?.[1]);
-      if (!month) continue;
-      const y = String(month).slice(0, 4);
+      if (!m) continue;
+      const y = String(m).slice(0, 4);
       map.set(y, (map.get(y) || 0) + v);
     }
     const years = Array.from(map.keys()).sort();
     return { labels: years, values: years.map((y) => map.get(y) || 0) };
   }
 
-  // ============ FIX 1: full-year bars =============
-  // Use all years from reports_by_year.all and derive non-COVID = all - covidByYear
+  // -------- BY YEAR (Deaths only) --------
+  // Find "deaths per year" pairs in the summary, tolerant of key variants.
+  function getDeathsByYearPairs(summary) {
+    // Common shapes seen across your builds:
+    //   reports_by_year_deaths.all -> [ ["1990", x], ... ]
+    //   deaths_by_year.all         -> [ ["1990", x], ... ]
+    //   deaths_by_year             -> [ ["1990", x], ... ]
+    //   reports_by_year.deaths     -> [ ["1990", x], ... ]
+    const candidates = [
+      summary?.reports_by_year_deaths?.all,
+      summary?.deaths_by_year?.all,
+      summary?.deaths_by_year,
+      summary?.reports_by_year?.deaths
+    ];
+    for (const c of candidates) if (Array.isArray(c) && c.length) return c;
+    // Fallback: if only covid_deaths_by_month exists, aggregate it (will show 2020+ only).
+    return null;
+  }
+
   function buildByYearSeries(summary) {
-    const allPairs = summary?.reports_by_year?.all || [];
+    const deathsPairs = getDeathsByYearPairs(summary);
     const covidMonthPairs = summary?.covid_deaths_by_month?.total || [];
 
-    const ALL = fromPairs(allPairs); // 1990..present
-    const COVID = aggregateYearTotals(covidMonthPairs); // 2020..present
+    // If we have per-year deaths from JSON, use them as "All Reports of Death".
+    // Otherwise, derive totals from monthly (limited to 2020+).
+    let ALL;
+    if (deathsPairs) {
+      ALL = fromPairs(deathsPairs); // 1990..present
+    } else {
+      // informational fallback (rare): derive from COVID monthly only
+      const agg = aggregateYearTotals(covidMonthPairs);
+      ALL = { labels: agg.labels, values: agg.values.slice() };
+    }
 
-    // Align covid series to the ALL year list
+    // COVID deaths per year from monthly totals
+    const COVID = aggregateYearTotals(covidMonthPairs);
     const covidMap = new Map(COVID.labels.map((y, i) => [y, COVID.values[i]]));
+
+    // Align arrays by ALL.x labels
     const covidValsAligned = ALL.labels.map((y) => covidMap.get(y) || 0);
     const nonCovidVals = ALL.values.map((v, i) => Math.max(0, v - covidValsAligned[i]));
 
-    return { labels: ALL.labels, primary: covidValsAligned, nonCovid: nonCovidVals };
+    return { labels: ALL.labels, primary: ALL.values, nonCovid: nonCovidVals };
   }
 
-  // ============ FIX 2: strict 0..19 + explicit "20+" bucket ============
+  // -------- MONTHLY (COVID only) --------
+  function getMonthlySeries(summary) {
+    const month = summary?.covid_deaths_by_month || {};
+    return {
+      total:   fromPairs(month.total || []),
+      us:      fromPairs(month.us_terr_unk || []),
+      foreign: fromPairs(month.foreign || [])
+    };
+  }
+
+  // -------- DAYS TO ONSET (0..19 with 19 = 19+) --------
   function buildDaysToOnset(summary) {
     const covidPairs = summary?.deaths_days_to_onset?.covid || [];
     const fluPairs   = summary?.deaths_days_to_onset?.flu   || [];
 
     const mkSeries = (pairs) => {
-      const arr = new Array(21).fill(0); // 0..19 and index 20 => "20+"
+      // 0..19 with **19+** collapsed into index 19
+      const arr = new Array(20).fill(0);
       for (const [label, value] of pairs || []) {
         const raw = String(label).trim();
         const d = Number(raw);
-        if (Number.isInteger(d) && d >= 0 && d <= 19) {
-          arr[d] = num(value);
+        if (Number.isInteger(d)) {
+          const idx = d >= 19 ? 19 : d < 0 ? 0 : d;
+          arr[idx] += num(value);
         } else {
-          // non-numeric or >=20 => accumulate into "20+"
-          arr[20] += num(value);
+          // non-numeric (e.g., "20+", "Unknown") -> put into 19+
+          arr[19] += num(value);
         }
       }
       return arr;
     };
 
-    const covid = mkSeries(covidPairs);
-    const flu = mkSeries(fluPairs);
-    const labels = [...Array(20).keys()].map(String).concat("20+");
-
-    return { labels, covid, flu };
+    return {
+      labels: Array.from({ length: 20 }, (_, i) => String(i)), // "0" .. "19" (19 = 19+)
+      covid: mkSeries(covidPairs),
+      flu:   mkSeries(fluPairs)
+    };
   }
 
-  // ---- charts ----
+  // -------- chart renderers --------
   function renderByYear(el, series) {
     const dom = $(el); if (!dom) return;
     const ec = echarts.init(dom, null, { renderer: "canvas" });
@@ -129,20 +174,15 @@
         axisLabel: { color: THEME.ink, formatter: (v) => v.toLocaleString() }
       },
       series: [
-        { name: "Reports of Death",            type: "bar", barMaxWidth: 16, data: series.primary, itemStyle: { color: THEME.primary } },
+        { name: "Reports of Death",             type: "bar", barMaxWidth: 16, data: series.primary, itemStyle: { color: THEME.primary } },
         { name: "All Non COVID-Vaccine Deaths", type: "bar", barMaxWidth: 16, data: series.nonCovid, itemStyle: { color: THEME.secondary } }
       ]
     });
     window.addEventListener("resize", () => ec.resize());
   }
 
-  function renderCovidByMonth(el, summary) {
+  function renderCovidByMonth(el, m) {
     const dom = $(el); if (!dom) return;
-    const month = summary?.covid_deaths_by_month || {};
-    const total   = fromPairs(month.total || []);
-    const us      = fromPairs(month.us_terr_unk || []);
-    const foreign = fromPairs(month.foreign || []);
-
     const ec = echarts.init(dom, null, { renderer: "canvas" });
     ec.setOption({
       backgroundColor: THEME.bg,
@@ -154,7 +194,7 @@
         name: "Received Month",
         nameLocation: "middle",
         nameGap: 32,
-        data: total.labels,
+        data: m.total.labels,
         axisLabel: { color: THEME.ink, fontSize: 10 },
         axisLine: { lineStyle: { color: THEME.axis } }
       },
@@ -167,9 +207,9 @@
         axisLabel: { color: THEME.ink, formatter: (v) => v.toLocaleString() }
       },
       series: [
-        { name: "Total",          type: "line", smooth: 0.2, symbolSize: 2, data: total.values,   lineStyle: { color: THEME.primary } },
-        { name: "US/Territories", type: "line", smooth: 0.2, symbolSize: 2, data: us.values,      lineStyle: { color: THEME.accent } },
-        { name: "Foreign*",       type: "line", smooth: 0.2, symbolSize: 2, data: foreign.values, lineStyle: { color: THEME.secondary } }
+        { name: "Total",          type: "line", smooth: 0.2, symbolSize: 2, data: m.total.values,   lineStyle: { color: THEME.primary } },
+        { name: "US/Territories", type: "line", smooth: 0.2, symbolSize: 2, data: m.us.values,      lineStyle: { color: THEME.accent } },
+        { name: "Foreign*",       type: "line", smooth: 0.2, symbolSize: 2, data: m.foreign.values, lineStyle: { color: THEME.secondary } }
       ]
     });
     window.addEventListener("resize", () => ec.resize());
@@ -188,7 +228,7 @@
         name: "Days to Onset",
         nameLocation: "middle",
         nameGap: 32,
-        data: series.labels, // "0".."19","20+"
+        data: series.labels, // "0" .. "19" (19 = 19+)
         axisLabel: { color: THEME.ink, fontSize: 10 },
         axisLine: { lineStyle: { color: THEME.axis } }
       },
@@ -208,15 +248,20 @@
     window.addEventListener("resize", () => ec.resize());
   }
 
-  // ---- bootstrap ----
+  // --- bootstrap ---
   window.addEventListener("DOMContentLoaded", async () => {
     try {
       await ensureECharts();
       const summary = await loadSummary();
 
-      renderByYear("#chartDeathsByYear", buildByYearSeries(summary));
-      renderCovidByMonth("#chartCovidDeathsByMonth", summary);
-      renderDaysToOnset("#chartDaysToOnset", buildDaysToOnset(summary));
+      const byYear = buildByYearSeries(summary);
+      renderByYear("#chartDeathsByYear", byYear);
+
+      const monthly = getMonthlySeries(summary);
+      renderCovidByMonth("#chartCovidDeathsByMonth", monthly);
+
+      const d2o = buildDaysToOnset(summary);
+      renderDaysToOnset("#chartDaysToOnset", d2o);
     } catch (err) {
       console.error("VAERS charts failed:", err);
       ["#chartDeathsByYear","#chartCovidDeathsByMonth","#chartDaysToOnset"].forEach(sel => {
