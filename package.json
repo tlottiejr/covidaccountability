@@ -27,5 +27,8 @@
   "test:contracts": "playwright test tests/contracts",
   "test:ui": "playwright test --ui",
   "test:report": "playwright show-report"
+  },
+  "dependencies": {
+    "adm-zip": "^0.5.10"
   }
 }
