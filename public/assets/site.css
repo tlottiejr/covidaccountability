@@ -1411,3 +1411,15 @@ button[aria-label="Close navigation"] {
   #chartCovidDeathsByMonth.chart-box{ height: 300px; }
   #chartDaysToOnset.chart-box       { height: 340px; }
 }
+/* Roomier top VAERS chart */
+#chartDeathsByYear.chart-box { height: 480px; width: 100%; }
+
+/* Keep others readable */
+#chartCovidDeathsByMonth.chart-box { height: 380px; }
+#chartDaysToOnset.chart-box        { height: 440px; }
+
+@media (max-width: 640px) {
+  #chartDeathsByYear.chart-box      { height: 360px; }
+  #chartCovidDeathsByMonth.chart-box{ height: 300px; }
+  #chartDaysToOnset.chart-box       { height: 340px; }
+}
