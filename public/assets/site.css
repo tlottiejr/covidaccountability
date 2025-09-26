@@ -1375,22 +1375,13 @@ button[aria-label="Close navigation"] {
   }
 }
 /* === VAERS charts sizing === */
-.chart-box {
-  height: 360px;           /* desktop/tablet */
-}
+.chart-box { height: 360px; }
+@media (max-width: 580px) { .chart-box { height: 260px; } }
 
-@media (max-width: 580px) {
-  .chart-box {
-    height: 260px;         /* mobile */
-  }
-}
+/* Let the table card span full width on large screens */
+@media (min-width: 1024px) { .chart-span-2 { grid-column: 1 / -1; } }
 
-/* grid helper so the table card can span full width on desktop */
-@media (min-width: 1024px) {
-  .chart-span-2 { grid-column: 1 / -1; }
-}
-
-/* table width normalization */
+/* Table width normalization */
 #vaers-breakdowns,
 #vaers-breakdowns table { width: 100%; }
 #vaers-breakdowns table { border-collapse: collapse; }
