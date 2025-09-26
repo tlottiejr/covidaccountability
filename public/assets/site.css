@@ -1396,3 +1396,18 @@ button[aria-label="Close navigation"] {
   #chartDaysToOnset.chart-box { height: 320px; }
   #chartCovidDeathsByMonth.chart-box { height: 280px; }
 }
+/* Make the top VAERS chart feel wider and less cramped */
+#chartDeathsByYear.chart-box {
+  height: 480px;        /* taller */
+  width: 100%;          /* full width of its container */
+}
+
+/* Keep others readable */
+#chartCovidDeathsByMonth.chart-box { height: 380px; }
+#chartDaysToOnset.chart-box        { height: 440px; }
+
+@media (max-width: 640px) {
+  #chartDeathsByYear.chart-box      { height: 360px; }
+  #chartCovidDeathsByMonth.chart-box{ height: 300px; }
+  #chartDaysToOnset.chart-box       { height: 340px; }
+}
