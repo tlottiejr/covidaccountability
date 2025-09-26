@@ -20,12 +20,12 @@
 
   const NAV_LINKS = [
     { label: 'Home',            href: '/' },
-    { label: 'About Us',        href: '/about' },
-    { label: 'Our Story',       href: '/our-story' },
-    { label: 'Why Report',      href: '/why-report' },
-    { label: 'Who Can Report',  href: '/who-can-report' },
-    { label: 'References',      href: '/references' },
-    { label: 'Donate',          href: '/donate' },
+    { label: 'About Us',        href: '/about.html' },
+    { label: 'Our Story',       href: '/our-story.html' },
+    { label: 'Why Report',      href: '/why-report.html' },
+    { label: 'Who Can Report',  href: '/who-can-report.html' },
+    { label: 'References',      href: '/references.html' },
+    { label: 'Donate',          href: '/donate.html' },
     { label: 'Contact',         href: '#contact', contact: true },
   ];
 
