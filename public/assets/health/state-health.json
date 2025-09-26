@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-09-26T08:30:46.792Z",
+  "generatedAt": "2025-09-25T08:30:26.327Z",
   "items": [
     {
       "state": "Alaska",
@@ -9,7 +9,7 @@
       "finalUrl": "https://www.commerce.alaska.gov/web/cbpl/ComplaintFAQs.aspx",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:47.476Z"
+      "checkedAt": "2025-09-25T08:30:26.834Z"
     },
     {
       "state": "Alabama",
@@ -19,7 +19,7 @@
       "finalUrl": "https://www.albme.gov/consumers/complaints/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:47.785Z"
+      "checkedAt": "2025-09-25T08:30:27.178Z"
     },
     {
       "state": "Alabama",
@@ -29,7 +29,7 @@
       "finalUrl": "https://www.albme.gov/consumers/complaints/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:48.066Z"
+      "checkedAt": "2025-09-25T08:30:27.449Z"
     },
     {
       "state": "Arkansas",
@@ -39,7 +39,7 @@
       "finalUrl": "https://www.armedicalboard.org/Public/FileAComplaint.aspx",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:48.703Z"
+      "checkedAt": "2025-09-25T08:30:27.868Z"
     },
     {
       "state": "Arizona",
@@ -49,7 +49,7 @@
       "finalUrl": "https://azmd.gov/Regulation/Regulation",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T08:30:48.833Z"
+      "checkedAt": "2025-09-25T08:30:28.010Z"
     },
     {
       "state": "Arizona",
@@ -59,7 +59,7 @@
       "finalUrl": "https://azdo.gov/consumer-resources/filing-complaint",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:49.438Z"
+      "checkedAt": "2025-09-25T08:30:28.415Z"
     },
     {
       "state": "California",
@@ -69,7 +69,7 @@
       "finalUrl": "https://www.mbc.ca.gov/Consumers/file-a-complaint/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:49.766Z"
+      "checkedAt": "2025-09-25T08:30:28.772Z"
     },
     {
       "state": "California",
@@ -79,7 +79,7 @@
       "finalUrl": "https://www.ombc.ca.gov/consumer_complaint/file_a_complaint.shtml",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:50.145Z"
+      "checkedAt": "2025-09-25T08:30:29.126Z"
     },
     {
       "state": "Colorado",
@@ -89,17 +89,17 @@
       "finalUrl": "https://dpo.colorado.gov/FileComplaint",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:50.257Z"
+      "checkedAt": "2025-09-25T08:30:29.217Z"
     },
     {
       "state": "Connecticut",
       "board": "CT Department of Public Health — Petition Form",
       "url": "https://portal.ct.gov/-/media/DPH/PIU-documents/2021-petition-form.pdf",
       "status": 200,
-      "finalUrl": "https://portal.ct.gov/-/media/DPH/PIU-documents/2021-petition-form.pdf",
-      "redirected": false,
+      "finalUrl": "https://portal.ct.gov/-/media/dph/piu-documents/2021-petition-form.pdf",
+      "redirected": true,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:50.621Z"
+      "checkedAt": "2025-09-25T08:30:29.447Z"
     },
     {
       "state": "District of Columbia",
@@ -109,7 +109,7 @@
       "finalUrl": "https://dchealth.dc.gov/node/145702",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:51.341Z"
+      "checkedAt": "2025-09-25T08:30:30.110Z"
     },
     {
       "state": "Delaware",
@@ -119,7 +119,7 @@
       "finalUrl": "https://delpros.delaware.gov/oh_filecomplaint",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:51.907Z"
+      "checkedAt": "2025-09-25T08:30:30.583Z"
     },
     {
       "state": "Florida",
@@ -129,7 +129,7 @@
       "finalUrl": "https://complaint-portal.mqa.flhealthsource.gov/home",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:51.960Z"
+      "checkedAt": "2025-09-25T08:30:30.639Z"
     },
     {
       "state": "Florida",
@@ -139,7 +139,7 @@
       "finalUrl": "https://complaint-portal.mqa.flhealthsource.gov/home",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:51.994Z"
+      "checkedAt": "2025-09-25T08:30:30.670Z"
     },
     {
       "state": "Georgia",
@@ -149,7 +149,7 @@
       "finalUrl": "https://medicalboard.georgia.gov/consumer-resources/filing-complaint",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:52.058Z"
+      "checkedAt": "2025-09-25T08:30:30.851Z"
     },
     {
       "state": "Guam",
@@ -159,7 +159,7 @@
       "finalUrl": "https://guamhplo.org/sites/default/files/hplo_complaint_form_updated_form_fillable_01.11.2022_0.pdf",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:52.290Z"
+      "checkedAt": "2025-09-25T08:30:31.326Z"
     },
     {
       "state": "Hawaii",
@@ -169,7 +169,7 @@
       "finalUrl": "https://cca.hawaii.gov/rico/file/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:52.448Z"
+      "checkedAt": "2025-09-25T08:30:31.510Z"
     },
     {
       "state": "Iowa",
@@ -179,7 +179,7 @@
       "finalUrl": "https://dial.iowa.gov/about-dial/boards/medicine",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:52.819Z"
+      "checkedAt": "2025-09-25T08:30:31.781Z"
     },
     {
       "state": "Idaho",
@@ -189,7 +189,7 @@
       "finalUrl": "https://dopl.idaho.gov/filing-a-complaint/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:54.711Z"
+      "checkedAt": "2025-09-25T08:30:32.789Z"
     },
     {
       "state": "Illinois",
@@ -199,7 +199,7 @@
       "finalUrl": "https://idfpr.illinois.gov/admin/complaints.html",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:55.003Z"
+      "checkedAt": "2025-09-25T08:30:33.044Z"
     },
     {
       "state": "Indiana",
@@ -209,7 +209,7 @@
       "finalUrl": "https://www.in.gov/attorneygeneral/consumer-protection-division/file-a-complaint/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:55.186Z"
+      "checkedAt": "2025-09-25T08:30:33.272Z"
     },
     {
       "state": "Kansas",
@@ -219,7 +219,7 @@
       "finalUrl": "https://www.ksbha.ks.gov/departments/disciplinary-investigations",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T08:30:55.499Z"
+      "checkedAt": "2025-09-25T08:30:33.615Z"
     },
     {
       "state": "Kentucky",
@@ -229,7 +229,7 @@
       "finalUrl": "https://kbml.ky.gov/grievances/Pages/default.aspx",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:58.085Z"
+      "checkedAt": "2025-09-25T08:30:35.599Z"
     },
     {
       "state": "Louisiana",
@@ -239,7 +239,7 @@
       "finalUrl": "https://www.lsbme.la.gov/content/investigations",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:58.615Z"
+      "checkedAt": "2025-09-25T08:30:37.021Z"
     },
     {
       "state": "Massachusetts",
@@ -249,7 +249,7 @@
       "finalUrl": "https://www.mass.gov/info-details/submit-a-complaint-against-a-physician",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T08:30:58.881Z"
+      "checkedAt": "2025-09-25T08:30:37.111Z"
     },
     {
       "state": "Maryland",
@@ -259,7 +259,7 @@
       "finalUrl": "https://www.mbp.state.md.us/resource_information/res_con/resource_consumer_complaints.aspx",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:58.946Z"
+      "checkedAt": "2025-09-25T08:30:37.233Z"
     },
     {
       "state": "Maine",
@@ -269,7 +269,7 @@
       "finalUrl": "https://www.maine.gov/md/complaint/file-complaint",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:59.426Z"
+      "checkedAt": "2025-09-25T08:30:37.895Z"
     },
     {
       "state": "Maine",
@@ -279,7 +279,7 @@
       "finalUrl": "https://www.maine.gov/osteo/file-complaint",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:30:59.533Z"
+      "checkedAt": "2025-09-25T08:30:38.042Z"
     },
     {
       "state": "Michigan",
@@ -289,7 +289,7 @@
       "finalUrl": "https://www.michigan.gov/lara/bureau-list/bpl/complaint/miplus/filing-a-complaint-with-miplus",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:00.664Z"
+      "checkedAt": "2025-09-25T08:30:39.751Z"
     },
     {
       "state": "Michigan",
@@ -299,7 +299,7 @@
       "finalUrl": "https://www.michigan.gov/lara/bureau-list/bpl/complaint/miplus/filing-a-complaint-with-miplus",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:00.779Z"
+      "checkedAt": "2025-09-25T08:30:39.981Z"
     },
     {
       "state": "Minnesota",
@@ -309,7 +309,7 @@
       "finalUrl": "https://mn.gov/boards/medical-practice/consumers/complaints/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:01.080Z"
+      "checkedAt": "2025-09-25T08:30:40.293Z"
     },
     {
       "state": "Missouri",
@@ -319,7 +319,7 @@
       "finalUrl": "",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T08:31:01.332Z"
+      "checkedAt": "2025-09-25T08:30:40.572Z"
     },
     {
       "state": "Northern Mariana Islands",
@@ -329,7 +329,7 @@
       "finalUrl": "https://www.cnmilicensing.gov.mp/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:11.068Z"
+      "checkedAt": "2025-09-25T08:30:51.228Z"
     },
     {
       "state": "Mississippi",
@@ -339,7 +339,7 @@
       "finalUrl": "https://www.msbml.ms.gov/Complaints",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:11.369Z"
+      "checkedAt": "2025-09-25T08:30:51.657Z"
     },
     {
       "state": "Montana",
@@ -349,7 +349,7 @@
       "finalUrl": "https://bsd.dli.mt.gov/filing-complaint?pk_vid=91c8f2d5e42f8e3a1650989125a91371",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:12.006Z"
+      "checkedAt": "2025-09-25T08:30:52.340Z"
     },
     {
       "state": "North Carolina",
@@ -359,7 +359,7 @@
       "finalUrl": "https://www.ncmedboard.org/resources-information/consumer-resources/complaint-process/file-a-complaint",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:13.226Z"
+      "checkedAt": "2025-09-25T08:30:53.565Z"
     },
     {
       "state": "North Dakota",
@@ -369,7 +369,7 @@
       "finalUrl": "https://www.ndbom.org/public/complaint/index.asp",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:14.007Z"
+      "checkedAt": "2025-09-25T08:30:54.589Z"
     },
     {
       "state": "Nebraska",
@@ -379,7 +379,7 @@
       "finalUrl": "https://phcmplnt-dhhs.ne.gov/Home/DownloadForm?formName=PHA-27-A.pdf",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T08:31:14.416Z"
+      "checkedAt": "2025-09-25T08:30:54.999Z"
     },
     {
       "state": "New Hampshire",
@@ -389,7 +389,7 @@
       "finalUrl": "https://www.oplc.nh.gov/about-enforcement/file-complaint",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T08:31:14.673Z"
+      "checkedAt": "2025-09-25T08:30:55.095Z"
     },
     {
       "state": "New Jersey",
@@ -399,7 +399,7 @@
       "finalUrl": "https://www.njconsumeraffairs.gov/Pages/Consumer-Complaints.aspx",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T08:31:14.792Z"
+      "checkedAt": "2025-09-25T08:30:55.279Z"
     },
     {
       "state": "New Mexico",
@@ -409,7 +409,7 @@
       "finalUrl": "https://www.nmmb.state.nm.us/complaints/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:15.396Z"
+      "checkedAt": "2025-09-25T08:30:56.547Z"
     },
     {
       "state": "Nevada",
@@ -419,7 +419,7 @@
       "finalUrl": "https://medboard.nv.gov/Patients/File_a_Complaint/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:15.801Z"
+      "checkedAt": "2025-09-25T08:30:57.171Z"
     },
     {
       "state": "New York",
@@ -429,7 +429,7 @@
       "finalUrl": "https://www.health.ny.gov/professionals/doctors/conduct/file_a_complaint.htm",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T08:31:15.890Z"
+      "checkedAt": "2025-09-25T08:30:57.353Z"
     },
     {
       "state": "New York",
@@ -439,7 +439,7 @@
       "finalUrl": "https://www.op.nysed.gov/professions-index/medicine",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:15.950Z"
+      "checkedAt": "2025-09-25T08:30:57.419Z"
     },
     {
       "state": "Ohio",
@@ -449,7 +449,7 @@
       "finalUrl": "https://med.ohio.gov/Regulation/File-a-Complaint",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T08:31:16.504Z"
+      "checkedAt": "2025-09-25T08:30:57.647Z"
     },
     {
       "state": "Oklahoma",
@@ -459,7 +459,7 @@
       "finalUrl": "https://secure.okmedicalboard.org/complaint/",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T08:31:16.738Z"
+      "checkedAt": "2025-09-25T08:30:57.864Z"
     },
     {
       "state": "Oklahoma",
@@ -469,7 +469,7 @@
       "finalUrl": "https://osboe.portalus.thentiacloud.net/webs/portal/register/",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T08:31:17.143Z"
+      "checkedAt": "2025-09-25T08:30:58.258Z"
     },
     {
       "state": "Oregon",
@@ -479,7 +479,7 @@
       "finalUrl": "https://www.oregon.gov/omb/investigations/pages/how-to-file-a-complaint.aspx",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:17.689Z"
+      "checkedAt": "2025-09-25T08:30:58.826Z"
     },
     {
       "state": "Pennsylvania",
@@ -489,7 +489,7 @@
       "finalUrl": "https://www.pa.gov/agencies/dos/file-a-complaint",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:17.788Z"
+      "checkedAt": "2025-09-25T08:30:59.228Z"
     },
     {
       "state": "Pennsylvania",
@@ -499,7 +499,7 @@
       "finalUrl": "https://www.pa.gov/agencies/dos/file-a-complaint",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:17.833Z"
+      "checkedAt": "2025-09-25T08:30:59.463Z"
     },
     {
       "state": "Puerto Rico",
@@ -509,7 +509,7 @@
       "finalUrl": "https://www.salud.pr.gov/CMS/120",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:18.584Z"
+      "checkedAt": "2025-09-25T08:31:00.104Z"
     },
     {
       "state": "Rhode Island",
@@ -519,7 +519,7 @@
       "finalUrl": "https://health.ri.gov/licensing/submit-complaint",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:18.696Z"
+      "checkedAt": "2025-09-25T08:31:00.237Z"
     },
     {
       "state": "South Carolina",
@@ -529,7 +529,7 @@
       "finalUrl": "https://llr.sc.gov/fileacomplaint.aspx",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:19.073Z"
+      "checkedAt": "2025-09-25T08:31:00.589Z"
     },
     {
       "state": "South Dakota",
@@ -539,17 +539,17 @@
       "finalUrl": "https://www.sdbmoe.gov/complaints/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:19.411Z"
+      "checkedAt": "2025-09-25T08:31:00.853Z"
     },
     {
       "state": "Tennessee",
       "board": "Tennessee Board of Medical Examiners",
       "url": "https://www.tn.gov/content/tn/health/health-program-areas/health-professional-boards/report-a-concern.html",
-      "status": 0,
-      "finalUrl": "",
+      "status": 200,
+      "finalUrl": "https://www.tn.gov/content/tn/health/health-program-areas/health-professional-boards/report-a-concern.html",
       "redirected": false,
-      "error": true,
-      "checkedAt": "2025-09-26T08:31:19.725Z"
+      "error": false,
+      "checkedAt": "2025-09-25T08:31:01.087Z"
     },
     {
       "state": "Tennessee",
@@ -559,7 +559,7 @@
       "finalUrl": "https://www.tn.gov/content/tn/health/health-program-areas/health-professional-boards/report-a-concern.html",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:20.017Z"
+      "checkedAt": "2025-09-25T08:31:01.220Z"
     },
     {
       "state": "Texas",
@@ -569,7 +569,7 @@
       "finalUrl": "https://www.tmb.state.tx.us/page/place-a-complaint",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T08:31:24.090Z"
+      "checkedAt": "2025-09-25T08:31:01.612Z"
     },
     {
       "state": "Utah",
@@ -579,7 +579,7 @@
       "finalUrl": "https://dopl.utah.gov/file-a-complaint/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:24.323Z"
+      "checkedAt": "2025-09-25T08:31:01.850Z"
     },
     {
       "state": "Virginia",
@@ -589,7 +589,7 @@
       "finalUrl": "https://www.dhp.virginia.gov/PractitionerResources/Enforcement/FileaComplaint/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:24.539Z"
+      "checkedAt": "2025-09-25T08:31:01.947Z"
     },
     {
       "state": "U.S. Virgin Islands",
@@ -599,7 +599,7 @@
       "finalUrl": "https://www.vimedicalboard.org/complaints/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:25.422Z"
+      "checkedAt": "2025-09-25T08:31:02.908Z"
     },
     {
       "state": "Vermont",
@@ -609,7 +609,7 @@
       "finalUrl": "https://www.healthvermont.gov/systems/board-medical-practice/file-complaint",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:26.024Z"
+      "checkedAt": "2025-09-25T08:31:03.231Z"
     },
     {
       "state": "Vermont",
@@ -619,7 +619,7 @@
       "finalUrl": "https://sos.vermont.gov/opr/complaints-conduct-discipline/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:26.274Z"
+      "checkedAt": "2025-09-25T08:31:03.344Z"
     },
     {
       "state": "Washington",
@@ -629,7 +629,7 @@
       "finalUrl": "https://wmc.wa.gov/complaints-actions/file-complaint-against-md-or-pa",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:26.681Z"
+      "checkedAt": "2025-09-25T08:31:03.751Z"
     },
     {
       "state": "Washington",
@@ -639,7 +639,7 @@
       "finalUrl": "https://doh.wa.gov/licenses-permits-and-certificates/file-complaint-about-provider-or-facility",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:26.919Z"
+      "checkedAt": "2025-09-25T08:31:03.869Z"
     },
     {
       "state": "Wisconsin",
@@ -649,7 +649,7 @@
       "finalUrl": "https://dsps.wi.gov/Pages/SelfService/FileAComplaint.aspx",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:27.378Z"
+      "checkedAt": "2025-09-25T08:31:04.475Z"
     },
     {
       "state": "West Virginia",
@@ -659,7 +659,7 @@
       "finalUrl": "https://wvbom.wv.gov/Instructions_and_Forms.asp",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:27.995Z"
+      "checkedAt": "2025-09-25T08:31:05.143Z"
     },
     {
       "state": "West Virginia",
@@ -669,7 +669,7 @@
       "finalUrl": "https://www.wvbdosteo.org/complaint/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:28.628Z"
+      "checkedAt": "2025-09-25T08:31:05.929Z"
     },
     {
       "state": "Wyoming",
@@ -679,7 +679,7 @@
       "finalUrl": "https://wyomedboard.wyo.gov/consumers/file-a-complaint",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T08:31:28.800Z"
+      "checkedAt": "2025-09-25T08:31:06.104Z"
     }
   ]
 }

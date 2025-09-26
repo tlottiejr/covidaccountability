@@ -1,40 +1,33 @@
+// public/assets/js/vaers-tables.js
 (function () {
-  async function load() {
-    const root = document.getElementById("vaers-breakdowns");
-    if (!root) return;
-    const res = await fetch("/data/vaers-summary.json", { cache: "no-cache" });
-    if (!res.ok) return;
-    const d = await res.json();
-
-    const fmt = new Intl.NumberFormat();
-
-    const makeCol = (title, rows) => {
-      const col = document.createElement("div");
-      col.className = "table-col";
-      col.innerHTML = `
-        <div class="table-card">
-          <div class="table-head">
-            <span>${title}</span><span>Cases</span>
-          </div>
-          <div class="table-body"></div>
-        </div>`;
-      const body = col.querySelector(".table-body");
-      rows.forEach(([k,v]) => {
-        const row = document.createElement("div");
-        row.className = "table-row";
-        row.innerHTML = `<span>${k}</span><span>${fmt.format(v)}</span>`;
-        body.appendChild(row);
-      });
-      return col;
-    };
-
-    root.classList.add("vaers-wide-table");
-    root.innerHTML = "";
-    root.appendChild(makeCol("Manufacturer", d.covid_deaths_breakdowns.manufacturer));
-    root.appendChild(makeCol("Sex", d.covid_deaths_breakdowns.sex));
-    root.appendChild(makeCol("Age", d.covid_deaths_breakdowns.age_bins));
+  const $ = (s)=>document.querySelector(s);
+  async function loadSummary(){
+    const url=window.VAERS_SUMMARY_URL||"/data/vaers-summary.json";
+    const res=await fetch(url,{cache:"no-cache"}); 
+    if(!res.ok) throw new Error(`Failed to load ${url}: ${res.status}`); 
+    return res.json();
   }
-
-  if (document.readyState === "complete" || document.readyState === "interactive") load();
-  else document.addEventListener("DOMContentLoaded", load);
+  function renderBreakdowns(el, breakdowns){
+    if(!el) return;
+    const {manufacturer=[], sex=[], age_bins=[]} = breakdowns||{};
+    const section = (title, rows)=>`
+      <h4 style="margin:18px 0 8px 0">${title}</h4>
+      <table class="table-simple">
+        <thead><tr><th>Category</th><th style="text-align:right">Count</th></tr></thead>
+        <tbody>
+          ${rows.map(([k,v])=>`<tr><td>${k||"Unknown"}</td><td style="text-align:right">${Number(v).toLocaleString()}</td></tr>`).join("")}
+        </tbody>
+      </table>`;
+    el.innerHTML = section("Manufacturer (COVID, US/Territories)", manufacturer)
+                 + section("Sex (COVID, US/Territories)", sex)
+                 + section("Age (COVID, US/Territories)", age_bins);
+  }
+  document.addEventListener("DOMContentLoaded", async ()=>{
+    try{
+      const summary = await loadSummary();
+      renderBreakdowns($("#vaersBreakdownsTable"), summary.covid_deaths_breakdowns);
+    }catch(e){
+      console.error(e);
+    }
+  });
 })();

@@ -1423,3 +1423,35 @@ button[aria-label="Close navigation"] {
   #chartCovidDeathsByMonth.chart-box{ height: 300px; }
   #chartDaysToOnset.chart-box       { height: 340px; }
 }
+/* --- VAERS charts/table utilities (scoped, theme-safe) --- */
+
+.viz-360 {
+  position: relative;        /* so the "source:" tag can anchor */
+  width: 100%;
+  min-height: 320px;         /* keeps layout stable while JS loads */
+  height: 360px;             /* echarts relies on a fixed height */
+}
+
+/* If your global CSS forces canvas height:auto, protect echarts canvas: */
+.viz-360 > canvas {
+  height: 100% !important;
+  width: 100% !important;
+  display: block;
+}
+
+/* Optional: your table look & feel, reusing existing palette */
+#vaersBreakdownsTable .table-simple {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+}
+#vaersBreakdownsTable .table-simple thead th {
+  text-align: left;
+  border-bottom: 1px solid rgba(0,0,0,.08);
+  padding: 8px 6px;
+}
+#vaersBreakdownsTable .table-simple tbody td {
+  padding: 8px 6px;
+  border-bottom: 1px solid rgba(0,0,0,.05);
+}
+#vaersBreakdownsTable h4 { margin: 18px 0 8px; }

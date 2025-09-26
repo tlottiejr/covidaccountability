@@ -62,29 +62,29 @@
     <div class="cards">
       <div class="card">
         <h3>All Deaths Reported to VAERS by Year</h3>
-        <div id="chartDeathsByYear" class="chart-box" role="img" aria-label="VAERS deaths by year bar chart"></div>
+        <div id="chartDeathsByYear" class="viz-360" role="img" aria-label="VAERS deaths by year bar chart"></div>
       </div>
   
       <div class="card">
         <h3>COVID Vaccine Reports of Death by Month</h3>
         <!-- IMPORTANT: ID must be chartCovidDeathsByMonth (not chartCovidByMonth) -->
-        <div id="chartCovidDeathsByMonth" class="chart-box" role="img" aria-label="COVID vaccine deaths by month line chart"></div>
+        <div div id="chartCovidDeathsByMonth" class="viz-360 mt-6" role="img" aria-label="COVID vaccine deaths by month line chart"></div>
       </div>
   
       <div class="card">
         <h3>VAERS COVID/FLU Vaccine Reported Deaths by Days to Onset (All Ages)</h3>
-        <div id="chartDaysToOnset" class="chart-box" role="img" aria-label="Days to onset histogram for COVID vs Flu vaccines"></div>
+        <div id="chartDaysToOnset" class="viz-360 mt-6" role="img" aria-label="Days to onset histogram for COVID vs Flu vaccines"></div>
       </div>
     </div>
+    <!-- Big table container (required by vaers-tables.js) -->
+    <div class="card chart-span-2">
+      <h3>Breakdowns</h3>
+      <div id="vaersBreakdownsTable" class="mt-6"></div>
+  </div>
   </section>
   <script defer src="/assets/vendor/echarts.min.js"></script>
   <script defer src="/assets/js/vaers-charts.js"></script>
   <script defer src="/assets/js/vaers-tables.js"></script>
-  <!-- Big table container (required by vaers-tables.js) -->
-  <div class="card chart-span-2">
-    <h3>Breakdowns</h3>
-    <div id="vaers-breakdowns"></div>
-  </div>
 <!-- Page-local styles (lightweight, matches your theme) -->
 <style>
 .chart-grid { display:grid; grid-template-columns: 1fr; gap: 1.25rem; }

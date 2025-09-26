@@ -9,3 +9,10 @@ build/
 .env
 .env.local
 db/*.cache.json
+# local datasets and scratch
+*.zip
+*.7z
+*.tar.gz
+/tmp/
+tmp/
+vaers-data/
