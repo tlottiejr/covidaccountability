@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="en">
+  <script src="/assets/js/ux-accessibility.js" defer></script>
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>COVIDAccountabilityNow</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="/assets/site.css"/>
+  </head>
+  <body id="home">
+    <!-- Global nav + trust strip are injected -->
+    <div id="nav-root"></div>
+    <script src="/assets/nav-include.js" defer></script>
+
+    <main class="container">
+      <!-- Hero (shadow removed by dropping .card) -->
+      <section class="hero">
+        <h1>Is Your Story Our Story?</h1>
+        <p>
+          We help victims navigate official reporting channels for injury following COVID "vaccine" administration.
+        </p>
+      </section>
+
+      <!-- Timeline rail + player -->
+      <section id="home-media" aria-label="Featured media timeline"></section>
+
+      <!-- What We Offer (keeps shadow) -->
+      <section class="module" aria-labelledby="what-we-offer">
+        <div class="rule"></div>
+        <div class="inner">
+          <h2 id="what-we-offer">What We Offer</h2>
+          <p>
+            Free assistance with filing your injury to the medical board and support for advancing accountability.
+          </p>
+          <p>
+            This website is not medical or legal advice. We offer research and links to reporting agencies.
+          </p>
+        </div>
+      </section>
+
+      <!-- 2x2 step BUTTON boxes -->
+      <section class="steps-grid" aria-label="Next steps grid">
+        <a class="step is-link" href="/references.html" target="_blank" rel="noopener noreferrer">
+          <span class="num">1</span>
+          <span class="txt">Watch one of the videos above, or visit our References to explore supporting material</span>
+        </a>
+        <a class="step is-link" href="/report.html" target="_blank" rel="noopener noreferrer">
+          <span class="num">2</span>
+          <span class="txt">Start with the Information Template to prepare your complaint</span>
+        </a>
+        <a class="step is-link" href="/complaint-portal.html" target="_blank" rel="noopener noreferrer">
+          <span class="num">3</span>
+          <span class="txt">Proceed to the State Board Portal to connect with your state's medical board</span>
+        </a>
+        <div class="step">
+          <span class="num">4</span>
+          <span class="txt">Consider sharing with others who may benefit from this service</span>
+        </div>
+      </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="container">
+      <a href="/privacy.html">Privacy</a> ·
+      <a href="/disclaimer.html">Disclaimer</a> ·
+      <a href="#contact" data-open-contact>Contact</a>
+    </footer>
+  </body>
+</html>
