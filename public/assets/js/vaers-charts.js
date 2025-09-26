@@ -1,10 +1,7 @@
 // public/assets/js/vaers-charts.js
-// Render VAERS charts using your summary JSON,
-// matching the reference graphs exactly in bins/labels/values.
-// Visual difference: blue theme only.
+// Match OpenVAERS-style bins/series exactly; blue theme only.
 
 (function () {
-  // --- Theme (blue) ---
   const THEME = {
     bg: "transparent",
     ink: "#0f172a",
@@ -17,8 +14,8 @@
 
   const $ = (s) => document.querySelector(s);
   const num = (v) => (typeof v === "number" ? v : Number(String(v).replace(/[, ]/g, "")) || 0);
+  const isYear = (s) => /^[12]\d{3}$/.test(String(s));
 
-  // Ensure echarts exists (script is loaded in about.html)
   function ensureECharts(timeoutMs = 4000) {
     return new Promise((resolve, reject) => {
       const t0 = performance.now();
@@ -38,11 +35,7 @@
     return res.json();
   }
 
-  // -------------------------------
-  // Helpers for your JSON structure
-  // -------------------------------
-
-  // pairs: [ [label, value], ... ]  -> {labels, values}
+  // ---------------- helpers ----------------
   function fromPairs(pairs = []) {
     const labels = [];
     const values = [];
@@ -54,7 +47,6 @@
     return { labels, values };
   }
 
-  // group monthly pairs (YYYY-MM) -> totals per year (YYYY)
   function aggregateYearTotals(monthPairs = []) {
     const map = new Map();
     for (const [ym, v] of monthPairs || []) {
@@ -66,43 +58,60 @@
     return { labels: years, values: years.map((y) => map.get(y) || 0) };
   }
 
-  // Strictly locate **deaths per year** (NOT all reports).
-  function getDeathsByYearPairs(summary) {
-    // Your summary includes one of these (do not fall back to all reports):
-    // - reports_by_year_deaths.all
-    // - deaths_by_year.all
-    // - deaths_by_year
-    // - reports_by_year.deaths
+  // Find the DEATHS-per-year array of [YYYY,value] by scanning known keys,
+  // then by heuristics (array of pairs where most labels are 4-digit years and values < 100k).
+  function findDeathsByYearPairs(summary) {
     const candidates = [
       summary?.reports_by_year_deaths?.all,
       summary?.deaths_by_year?.all,
       summary?.deaths_by_year,
       summary?.reports_by_year?.deaths
-    ];
+    ].filter(Boolean);
+
     for (const c of candidates) if (Array.isArray(c) && c.length) return c;
-    // If not present, return empty to avoid inflated values.
-    return [];
+
+    // Heuristic scan over root object values
+    for (const [, v] of Object.entries(summary || {})) {
+      if (Array.isArray(v) && v.length > 10 && Array.isArray(v[0])) {
+        const sample = v.slice(0, 20);
+        const yearish = sample.filter((p) => Array.isArray(p) && isYear(p[0])).length;
+        const plausible = sample.every((p) => Array.isArray(p) && num(p[1]) < 100000); // deaths scale
+        if (yearish >= Math.min(sample.length, 12) && plausible) return v;
+      } else if (v && typeof v === "object") {
+        for (const [, vv] of Object.entries(v)) {
+          if (Array.isArray(vv) && vv.length > 10 && Array.isArray(vv[0])) {
+            const sample = vv.slice(0, 20);
+            const yearish = sample.filter((p) => Array.isArray(p) && isYear(p[0])).length;
+            const plausible = sample.every((p) => Array.isArray(p) && num(p[1]) < 100000);
+            if (yearish >= Math.min(sample.length, 12) && plausible) return vv;
+          }
+        }
+      }
+    }
+    return null;
   }
 
-  // Build series for chart #1 to match reference:
-  //   bar A = all deaths per year
-  //   bar B = (all deaths per year) - (covid deaths per year)
+  // Build series for chart #1:
+  //   A = ALL DEATHS per year (from deaths-by-year pairs)
+  //   B = NON-COVID DEATHS per year = A − covidDeathsPerYear
   function buildByYearSeries(summary) {
-    const deathsPairs = getDeathsByYearPairs(summary);     // [ [YYYY, value], ... ] (1990..)
+    const deathsPairs = findDeathsByYearPairs(summary);
+    if (!deathsPairs) {
+      return { labels: [], deathsAll: [], deathsNonCovid: [], _error: "Deaths-per-year series not found" };
+    }
+    const ALL = fromPairs(deathsPairs); // 1990..present
+
     const covidMonthPairs = summary?.covid_deaths_by_month?.total || [];
-
-    const ALL = fromPairs(deathsPairs);
     const COVID = aggregateYearTotals(covidMonthPairs);
-
-    // Align COVID totals to ALL years
     const covidMap = new Map(COVID.labels.map((y, i) => [y, COVID.values[i]]));
+
     const covidAligned = ALL.labels.map((y) => covidMap.get(y) || 0);
     const nonCovid = ALL.values.map((v, i) => Math.max(0, v - covidAligned[i]));
 
     return { labels: ALL.labels, deathsAll: ALL.values, deathsNonCovid: nonCovid };
   }
 
-  // Monthly COVID deaths (pairs preserved as-is)
+  // Monthly COVID deaths (pairs preserved)
   function getMonthlySeries(summary) {
     const block = summary?.covid_deaths_by_month || {};
     return {
@@ -112,24 +121,17 @@
     };
   }
 
-  // Days to Onset: match reference bins exactly:
-  //   X-axis 0..19, where **19 = 19+** (everything >=19 and any non-numeric).
+  // Days to Onset: EXACT 0..19 only; DROP anything else (20+, Unknown, etc.).
   function buildDaysToOnset(summary) {
     const covidPairs = summary?.deaths_days_to_onset?.covid || [];
     const fluPairs   = summary?.deaths_days_to_onset?.flu   || [];
 
     const mk = (pairs) => {
-      const arr = new Array(20).fill(0); // 0..18 exact, 19 == 19+
+      const arr = new Array(20).fill(0); // 0..19 exact
       for (const [label, value] of pairs || []) {
-        const raw = String(label).trim();
-        const d = Number(raw);
-        if (Number.isInteger(d)) {
-          const idx = d >= 19 ? 19 : d < 0 ? 0 : d;
-          arr[idx] += num(value);
-        } else {
-          // non-numeric bucket like "20+", "Unknown" -> 19+
-          arr[19] += num(value);
-        }
+        const d = Number(String(label).trim());
+        if (Number.isInteger(d) && d >= 0 && d <= 19) arr[d] += num(value);
+        // ignore anything else to match the reference
       }
       return arr;
     };
@@ -141,13 +143,15 @@
     };
   }
 
-  // -------------------------------
-  // Renderers (ECharts)
-  // -------------------------------
-
+  // ---------------- renderers ----------------
   function renderByYear(el, data) {
     const dom = $(el); if (!dom) return;
     const ec = echarts.init(dom, null, { renderer: "canvas" });
+
+    if (data._error) {
+      dom.innerHTML = `<div style="padding:8px;color:#64748b;font-size:12px">${data._error}</div>`;
+      return;
+    }
 
     ec.setOption({
       backgroundColor: THEME.bg,
@@ -159,7 +163,7 @@
         name: "Received Year",
         nameLocation: "middle",
         nameGap: 36,
-        data: data.labels,                       // 1990..present (from deaths-per-year)
+        data: data.labels,
         axisLabel: { color: THEME.ink, rotate: 45, interval: 0, fontSize: 10 },
         axisLine: { lineStyle: { color: THEME.axis } }
       },
@@ -176,7 +180,6 @@
         { name: "All Non COVID-Vaccine Deaths", type: "bar", barMaxWidth: 16, data: data.deathsNonCovid, itemStyle: { color: THEME.secondary } }
       ]
     });
-
     window.addEventListener("resize", () => ec.resize());
   }
 
@@ -194,7 +197,7 @@
         name: "Received Month",
         nameLocation: "middle",
         nameGap: 32,
-        data: m.total.labels,                    // keep source order from pairs
+        data: m.total.labels,
         axisLabel: { color: THEME.ink, fontSize: 10 },
         axisLine: { lineStyle: { color: THEME.axis } }
       },
@@ -212,7 +215,6 @@
         { name: "Foreign*",       type: "line", smooth: 0.2, symbolSize: 2, data: m.foreign.values, lineStyle: { color: THEME.secondary } }
       ]
     });
-
     window.addEventListener("resize", () => ec.resize());
   }
 
@@ -230,7 +232,7 @@
         name: "Days to Onset",
         nameLocation: "middle",
         nameGap: 32,
-        data: series.labels,                     // "0" .. "19" (19 = 19+)
+        data: series.labels, // "0".."19"
         axisLabel: { color: THEME.ink, fontSize: 10 },
         axisLine: { lineStyle: { color: THEME.axis } }
       },
@@ -247,13 +249,10 @@
         { name: "Flu Vaccines",   type: "bar", barMaxWidth: 18, data: series.flu,   itemStyle: { color: THEME.secondary } }
       ]
     });
-
     window.addEventListener("resize", () => ec.resize());
   }
 
-  // -------------------------------
-  // Bootstrap
-  // -------------------------------
+  // ---------------- bootstrap ----------------
   window.addEventListener("DOMContentLoaded", async () => {
     try {
       await ensureECharts();
