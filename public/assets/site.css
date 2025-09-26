@@ -1385,3 +1385,14 @@ button[aria-label="Close navigation"] {
 #vaers-breakdowns,
 #vaers-breakdowns table { width: 100%; }
 #vaers-breakdowns table { border-collapse: collapse; }
+/* === VAERS charts sizing (fine-tuned) === */
+#chartDeathsByYear.chart-box { height: 420px; }
+#chartCovidDeathsByMonth.chart-box { height: 360px; }
+#chartDaysToOnset.chart-box { height: 420px; }
+
+/* Keep mobile readable */
+@media (max-width: 580px) {
+  #chartDeathsByYear.chart-box,
+  #chartDaysToOnset.chart-box { height: 320px; }
+  #chartCovidDeathsByMonth.chart-box { height: 280px; }
+}
