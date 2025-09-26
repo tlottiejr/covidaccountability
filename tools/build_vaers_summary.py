@@ -4,7 +4,6 @@ from datetime import datetime, date
 from collections import defaultdict
 from itertools import chain
 
-# Make sure CSV can handle large fields
 try:
     csv.field_size_limit(10_000_000)
 except Exception:
@@ -99,16 +98,21 @@ def summarize(dom_path, frn_path, out_json):
     dom_data_iter, dom_vax_iter = load_vaers_source(dom_path, is_foreign=False)
     frn_data_iter, frn_vax_iter = load_vaers_source(frn_path, is_foreign=True)
 
-    # Build index by STREAMING both vax iterators
+    # Build index by streaming both vax iterators
     print("[index] building vaccine type/date index...", flush=True)
     types, vax_date_index = build_type_index(chain(dom_vax_iter, frn_vax_iter))
     print(f"[index] VAERS_ID with vax info: {len(types)}", flush=True)
 
-    deaths_by_year_all   = defaultdict(int)
-    covid_deaths_by_year = defaultdict(int)
-    covid_month_total = defaultdict(int)
-    covid_month_us    = defaultdict(int)
-    covid_month_fore  = defaultdict(int)
+    # Yearly (DOMESTIC ONLY to match OpenVAERS)
+    deaths_by_year_domestic            = defaultdict(int)  # red bars
+    non_covid_deaths_by_year_domestic  = defaultdict(int)  # cyan bars
+
+    # Monthly (TOTAL + split)
+    covid_month_total = defaultdict(int)   # US+Foreign
+    covid_month_us    = defaultdict(int)   # domestic only
+    covid_month_fore  = defaultdict(int)   # foreign only
+
+    # Days-to-onset (DOMESTIC ONLY)
     d2o_covid_exact = defaultdict(int); d2o_covid_gte20 = 0; d2o_covid_unk = 0
     d2o_flu_exact   = defaultdict(int); d2o_flu_gte20   = 0; d2o_flu_unk   = 0
 
@@ -126,43 +130,48 @@ def summarize(dom_path, frn_path, out_json):
         if not y or y < MIN_YEAR or y >= MAX_YEAR:
             continue
 
-        deaths_by_year_all[y] += 1
-
         tset = {t.upper() for t in types.get(vid, set())}
-        is_covid = bool(tset & COVID_KEYS)
-        is_flu   = bool(tset & FLU_KEYS)
+        has_covid = bool(tset & COVID_KEYS)
+        has_flu   = bool(tset & FLU_KEYS)
 
-        if is_covid:
-            covid_deaths_by_year[y] += 1
-            mk = month_key(recvd)
-            if mk:
-                covid_month_total[mk] += 1
-                (covid_month_fore if r.get("_foreign") else covid_month_us)[mk] += 1
+        # ---- Yearly (DOMESTIC ONLY)
+        if not r.get("_foreign"):
+            deaths_by_year_domestic[y] += 1
+            if not has_covid:                     # non-COVID domestic
+                non_covid_deaths_by_year_domestic[y] += 1
 
-        onset = parse_date(r.get("ONSET_DATE",""))
-        vdate = vax_date_index.get(vid)
-        if onset and vdate:
-            d = clamp_day((onset - vdate).days)
-            if d is not None:
-                if is_covid:
-                    if 0 <= d <= 19: d2o_covid_exact[d] += 1
-                    elif d >= 20:    d2o_covid_gte20   += 1
-                if is_flu:
-                    if 0 <= d <= 19: d2o_flu_exact[d] += 1
-                    elif d >= 20:    d2o_flu_gte20   += 1
-        else:
-            if is_covid: d2o_covid_unk += 1
-            if is_flu:   d2o_flu_unk   += 1
+        # ---- Monthly (TOTAL + split) by RECVDATE
+        mk = month_key(recvd)
+        if mk and has_covid:                      # OpenVAERS monthly is COVID-only
+            covid_month_total[mk] += 1
+            (covid_month_fore if r.get("_foreign") else covid_month_us)[mk] += 1
+
+        # ---- Days to Onset (DOMESTIC ONLY)
+        if not r.get("_foreign"):
+            onset = parse_date(r.get("ONSET_DATE",""))
+            vdate = vax_date_index.get(vid)
+            if onset and vdate:
+                d = clamp_day((onset - vdate).days)
+                if d is not None:
+                    if has_covid:
+                        if 0 <= d <= 19: d2o_covid_exact[d] += 1
+                        elif d >= 20:    d2o_covid_gte20   += 1
+                    if has_flu:
+                        if 0 <= d <= 19: d2o_flu_exact[d] += 1
+                        elif d >= 20:    d2o_flu_gte20   += 1
+            else:
+                if has_covid: d2o_covid_unk += 1
+                if has_flu:   d2o_flu_unk   += 1
 
         seen += 1
         if seen % 250_000 == 0:
             print(f"[data] processed VAERSDATA deaths: {seen}", flush=True)
 
-    years = sorted(set(deaths_by_year_all) | set(covid_deaths_by_year))
+    years = sorted(set(deaths_by_year_domestic) | set(non_covid_deaths_by_year_domestic))
     years = [y for y in years if MIN_YEAR <= y < MAX_YEAR]
 
-    deaths_by_year_all_arr   = [[str(y), deaths_by_year_all.get(y,0)]   for y in years]
-    covid_deaths_by_year_arr = [[str(y), covid_deaths_by_year.get(y,0)] for y in years if y >= 2020]
+    deaths_by_year_all_arr   = [[str(y), deaths_by_year_domestic.get(y,0)]            for y in years]
+    non_covid_by_year_arr    = [[str(y), non_covid_deaths_by_year_domestic.get(y,0)]  for y in years]
 
     months = sorted(covid_month_total)
     covid_month_total_arr = [[m, covid_month_total[m]] for m in months]
@@ -172,14 +181,17 @@ def summarize(dom_path, frn_path, out_json):
     d2o_covid_exact_arr = [[str(i), d2o_covid_exact.get(i,0)] for i in range(20)]
     d2o_flu_exact_arr   = [[str(i), d2o_flu_exact.get(i,0)]   for i in range(20)]
 
+    # NOTE: we keep your existing JSON keys so the frontend doesn't change:
+    #   - deaths_by_year.all                -> domestic all-vaccine deaths (red)
+    #   - covid_deaths_by_year.all          -> domestic NON-COVID deaths (cyan)
     summary = {
         "as_of": datetime.utcnow().strftime("%Y-%m-%d"),
         "reports_by_year": {
             "deaths_by_year": { "all": deaths_by_year_all_arr },
-            "covid_deaths_by_year": { "all": covid_deaths_by_year_arr }
+            "covid_deaths_by_year": { "all": non_covid_by_year_arr }
         },
         "covid_deaths_by_month": {
-            "total": covid_month_total_arr,
+            "total": covid_month_total_arr,   # US+Foreign
             "us_terr_unk": covid_month_us_arr,
             "foreign": covid_month_fore_arr
         },
@@ -190,7 +202,7 @@ def summarize(dom_path, frn_path, out_json):
         "provenance": {
             "domestic_source": os.path.basename(dom_path),
             "foreign_source":  os.path.basename(frn_path),
-            "notes": "All per-year totals are Domestic+Foreign; COVID by VAX_TYPE∈{COVID19}; months by RECVDATE."
+            "notes": "Yearly/D2O are DOMESTIC; Monthly COVID totals are Total + splits. Non-COVID yearly is deaths with no COVID VAX_TYPE."
         }
     }
 
