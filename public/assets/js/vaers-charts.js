@@ -13,12 +13,8 @@
   };
 
   const $ = (s) => document.querySelector(s);
-  const once = (() => {
-    let done = false;
-    return (fn) => (!done && (done = true, fn()));
-  })();
 
-  function waitForECharts(timeoutMs = 4000) {
+  function ensureECharts(timeoutMs = 4000) {
     return new Promise((resolve, reject) => {
       const t0 = performance.now();
       (function tick() {
@@ -29,207 +25,194 @@
     });
   }
 
-  async function fetchJSON(url) {
+  async function loadSummary() {
+    const root = $("#vaers-charts-section");
+    const url = root?.dataset.summary || "/data/vaers-summary.json";
     const res = await fetch(url, { cache: "no-cache" });
-    if (!res.ok) throw new Error(`Fetch failed ${url}: ${res.status}`);
+    if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status}`);
     return res.json();
   }
 
-  async function loadSummary() {
-    const host = $("#vaers-charts-section");
-    const primary = host?.getAttribute("data-summary") || "/data/vaers-summary.json";
-    try {
-      const j = await fetchJSON(primary);
-      if (j && Object.keys(j).length) return { json: j, used: primary };
-      throw new Error("Empty JSON");
-    } catch (e) {
-      // fallback path used elsewhere in your repo
-      const fallback = "/assets/health/analytics/vaers-summary.json";
-      const j = await fetchJSON(fallback);
-      return { json: j, used: fallback };
-    }
-  }
-
-  // Helpers to coerce values to numbers and extract from various shapes
+  // ---- helpers for your JSON shape ----
   const num = (v) => (typeof v === "number" ? v : Number(String(v).replace(/[, ]/g, "")) || 0);
-  const arrNum = (a) => (Array.isArray(a) ? a.map(num) : []);
 
-  function normalizeByYear(src) {
-    // Accept:
-    // A) { labels:[...], totalDeaths:[...], nonCovidDeaths:[...] }
-    // B) { years:[...], deaths:[...], nonCovid:[...] }
-    // C) { byYear:{ labels,total,nonCovid } }
-    // D) Array of objects: [{year:2021,total:26000,nonCovid:1200}, ...]
-    // E) Object maps: { totalByYear:{ "2021":26000, ... }, nonCovidByYear:{ ... } }
-    let labels = [], total = [], nonCovid = [];
-
-    if (Array.isArray(src)) {
-      labels = src.map(r => String(r.year ?? r.label ?? r.y ?? ""));
-      total  = src.map(r => num(r.total ?? r.deaths ?? r.totalDeaths ?? r.t ?? 0));
-      nonCovid = src.map(r => num(r.nonCovid ?? r.non_covid ?? r.nonCovidDeaths ?? r.nc ?? 0));
-    } else if (src?.byYear) {
-      const b = src.byYear;
-      labels = b.labels || b.years || [];
-      total  = arrNum(b.total || b.deaths || b.totalDeaths);
-      nonCovid = arrNum(b.nonCovid || b.non_covid || b.nonCovidDeaths);
-    } else if (src?.labels || src?.years) {
-      labels = src.labels || src.years || [];
-      total  = arrNum(src.totalDeaths || src.deaths || src.total);
-      nonCovid = arrNum(src.nonCovidDeaths || src.nonCovid);
-    } else if (src?.totalByYear && src?.nonCovidByYear) {
-      const years = Object.keys(src.totalByYear).sort();
-      labels = years;
-      total = years.map(y => num(src.totalByYear[y]));
-      nonCovid = years.map(y => num(src.nonCovidByYear[y]));
-    } else if (src?.deathsByYear) {
-      const years = Object.keys(src.deathsByYear).sort();
-      labels = years;
-      total = years.map(y => num(src.deathsByYear[y]));
-      // nonCovid may be absent
-      nonCovid = years.map(() => 0);
+  // pairs: [ [label,value], ... ] -> {labels:[], values:[]}
+  function fromPairs(pairs = []) {
+    const labels = [];
+    const values = [];
+    for (const pair of pairs || []) {
+      if (!pair || pair.length < 2) continue;
+      labels.push(String(pair[0]));
+      values.push(num(pair[1]));
     }
-    return { labels, total, nonCovid };
+    return { labels, values };
   }
 
-  function normalizeCovidByMonth(src) {
-    // Accept:
-    // A) { labels, total, us, foreign }
-    // B) { months, total, usa, foreign }
-    // C) { covidByMonth: { labels,total,us,foreign } }
-    // D) Array of objects: [{month:"Dec 2020", total:..., us:..., foreign:...}, ...]
-    let labels = [], total = [], us = [], foreign = [];
-    if (Array.isArray(src)) {
-      labels = src.map(r => String(r.month ?? r.label ?? ""));
-      total  = src.map(r => num(r.total ?? r.t ?? 0));
-      us     = src.map(r => num(r.us ?? r.usa ?? 0));
-      foreign= src.map(r => num(r.foreign ?? r.non_us ?? 0));
-    } else if (src?.covidByMonth) {
-      const c = src.covidByMonth;
-      labels = c.labels || c.months || [];
-      total  = arrNum(c.total);
-      us     = arrNum(c.us || c.usa);
-      foreign= arrNum(c.foreign);
-    } else {
-      labels = src.labels || src.months || [];
-      total  = arrNum(src.total);
-      us     = arrNum(src.us || src.usa);
-      foreign= arrNum(src.foreign);
+  // aggregate `YYYY-MM` pairs into per-year totals
+  function aggregateYearTotals(monthPairs = []) {
+    const map = new Map();
+    for (const [month, v] of monthPairs || []) {
+      if (!month) continue;
+      const y = String(month).slice(0, 4);
+      map.set(y, (map.get(y) || 0) + num(v));
     }
-    return { labels, total, us, foreign };
+    const years = Array.from(map.keys()).sort();
+    return { labels: years, values: years.map((y) => map.get(y) || 0) };
   }
 
-  function normalizeDaysToOnset(src) {
-    // Accept:
-    // A) { labels, covid, flu }
-    // B) { daysToOnset:{ labels,covid,flu } }
-    // C) Array of objects: [{day:0,covid:4300,flu:500}, ...]
-    let labels = [], covid = [], flu = [];
-    if (Array.isArray(src)) {
-      labels = src.map(r => String(r.day ?? r.label ?? ""));
-      covid  = src.map(r => num(r.covid ?? 0));
-      flu    = src.map(r => num(r.flu ?? 0));
-    } else if (src?.daysToOnset) {
-      const d = src.daysToOnset;
-      labels = d.labels || d.days || [];
-      covid  = arrNum(d.covid);
-      flu    = arrNum(d.flu);
-    } else {
-      labels = src.labels || src.days || [];
-      covid  = arrNum(src.covid);
-      flu    = arrNum(src.flu);
-    }
-    return { labels, covid, flu };
-  }
-
-  function numberFmt(n) {
-    return (typeof n === "number" ? n : num(n)).toLocaleString();
-  }
-
-  // ---- Chart renderers ----
-  function renderByYear(el, data) {
+  // ---- charts ----
+  function renderByYear(el, covidByMonthPairs, nonCovidByYearPairs) {
     const dom = $(el);
     if (!dom) return;
-    const { labels, total, nonCovid } = normalizeByYear(data);
+
+    // Primary: COVID deaths by year (from monthly totals)
+    const covidYear = aggregateYearTotals(covidByMonthPairs);
+
+    // Secondary (optional): if you ever add per-year non-COVID deaths.
+    let secondSeries = null;
+    if (Array.isArray(nonCovidByYearPairs) && nonCovidByYearPairs.length) {
+      const nc = fromPairs(nonCovidByYearPairs);
+      // align to same label ordering as primary
+      const map = new Map(nc.labels.map((l, i) => [l, nc.values[i]]));
+      secondSeries = covidYear.labels.map((y) => map.get(y) || 0);
+    }
+
+    const ec = echarts.init(dom, null, { renderer: "canvas" });
+    const option = {
+      backgroundColor: THEME.bg,
+      tooltip: { trigger: "axis" },
+      legend: { top: 0 },
+      grid: { left: 50, right: 20, bottom: 40, top: 30 },
+      xAxis: {
+        type: "category",
+        name: "Received Year",
+        nameLocation: "middle",
+        nameGap: 28,
+        data: covidYear.labels,
+        axisLine: { lineStyle: { color: THEME.axis } },
+        axisLabel: { color: THEME.ink }
+      },
+      yAxis: {
+        type: "value",
+        name: "Reports of Death",
+        nameLocation: "middle",
+        nameGap: 40,
+        splitLine: { lineStyle: { color: THEME.grid } },
+        axisLabel: { color: THEME.ink, formatter: (v) => v.toLocaleString() }
+      },
+      series: [
+        { name: "Reports of Death", type: "bar", data: covidYear.values, itemStyle: { color: THEME.primary } },
+      ]
+    };
+    if (secondSeries) {
+      option.series.push({
+        name: "All Non COVID-Vaccine Deaths",
+        type: "bar",
+        data: secondSeries,
+        itemStyle: { color: THEME.secondary }
+      });
+    }
+    ec.setOption(option);
+    window.addEventListener("resize", () => ec.resize());
+  }
+
+  function renderCovidByMonth(el, totalPairs, usPairs, foreignPairs) {
+    const dom = $(el);
+    if (!dom) return;
+
+    const total   = fromPairs(totalPairs);
+    const us      = fromPairs(usPairs);
+    const foreign = fromPairs(foreignPairs);
+
     const ec = echarts.init(dom, null, { renderer: "canvas" });
     ec.setOption({
       backgroundColor: THEME.bg,
       tooltip: { trigger: "axis" },
       legend: { top: 0 },
       grid: { left: 50, right: 20, bottom: 40, top: 30 },
-      xAxis: { type: "category", name: "Received Year", nameLocation: "middle", nameGap: 28,
-               data: labels, axisLine: { lineStyle: { color: THEME.axis } }, axisLabel: { color: THEME.ink } },
-      yAxis: { type: "value", name: "Reports of Death", nameLocation: "middle", nameGap: 40,
-               splitLine: { lineStyle: { color: THEME.grid } }, axisLabel: { color: THEME.ink, formatter: numberFmt } },
+      xAxis: {
+        type: "category",
+        name: "Received Month",
+        nameLocation: "middle",
+        nameGap: 28,
+        data: total.labels,
+        axisLabel: { color: THEME.ink }
+      },
+      yAxis: {
+        type: "value",
+        name: "Reports of Death",
+        nameLocation: "middle",
+        nameGap: 40,
+        splitLine: { lineStyle: { color: THEME.grid } },
+        axisLabel: { color: THEME.ink, formatter: (v) => v.toLocaleString() }
+      },
       series: [
-        { name: "Reports of Death", type: "bar", data: total.map(num), itemStyle: { color: THEME.primary } },
-        { name: "All Non COVID-Vaccine Deaths", type: "bar", data: nonCovid.map(num), itemStyle: { color: THEME.secondary } }
+        { name: "Total",            type: "line", smooth: 0.2, symbolSize: 3, data: total.values,   lineStyle: { color: THEME.primary } },
+        { name: "US/Territories",   type: "line", smooth: 0.2, symbolSize: 3, data: us.values,      lineStyle: { color: THEME.accent  } },
+        { name: "Foreign*",         type: "line", smooth: 0.2, symbolSize: 3, data: foreign.values, lineStyle: { color: THEME.secondary } }
       ]
     });
     window.addEventListener("resize", () => ec.resize());
   }
 
-  function renderCovidByMonth(el, data) {
+  function renderDaysToOnset(el, covidPairs, fluPairs) {
     const dom = $(el);
     if (!dom) return;
-    const { labels, total, us, foreign } = normalizeCovidByMonth(data);
+
+    const covid = fromPairs(covidPairs);
+    const flu   = fromPairs(fluPairs);
+
     const ec = echarts.init(dom, null, { renderer: "canvas" });
     ec.setOption({
       backgroundColor: THEME.bg,
       tooltip: { trigger: "axis" },
       legend: { top: 0 },
       grid: { left: 50, right: 20, bottom: 40, top: 30 },
-      xAxis: { type: "category", name: "Received Month", nameLocation: "middle", nameGap: 28,
-               data: labels, axisLabel: { color: THEME.ink } },
-      yAxis: { type: "value", name: "Reports of Death", nameLocation: "middle", nameGap: 40,
-               splitLine: { lineStyle: { color: THEME.grid } }, axisLabel: { color: THEME.ink, formatter: numberFmt } },
+      xAxis: {
+        type: "category",
+        name: "Days to Onset",
+        nameLocation: "middle",
+        nameGap: 28,
+        data: covid.labels, // both share labels [0..19]
+        axisLabel: { color: THEME.ink }
+      },
+      yAxis: {
+        type: "value",
+        name: "Reports of Death",
+        nameLocation: "middle",
+        nameGap: 40,
+        splitLine: { lineStyle: { color: THEME.grid } },
+        axisLabel: { color: THEME.ink, formatter: (v) => v.toLocaleString() }
+      },
       series: [
-        { name: "Total", type: "line", smooth: 0.2, symbolSize: 3, data: total.map(num), lineStyle: { color: THEME.primary } },
-        { name: "US/Territories", type: "line", smooth: 0.2, symbolSize: 3, data: us.map(num), lineStyle: { color: THEME.accent } },
-        { name: "Foreign*", type: "line", smooth: 0.2, symbolSize: 3, data: foreign.map(num), lineStyle: { color: THEME.secondary } }
+        { name: "Covid Vaccines", type: "bar", data: covid.values, itemStyle: { color: THEME.primary } },
+        { name: "Flu Vaccines",   type: "bar", data: flu.values,   itemStyle: { color: THEME.secondary } }
       ]
     });
     window.addEventListener("resize", () => ec.resize());
   }
 
-  function renderDaysToOnset(el, data) {
-    const dom = $(el);
-    if (!dom) return;
-    const { labels, covid, flu } = normalizeDaysToOnset(data);
-    const ec = echarts.init(dom, null, { renderer: "canvas" });
-    ec.setOption({
-      backgroundColor: THEME.bg,
-      tooltip: { trigger: "axis" },
-      legend: { top: 0 },
-      grid: { left: 50, right: 20, bottom: 40, top: 30 },
-      xAxis: { type: "category", name: "Days to Onset", nameLocation: "middle", nameGap: 28,
-               data: labels, axisLabel: { color: THEME.ink } },
-      yAxis: { type: "value", name: "Reports of Death", nameLocation: "middle", nameGap: 40,
-               splitLine: { lineStyle: { color: THEME.grid } }, axisLabel: { color: THEME.ink, formatter: numberFmt } },
-      series: [
-        { name: "Covid Vaccines", type: "bar", data: covid.map(num), itemStyle: { color: THEME.primary } },
-        { name: "Flu Vaccines", type: "bar", data: flu.map(num), itemStyle: { color: THEME.secondary } }
-      ]
-    });
-    window.addEventListener("resize", () => ec.resize());
-  }
-
-  // ---- Bootstrap ----
+  // ---- bootstrap ----
   window.addEventListener("DOMContentLoaded", async () => {
     try {
-      await waitForECharts();
-      const { json, used } = await loadSummary();
+      await ensureECharts();
+      const d = await loadSummary();
 
-      // detect likely homes inside summary:
-      const byYearSrc = json.byYear || json.by_year || json.deathsByYear || json.totalByYear || json;
-      const monthSrc  = json.covidByMonth || json.covid_monthly || json.deathsByMonth || json;
-      const d2oSrc    = json.daysToOnset || json.days_to_onset || json;
+      // 1) By year: build from monthly totals (covid deaths)
+      const month = d.covid_deaths_by_month || {};
+      renderByYear("#chartDeathsByYear",
+                   month.total || [],
+                   /* non-covid per year (optional) */ null);
 
-      once(() => console.log("[VAERS charts] JSON source:", used,
-        { byYearKeys: Object.keys(byYearSrc || {}), monthKeys: Object.keys(monthSrc || {}), d2oKeys: Object.keys(d2oSrc || {}) }));
+      // 2) COVID deaths by month (total/us/foreign)
+      renderCovidByMonth("#chartCovidDeathsByMonth",
+                         month.total || [],
+                         month.us_terr_unk || [],
+                         month.foreign || []);
 
-      renderByYear("#chartDeathsByYear", byYearSrc);
-      renderCovidByMonth("#chartCovidDeathsByMonth", monthSrc);
-      renderDaysToOnset("#chartDaysToOnset", d2oSrc);
+      // 3) Days to onset (covid vs flu)
+      const d2o = d.deaths_days_to_onset || {};
+      renderDaysToOnset("#chartDaysToOnset", d2o.covid || [], d2o.flu || []);
     } catch (err) {
       console.error("VAERS charts failed:", err);
       ["#chartDeathsByYear","#chartCovidDeathsByMonth","#chartDaysToOnset"].forEach(sel => {
