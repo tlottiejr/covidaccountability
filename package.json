@@ -3,32 +3,33 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
-  "engines": { "node": ">=20" },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
-  "dev": "wrangler pages dev public --local",
-  "build": "echo 'Pages uses /public; nothing to build'",
-
-  "d1:migrate": "wrangler d1 migrations apply DB",
-  "d1:console": "wrangler d1 execute DB --command '.tables'",
-  "d1:export-state-links": "node scripts/export-state-links-from-d1.mjs",
-  "d1:seed-boards": "node scripts/seed-boards-from-json.mjs",
-
-  "refs:discover": "node scripts/discover-refs.mjs",
-  "refs:validate": "node scripts/validate-refs.mjs",
-  "refs:check": "node scripts/check-references.mjs",
-  "refs:check-links": "node scripts/check-reference-links.mjs",
-  "states:discover": "node scripts/discover-states.mjs",
-  "states:export": "node scripts/export-states.mjs",
-  "states:normalize": "node scripts/tools/normalize-states.mjs",
-  "audit:refs": "node scripts/audit-refs.mjs",
-  "vaers:build": "node scripts/vaers-build.mjs",
-  "test": "playwright test",
-  "test:e2e": "playwright test tests/e2e",
-  "test:contracts": "playwright test tests/contracts",
-  "test:ui": "playwright test --ui",
-  "test:report": "playwright show-report"
+    "dev": "wrangler pages dev public --local",
+    "build": "echo 'Pages uses /public; nothing to build'",
+    "d1:migrate": "wrangler d1 migrations apply DB",
+    "d1:console": "wrangler d1 execute DB --command '.tables'",
+    "d1:export-state-links": "node scripts/export-state-links-from-d1.mjs",
+    "d1:seed-boards": "node scripts/seed-boards-from-json.mjs",
+    "refs:discover": "node scripts/discover-refs.mjs",
+    "refs:validate": "node scripts/validate-refs.mjs",
+    "refs:check": "node scripts/check-references.mjs",
+    "refs:check-links": "node scripts/check-reference-links.mjs",
+    "states:discover": "node scripts/discover-states.mjs",
+    "states:export": "node scripts/export-states.mjs",
+    "states:normalize": "node scripts/tools/normalize-states.mjs",
+    "audit:refs": "node scripts/audit-refs.mjs",
+    "vaers:build": "node scripts/vaers-build.mjs",
+    "test": "playwright test",
+    "test:e2e": "playwright test tests/e2e",
+    "test:contracts": "playwright test tests/contracts",
+    "test:ui": "playwright test --ui",
+    "test:report": "playwright show-report"
   },
   "dependencies": {
-    "adm-zip": "^0.5.10"
+    "adm-zip": "^0.5.10",
+    "csv-parse": "^5.6.0"
   }
 }
