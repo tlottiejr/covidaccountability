@@ -1,7 +1,6 @@
 // public/assets/js/vaers-charts.js
-// Matches the reference graphs numerically IF the JSON provides deaths_by_year.
-// It also makes the top chart roomier (wider feeling + taller), and fails
-// gracefully (inline note) if deaths-by-year is missing.
+// Uses your JSON layout (reports_by_year.deaths_by_year.all).
+// Days-to-Onset shows exact 0..19 and suppresses the fake “19 == 19+ tail”.
 
 (function () {
   const THEME = {
@@ -9,8 +8,8 @@
     ink: "#0f172a",
     axis: "#64748b",
     grid: "rgba(0,0,0,0.08)",
-    primary:  "#2563eb",
-    secondary:"#60a5fa",
+    primary:  "#2563eb",  // main blue
+    secondary:"#60a5fa",  // light blue
     accent:   "#38bdf8"
   };
 
@@ -20,28 +19,30 @@
   const ensureECharts = (t=4000)=>new Promise((res,rej)=>{
     const t0=performance.now();
     (function tick(){
-      if (window.echarts && typeof echarts.init==="function") return res(window.echarts);
+      if (window.echarts && typeof echarts.init==="function") return res(echarts);
       if (performance.now()-t0>t) return rej(new Error("ECharts not loaded"));
       requestAnimationFrame(tick);
     })();
   });
 
-  async function loadSummary() {
-    const root = $("#vaers-charts-section");
-    const url = root?.dataset.summary || "/data/vaers-summary.json";
-    const r = await fetch(url, { cache: "no-cache" });
-    if (!r.ok) throw new Error(`Failed to load ${url}: ${r.status}`);
+  async function fetchJSON(url) {
+    const r = await fetch(url, { cache:"no-cache" });
+    if (!r.ok) throw new Error(`${url}: ${r.status}`);
     return r.json();
   }
 
-  // --- helpers ---
+  async function loadSummary() {
+    const root = $("#vaers-charts-section");
+    const url = root?.dataset.summary || "/data/vaers-summary.json";
+    try { return await fetchJSON(url); }
+    catch { return {}; }
+  }
+
+  // ---------- helpers ----------
   const fromPairs = (pairs=[]) => {
     const labels=[], values=[];
-    for (const p of pairs||[]) {
-      if (!p || p.length<2) continue;
-      labels.push(String(p[0]));
-      values.push(num(p[1]));
-    }
+    for (const p of pairs||[]) { if (!p || p.length<2) continue;
+      labels.push(String(p[0])); values.push(num(p[1])); }
     return {labels, values};
   };
 
@@ -55,45 +56,58 @@
     return {labels:years, values:years.map(y=>map.get(y)||0)};
   };
 
-  // Strict: only accept REAL deaths-by-year; never fall back to "all reports"
-  function findDeathsByYearPairs(summary) {
-    const candidates = [
-      summary?.deaths_by_year?.all,
-      summary?.reports_by_year_deaths?.all,
-      summary?.reports_by_year?.deaths
-    ].filter(Boolean);
-    for (const c of candidates) if (Array.isArray(c) && c.length) return c;
-    return null; // make chart show inline note instead of wrong data
+  // === Your zip stores deaths-by-year here: reports_by_year.deaths_by_year.all ===
+  function getDeathsByYearPairs(summary) {
+    // Your shape
+    const p1 = summary?.reports_by_year?.deaths_by_year?.all;
+    if (Array.isArray(p1) && p1.length) return p1;
+
+    // Accept alternatives just in case future builds move it
+    const p2 = summary?.deaths_by_year?.all;
+    if (Array.isArray(p2) && p2.length) return p2;
+
+    const p3 = summary?.reports_by_year_deaths?.all;
+    if (Array.isArray(p3) && p3.length) return p3;
+
+    const p4 = summary?.reports_by_year?.deaths;
+    if (Array.isArray(p4) && p4.length) return p4;
+
+    return null;
   }
 
   function buildByYearSeries(summary) {
-    const deathsPairs = findDeathsByYearPairs(summary);
+    const deathsPairs = getDeathsByYearPairs(summary);
     if (!deathsPairs) return {_error:"Deaths-per-year missing in /data/vaers-summary.json"};
-    const ALL   = fromPairs(deathsPairs);                     // 1990..present (pairs)
-    const COVID = aggregateYearTotals(summary?.covid_deaths_by_month?.total || []);
+
+    const ALL = fromPairs(deathsPairs); // all-vaccine deaths per year (1990..present)
+
+    // COVID deaths per year from monthly totals (for computing Non-COVID)
+    const COVIDm = summary?.covid_deaths_by_month?.total || [];
+    const COVID  = aggregateYearTotals(COVIDm);
     const covidMap = new Map(COVID.labels.map((y,i)=>[y,COVID.values[i]]));
+
     const covidAligned = ALL.labels.map(y => covidMap.get(y) || 0);
     const nonCovid = ALL.values.map((v,i)=>Math.max(0, v - covidAligned[i]));
+
     return { labels: ALL.labels, deathsAll: ALL.values, deathsNonCovid: nonCovid };
   }
 
   function getMonthlySeries(summary) {
     const b = summary?.covid_deaths_by_month || {};
     return {
-      total:   fromPairs(b.total || []),
+      total:   fromPairs(b.total   || []),
       us:      fromPairs(b.us_terr_unk || b.us || []),
       foreign: fromPairs(b.foreign || [])
     };
   }
 
-  // Days-to-Onset: exact 0..19 only (matches reference). If your JSON later
-  // carries tail buckets, they’re ignored here—only 0..19 will be plotted.
+  // Days-to-Onset: we expect pairs for 0..19; if the 19 bucket is obviously the 20+ tail, hide it and add a note.
   function buildDaysToOnset(summary) {
     const d2o = summary?.deaths_days_to_onset || {};
     const covidPairs = Array.isArray(d2o?.covid?.exact_0_19) ? d2o.covid.exact_0_19
                      : Array.isArray(d2o?.covid) ? d2o.covid : [];
     const fluPairs   = Array.isArray(d2o?.flu?.exact_0_19)   ? d2o.flu.exact_0_19
-                     : Array.isArray(d2o?.flu) ? d2o.flu : [];
+                     : Array.isArray(d2o?.flu)   ? d2o.flu   : [];
 
     const toArr = (pairs)=>{
       const arr=new Array(20).fill(0);
@@ -104,14 +118,28 @@
       return arr;
     };
 
-    return {
+    const series = {
       labels: Array.from({length:20},(_,i)=>String(i)),
       covid: toArr(covidPairs),
       flu:   toArr(fluPairs)
     };
+
+    // Heuristic: if 19 is an obvious "19+" tail (way larger than neighbors), suppress it and leave a note.
+    (function softenTail(s) {
+      const c = s.covid;
+      if (!Array.isArray(c) || c.length !== 20) return;
+      const near = c.slice(15,19); // 15..18 neighbors
+      const avgNear = near.reduce((a,b)=>a+b,0) / Math.max(near.length,1);
+      if (avgNear > 0 && c[19] > avgNear * 8) {
+        c[19] = 0; // suppress misleading tail folded into 19
+        s._note = "Note: Source folds ≥20 into 19; excluded to match 0–19 figure.";
+      }
+    })(series);
+
+    return series;
   }
 
-  // --- renderers (top chart = roomier) ---
+  // ---------- renderers ----------
   function renderByYear(sel, data) {
     const el = $(sel); if (!el) return;
     const ec = echarts.init(el, null, {renderer:"canvas"});
@@ -125,7 +153,7 @@
       backgroundColor: THEME.bg,
       tooltip: { trigger:"axis" },
       legend:  { top: 6 },
-      grid:    { left: 60, right: 26, bottom: 64, top: 40 }, // more room all around
+      grid:    { left: 60, right: 26, bottom: 64, top: 40 }, // roomier top chart
       xAxis: {
         type: "category",
         name: "Received Year",
@@ -194,23 +222,33 @@
         { name:"Flu Vaccines",   type:"bar", barMaxWidth:18, data:s.flu,   itemStyle:{ color:THEME.secondary } }
       ]
     });
+
+    // Show note if we suppressed a folded 19+ tail
+    if (s._note) {
+      const note = document.createElement("div");
+      note.style.cssText = "padding:8px 0;color:#64748b;font-size:12px";
+      note.textContent = s._note;
+      el.parentElement?.appendChild(note);
+    }
+
     window.addEventListener("resize", ()=>ec.resize());
   }
 
+  // ---------- bootstrap ----------
   window.addEventListener("DOMContentLoaded", async ()=>{
     try {
       await ensureECharts();
       const summary = await loadSummary();
 
-      renderByYear("#chartDeathsByYear",        buildByYearSeries(summary));
+      renderByYear("#chartDeathsByYear", buildByYearSeries(summary));
       renderMonthly("#chartCovidDeathsByMonth", getMonthlySeries(summary));
-      renderD2O    ("#chartDaysToOnset",        buildDaysToOnset(summary));
+      renderD2O("#chartDaysToOnset", buildDaysToOnset(summary));
     } catch (err) {
       console.error("VAERS charts failed:", err);
-      for (const id of ["#chartDeathsByYear","#chartCovidDeathsByMonth","#chartDaysToOnset"]) {
-        const el=$(id); if (!el) continue;
+      ["#chartDeathsByYear","#chartCovidDeathsByMonth","#chartDaysToOnset"].forEach(id=>{
+        const el=$(id); if (!el) return;
         el.innerHTML='<div style="padding:10px;color:#64748b;font-size:12px">Charts temporarily unavailable.</div>';
-      }
+      });
     }
   });
 })();
