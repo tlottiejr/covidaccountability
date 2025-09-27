@@ -1565,3 +1565,55 @@ button[aria-label="Close navigation"] {
   #vaers-breakdowns { display: block; }
   #vaers-breakdowns > table { display: block; width: 100%; }
 }
+/* === Canonical VAERS Breakdowns: 3 top-aligned columns === */
+#vaers-breakdowns {
+  display: table;
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+}
+
+#vaers-breakdowns > table {
+  display: table-cell;
+  width: 33.3333%;
+  vertical-align: top;     /* critical: top-align headers */
+  margin: 0;
+  border-collapse: collapse;
+}
+
+#vaers-breakdowns > table + table {
+  /* subtle column divider; your outer card border stays intact */
+  border-left: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+#vaers-breakdowns thead th {
+  text-align: left;
+  padding: 12px 16px;
+}
+
+#vaers-breakdowns tbody td {
+  padding: 10px 16px;
+}
+
+#vaers-breakdowns th:last-child,
+#vaers-breakdowns td:last-child,
+#vaers-breakdowns td.cases {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+
+#vaers-breakdowns tbody tr:nth-child(even) {
+  background: rgba(64, 120, 255, 0.04); /* light zebra that matches theme */
+}
+
+/* Mobile: stack neatly */
+@media (max-width: 1024px) {
+  #vaers-breakdowns { display: block; }
+  #vaers-breakdowns > table {
+    display: block;
+    width: 100%;
+    border-left: none;
+    border-top: 1px solid rgba(0,0,0,0.06);
+  }
+  #vaers-breakdowns > table:first-of-type { border-top: none; }
+}
