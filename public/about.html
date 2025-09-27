@@ -58,73 +58,9 @@
         </li>
       </ol>
     </section>
-
-    <!-- VAERS Figures (Official Data) -->
-    <section class="card" id="vaers-charts-section" data-summary="/data/vaers-summary-openvaers.json">
-      <h2>VAERS Figures (Official Data)</h2>
-
-      <div class="chart-wrap" id="chart-by-year-wrap">
-        <h3>All Deaths Reported to VAERS by Year</h3>
-        <canvas id="chart-by-year" class="viz-360"></canvas>
-      </div>
-
-      <div class="chart-wrap" id="chart-by-month-wrap">
-        <h3>COVID Vaccine Reports of Death by Month</h3>
-        <canvas id="chart-by-month" class="viz-360"></canvas>
-      </div>
-
-      <div class="chart-wrap" id="chart-onset-wrap">
-        <h3>VAERS COVID/FLU Vaccine Reported Deaths by Days to Onset (All Ages)</h3>
-        <canvas id="chart-onset" class="viz-360"></canvas>
-      </div>
-
-      <h3 class="mt-6">Breakdowns</h3>
-
-      <!-- SCOPED OVERRIDE: forces exact 3-column, top-aligned layout on this page only -->
-      <style>
-        #vaers-breakdowns{
-          display:grid !important;
-          grid-template-columns:repeat(3,minmax(0,1fr)) !important;
-          align-items:start !important;
-          gap:0 !important;
-        }
-        #vaers-breakdowns>table{
-          display:table !important;
-          width:100% !important;
-          margin:0 !important;
-          border-collapse:collapse !important;
-        }
-        #vaers-breakdowns thead th{ text-align:left !important; padding:12px 16px !important; }
-        #vaers-breakdowns tbody td{ padding:10px 16px !important; }
-        #vaers-breakdowns th:last-child,
-        #vaers-breakdowns td:last-child{ text-align:right !important; font-variant-numeric:tabular-nums !important; }
-        #vaers-breakdowns tbody tr:nth-child(even){ background:rgba(64,120,255,.04) !important; }
-        .viz-360 { position: relative; width: 100%; min-height: 320px; height: 360px; }
-        .viz-360 { display:block; }
-      </style>
-
-      <div id="vaers-breakdowns" class="mt-6"></div>
-    </section>
-
-    <script>
-      // uses the version file you already ship at /assets/version.json
-      fetch('/assets/version.json')
-        .then(r => r.json())
-        .then(v => {
-          const ver = v?.version || (Date.now().toString());
-          window.VAERS_SUMMARY_URL = `/data/vaers-summary-openvaers.json?v=${ver}`;
-        });
-    </script>
-
     <footer class="container">
       <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
     </footer>
   </main>
-  <script>
-  window.VAERS_SUMMARY_URL = "/data/vaers-summary-openvaers.json?v=6";
-  </script>
-  <script src="/assets/vendor/chart.umd.min.js"></script>
-  <script src="/assets/js/vaers-charts.js" defer></script>
-  <script src="/assets/js/vaers-tables.js" defer></script>
 </body>
 </html>

@@ -21,7 +21,6 @@
     "states:export": "node scripts/export-states.mjs",
     "states:normalize": "node scripts/tools/normalize-states.mjs",
     "audit:refs": "node scripts/audit-refs.mjs",
-    "vaers:build": "node scripts/vaers-build.mjs",
     "test": "playwright test",
     "test:e2e": "playwright test tests/e2e",
     "test:contracts": "playwright test tests/contracts",
