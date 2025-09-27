@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2025-09-26T07:20:02.550Z",
+  "generatedAt": "2025-09-27T07:16:23.601Z",
   "items": [
     {
       "title": "American College of Physicians Ethics Manual: Seventh Edition",
@@ -8,7 +8,7 @@
       "finalUrl": "https://www.acpjournals.org/doi/10.7326/M18-2160",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:03.041Z"
+      "checkedAt": "2025-09-27T07:16:24.121Z"
     },
     {
       "title": "AMA Code of Medical Ethics — Opinion 2.1.1 Informed Consent",
@@ -17,7 +17,7 @@
       "finalUrl": "https://code-medical-ethics.ama-assn.org/ethics-opinions/informed-consent",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T07:20:03.328Z"
+      "checkedAt": "2025-09-27T07:16:24.369Z"
     },
     {
       "title": "AMA Code of Medical Ethics — Opinion 8.3 Physicians’ Responsibilities in Disaster Response & Preparedness",
@@ -26,16 +26,16 @@
       "finalUrl": "https://code-medical-ethics.ama-assn.org/ethics-opinions/physicians-responsibilities-disaster-response-preparedness",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T07:20:04.115Z"
+      "checkedAt": "2025-09-27T07:16:24.436Z"
     },
     {
       "title": "AHRQ: Communicating Numbers to Your Patients (SHARE Approach Tool 5)",
       "url": "https://www.ahrq.gov/health-literacy/improve/precautions/tool5.html",
-      "status": 200,
+      "status": 403,
       "finalUrl": "https://www.ahrq.gov/health-literacy/improve/precautions/tool5.html",
       "redirected": false,
-      "error": false,
-      "checkedAt": "2025-09-26T07:20:06.805Z"
+      "error": true,
+      "checkedAt": "2025-09-27T07:16:24.565Z"
     },
     {
       "title": "ABMS Statement Supporting Role of Medical Professionals in Preventing COVID-19 Misinformation",
@@ -44,7 +44,7 @@
       "finalUrl": "https://www.abms.org/newsroom/abms-statement-supporting-role-of-medical-professionals-in-preventing-covid-19-misinformation/",
       "redirected": true,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:08.091Z"
+      "checkedAt": "2025-09-27T07:16:26.093Z"
     },
     {
       "title": "Beattie K. Worldwide Bayesian Causal Impact Analysis of Vaccine Administration (145 Countries)",
@@ -53,7 +53,7 @@
       "finalUrl": "https://www.researchgate.net/publication/349302824_Worldwide_Bayesian_Causal_Impact_Analysis_of_Vaccine_Administration_145_Countries",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:08.151Z"
+      "checkedAt": "2025-09-27T07:16:26.189Z"
     },
     {
       "title": "Brown RB. Relative risk reduction: Misinformative measure in clinical trials and COVID-19 vaccine efficacy",
@@ -62,7 +62,7 @@
       "finalUrl": "https://www.sciencedirect.com/science/article/pii/S2772707622000071",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:09.468Z"
+      "checkedAt": "2025-09-27T07:16:26.540Z"
     },
     {
       "title": "Clinical Decision Making & Interpreting the Medical Literature (MKSAP 19)",
@@ -71,7 +71,7 @@
       "finalUrl": "https://annals.org/aim",
       "redirected": true,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:09.961Z"
+      "checkedAt": "2025-09-27T07:16:26.847Z"
     },
     {
       "title": "Fact Sheet: Actions After Public Health Emergency Transition",
@@ -80,7 +80,7 @@
       "finalUrl": "https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/09/fact-sheet-actions-after-public-health-emergency-transition/",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:10.009Z"
+      "checkedAt": "2025-09-27T07:16:26.913Z"
     },
     {
       "title": "Fagerlin A, et al. Absolute risk, relative risk, and NNT (Communicating Risks & Benefits)",
@@ -89,7 +89,7 @@
       "finalUrl": "https://www.fda.gov/apology_objects/abuse-detection-apology.html",
       "redirected": true,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:10.174Z"
+      "checkedAt": "2025-09-27T07:16:27.178Z"
     },
     {
       "title": "Final Report on Lessons Learned and the Path Forward",
@@ -98,7 +98,7 @@
       "finalUrl": "",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:10.302Z"
+      "checkedAt": "2025-09-27T07:16:27.297Z"
     },
     {
       "title": "Fraiman J, et al. Serious adverse events of special interest following mRNA COVID-19 vaccination",
@@ -107,7 +107,7 @@
       "finalUrl": "https://www.sciencedirect.com/science/article/pii/S0264410X22010205",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:11.568Z"
+      "checkedAt": "2025-09-27T07:16:27.528Z"
     },
     {
       "title": "HHS OSG: Impact of Health Misinformation RFI",
@@ -116,7 +116,7 @@
       "finalUrl": "https://unblock.federalregister.gov/",
       "redirected": true,
       "error": false,
-      "checkedAt": "2025-09-26T07:20:11.656Z"
+      "checkedAt": "2025-09-27T07:16:27.617Z"
     },
     {
       "title": "Kansas v. Pfizer Inc. (Complaint)",
@@ -125,7 +125,7 @@
       "finalUrl": "https://ag.ks.gov/media-center/news-releases/2024/01/05/ag-kobach-files-lawsuit-against-pfizer-for-misleading-the-public-on-covid-19-vaccine",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:11.913Z"
+      "checkedAt": "2025-09-27T07:16:27.876Z"
     },
     {
       "title": "NFIB v. OSHA — Supreme Court Opinion",
@@ -134,7 +134,7 @@
       "finalUrl": "https://www.supremecourt.gov/opinions/21pdf/21a244_hgci.pdf",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T07:20:12.137Z"
+      "checkedAt": "2025-09-27T07:16:28.089Z"
     },
     {
       "title": "Perlis RH, et al. Trust in Physicians and Hospitals During the COVID-19 Pandemic",
@@ -143,7 +143,7 @@
       "finalUrl": "https://jamanetwork.com/article.aspx?doi=10.1001/jamanetworkopen.2024.0000",
       "redirected": true,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:12.523Z"
+      "checkedAt": "2025-09-27T07:16:28.190Z"
     },
     {
       "title": "Polack FP, et al. Safety and Efficacy of the BNT162b2 mRNA Covid-19 Vaccine",
@@ -152,7 +152,7 @@
       "finalUrl": "https://www.nejm.org/doi/full/10.1056/NEJMoa2034577",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:12.614Z"
+      "checkedAt": "2025-09-27T07:16:28.452Z"
     },
     {
       "title": "PREP Act — Questions & Answers",
@@ -161,7 +161,7 @@
       "finalUrl": "https://aspr.hhs.gov/legal/PREPact/Pages/qa.aspx",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:12.668Z"
+      "checkedAt": "2025-09-27T07:16:28.509Z"
     },
     {
       "title": "Public Health Sciences: Epidemiology & Biostatistics (First Aid Step 1)",
@@ -170,7 +170,7 @@
       "finalUrl": "https://firstaidteam.com/",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:13.124Z"
+      "checkedAt": "2025-09-27T07:16:28.773Z"
     },
     {
       "title": "Public Health Sciences: Ethics (First Aid Step 1)",
@@ -179,7 +179,7 @@
       "finalUrl": "https://firstaidteam.com/",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:13.448Z"
+      "checkedAt": "2025-09-27T07:16:29.016Z"
     },
     {
       "title": "Rancourt D, et al. COVID-19 vaccine-associated mortality in the Southern Hemisphere",
@@ -188,7 +188,7 @@
       "finalUrl": "https://www.researchgate.net/publication/375966230",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:13.523Z"
+      "checkedAt": "2025-09-27T07:16:29.078Z"
     },
     {
       "title": "Rancourt D, et al. Spatiotemporal variation of excess all-cause mortality in the world during the COVID period",
@@ -197,7 +197,7 @@
       "finalUrl": "https://correlation-canada.org/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T07:20:13.722Z"
+      "checkedAt": "2025-09-27T07:16:29.278Z"
     },
     {
       "title": "Shared Decision-Making: NICE Guidelines (summary)",
@@ -206,7 +206,7 @@
       "finalUrl": "https://www.nice.org.uk/guidance/ng197",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T07:20:14.144Z"
+      "checkedAt": "2025-09-27T07:16:29.739Z"
     },
     {
       "title": "State of Texas v. Pfizer Inc. (Complaint)",
@@ -215,7 +215,7 @@
       "finalUrl": "https://www.texasattorneygeneral.gov/news/releases/attorney-general-ken-paxton-sues-pfizer-deceiving-public-about-covid-19-vaccines",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:23.883Z"
+      "checkedAt": "2025-09-27T07:16:38.817Z"
     },
     {
       "title": "Stadel B, et al. Misleading Use of Risk Ratios",
@@ -224,7 +224,7 @@
       "finalUrl": "https://www.thelancet.com/",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:24.044Z"
+      "checkedAt": "2025-09-27T07:16:38.964Z"
     },
     {
       "title": "USMLE® Content Outline — Biostatistics, Epidemiology/Population Health & Interpretation of the Medical Literature (p. 37)",
@@ -233,7 +233,7 @@
       "finalUrl": "https://www.usmle.org/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T07:20:24.350Z"
+      "checkedAt": "2025-09-27T07:16:39.247Z"
     },
     {
       "title": "USMLE® Content Outline — Social Sciences (p. 39)",
@@ -242,7 +242,7 @@
       "finalUrl": "https://www.usmle.org/",
       "redirected": false,
       "error": false,
-      "checkedAt": "2025-09-26T07:20:24.411Z"
+      "checkedAt": "2025-09-27T07:16:39.363Z"
     },
     {
       "title": "Vella D. Failure of Care Standard Involving Pfizer BNT162b2 modRNA",
@@ -251,7 +251,7 @@
       "finalUrl": "",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:24.746Z"
+      "checkedAt": "2025-09-27T07:16:39.694Z"
     },
     {
       "title": "Vella D. Failure of Care Standard Involving Pfizer BNT162b2 modRNA (Podcast page)",
@@ -260,7 +260,7 @@
       "finalUrl": "",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:24.857Z"
+      "checkedAt": "2025-09-27T07:16:39.790Z"
     },
     {
       "title": "White House: Actions After Public Health Emergency (Fact Sheet)",
@@ -269,7 +269,7 @@
       "finalUrl": "https://www.whitehouse.gov/briefing-room/statements-releases/2023/05/09/fact-sheet-actions-after-public-health-emergency-transition/",
       "redirected": false,
       "error": true,
-      "checkedAt": "2025-09-26T07:20:24.879Z"
+      "checkedAt": "2025-09-27T07:16:39.812Z"
     }
   ]
 }
