@@ -16,3 +16,10 @@ db/*.cache.json
 /tmp/
 tmp/
 vaers-data/
+# --- VAERS local data (unzipped + zips) ---
+data/raw/**
+vaers-data/**
+# common stray CSVs anywhere under data/
+data/**/*.csv
+# local backups
+public/data/*.backup.json
