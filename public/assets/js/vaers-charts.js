@@ -1,17 +1,14 @@
 /* public/assets/js/vaers-charts.js
  *
  * Mortality charts renderer (Year, Month, Days-to-Onset).
- * - Reuses EXISTING containers only; NEVER creates new ones.
- *   Expected IDs in the HTML:
- *     #chart-by-year, #chart-by-month, #chart-onset
- *   (Optionally wrapped in #chart-by-year-wrap, etc., but not required.)
+ * - Reuses EXISTING containers only; NEVER creates duplicates.
+ *   Expected IDs in HTML: #chart-by-year, #chart-by-month, #chart-onset
  * - Data URL: attribute (data-summary on #vaers-charts-section) → window.VAERS_SUMMARY_URL → default.
  * - Auto-loads Chart.js if missing.
  * - Defensive: per-chart "Charts unavailable" when arrays are empty or load fails.
  * - Does NOT modify the breakdown table rendering.
  */
 
-// prevent double bootstrap if the script gets included twice
 if (!window.__VAERS_CHARTS_BOOTSTRAPPED__) {
   window.__VAERS_CHARTS_BOOTSTRAPPED__ = true;
 
@@ -51,7 +48,7 @@ if (!window.__VAERS_CHARTS_BOOTSTRAPPED__) {
     }
 
     function getWrap(id) {
-      // Prefer an explicit wrap if present; otherwise return the canvas' parent
+      // Prefer explicit wrap if present; otherwise return the canvas' parent
       const wrap = document.getElementById(id + "-wrap");
       const canvas = getCanvas(id);
       return wrap || (canvas ? canvas.parentElement : null);
@@ -92,6 +89,7 @@ if (!window.__VAERS_CHARTS_BOOTSTRAPPED__) {
               label: opts.datasetLabel || "",
               data,
               borderWidth: 1
+              // No explicit colors: let your theme/Chart.js defaults style it
             }
           ]
         },
@@ -169,18 +167,12 @@ if (!window.__VAERS_CHARTS_BOOTSTRAPPED__) {
         );
         const onsetData   = onset.map((d) => Number(d.count || 0));
 
-        // Show per-chart availability notes BEFORE loading Chart.js
-        if (cYear) {
-          if (!yearLabels.length || !yearData.length) showUnavailable("chart-by-year", "no data");
-        }
-        if (cMonth) {
-          if (!monthLabels.length || !monthData.length) showUnavailable("chart-by-month", "no data");
-        }
-        if (cOnset) {
-          if (!onsetLabels.length || !onsetData.length) showUnavailable("chart-onset", "no data");
-        }
+        // Per-chart availability notes BEFORE loading Chart.js
+        if (cYear)  { if (!yearLabels.length || !yearData.length)   showUnavailable("chart-by-year",  "no data"); }
+        if (cMonth) { if (!monthLabels.length || !monthData.length) showUnavailable("chart-by-month", "no data"); }
+        if (cOnset) { if (!onsetLabels.length || !onsetData.length) showUnavailable("chart-onset",    "no data"); }
 
-        // Always load Chart.js once, then draw independently for each chart that has data + canvas
+        // Always load Chart.js once, then draw the charts that have data
         return loadChartJS().then(() => {
           if (cYear && yearLabels.length && yearData.length) {
             drawBar(cYear, yearLabels, yearData, { datasetLabel: "Deaths" });
