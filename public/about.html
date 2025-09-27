@@ -107,10 +107,13 @@
     </section>
 
     <script>
-      // Hard-set so both charts & tables use the OpenVAERS numbers.
-      // Add a cache-buster to avoid stale fetches.
-      window.VAERS_SUMMARY_URL = "/data/vaers-summary-openvaers.json?v=2";
-      console.log("[about] Using dataset:", window.VAERS_SUMMARY_URL);
+      // uses the version file you already ship at /assets/version.json
+      fetch('/assets/version.json')
+        .then(r => r.json())
+        .then(v => {
+          const ver = v?.version || (Date.now().toString());
+          window.VAERS_SUMMARY_URL = `/data/vaers-summary-openvaers.json?v=${ver}`;
+        });
     </script>
 
     <footer class="container">
