@@ -22,7 +22,6 @@
     (SECTION && SECTION.dataset && SECTION.dataset.summary) ||
     (typeof window !== "undefined" && window.VAERS_SUMMARY_URL) ||
     "/data/vaers-summary.json";
-
   try {
     console.log("[vaers-tables] data URL:", DATA_URL);
   } catch (_) {}
