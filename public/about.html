@@ -120,8 +120,9 @@
       <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
     </footer>
   </main>
-
-  <!-- Scripts: Chart.js first, then your chart/table clients -->
+  <script>
+  window.VAERS_SUMMARY_URL = "/data/vaers-summary-openvaers.json?v=5";
+  </script>
   <script src="/assets/vendor/chart.umd.min.js"></script>
   <script src="/assets/js/vaers-charts.js" defer></script>
   <script src="/assets/js/vaers-tables.js" defer></script>
