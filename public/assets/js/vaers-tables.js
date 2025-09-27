@@ -1,71 +1,155 @@
-// public/assets/js/vaers-tables.js
+/* VAERS breakdown tables (manufacturer / sex / age)
+   This version prefers the page's data-summary attribute, then window.VAERS_SUMMARY_URL,
+   and finally falls back to /data/vaers-summary.json. It is defensive and will no-op if
+   #vaers-breakdowns is not present.
+*/
 (function () {
   const root = document.getElementById("vaers-breakdowns");
   if (!root) return;
 
-  const URL = window.VAERS_SUMMARY_URL || "/data/vaers-summary.json";
+  // Determine data URL deterministically: attribute → global → default
+  const SECTION =
+    document.getElementById("vaers-charts-section") ||
+    document.querySelector("[data-summary]");
+  const DATA_URL =
+    (SECTION && SECTION.dataset && SECTION.dataset.summary) ||
+    (typeof window !== "undefined" && window.VAERS_SUMMARY_URL) ||
+    "/data/vaers-summary.json";
 
-  fetch(URL, { cache: "no-cache" })
+  try {
+    console.log("[vaers-tables] data URL:", DATA_URL);
+  } catch (_) {}
+
+  // Utils
+  const fmt = (n) =>
+    typeof n === "number"
+      ? n.toLocaleString("en-US")
+      : ("" + (n ?? "")).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+
+  const td = (text, opts = {}) => {
+    const el = document.createElement("td");
+    el.textContent = text == null ? "" : text;
+    if (opts.className) el.className = opts.className;
+    if (opts.align) el.style.textAlign = opts.align;
+    return el;
+  };
+
+  const th = (text) => {
+    const el = document.createElement("th");
+    el.textContent = text;
+    return el;
+  };
+
+  // Clear and (re)build a 6-column table:
+  // Manufacturer | Cases | Sex | Cases | Age | Cases
+  const buildSkeleton = () => {
+    root.innerHTML = "";
+    const table = document.createElement("table");
+    table.className = "vaers-table"; // relies on your existing CSS
+
+    const thead = document.createElement("thead");
+    const hr = document.createElement("tr");
+    hr.append(
+      th("Manufacturer"),
+      th("Cases"),
+      th("Sex"),
+      th("Cases"),
+      th("Age"),
+      th("Cases")
+    );
+    thead.appendChild(hr);
+
+    const tbody = document.createElement("tbody");
+    table.append(thead, tbody);
+    root.appendChild(table);
+    return { table, tbody };
+  };
+
+  const normalize = (items = []) =>
+    (Array.isArray(items) ? items : []).map((x) => ({
+      category: String(x.category ?? ""),
+      count: Number(x.count ?? 0),
+    }));
+
+  const render = (summary) => {
+    if (!summary || !summary.covid_deaths_breakdowns) return;
+
+    const { manufacturer, sex, age_bins } = summary.covid_deaths_breakdowns;
+
+    const m = normalize(manufacturer);
+    const s = normalize(sex);
+    const a = normalize(age_bins);
+
+    // Sorts to match the OpenVAERS presentation
+    const orderBy = (arr, wanted) => {
+      if (!wanted) return arr;
+      const map = new Map(wanted.map((k, i) => [k, i]));
+      return [...arr].sort((x, y) => {
+        const ix = map.has(x.category) ? map.get(x.category) : 1e9;
+        const iy = map.has(y.category) ? map.get(y.category) : 1e9;
+        return ix - iy || y.count - x.count || x.category.localeCompare(y.category);
+      });
+    };
+
+    const mOrdered = orderBy(m, [
+      "UNKNOWN MANUFACTURER",
+      "NOVAVAX",
+      "JANSSEN",
+      "MODERNA",
+      "PFIZER\\BIONTECH",
+    ]);
+    const sOrdered = orderBy(s, ["Male", "Female", "Unknown"]);
+    const aOrdered = orderBy(a, [
+      "0.5–5",
+      "5–12",
+      "12–25",
+      "25–51",
+      "51–66",
+      "66–81",
+      "81–121",
+      "Unknown",
+      "All Ages",
+    ]);
+
+    const rows = Math.max(mOrdered.length, sOrdered.length, aOrdered.length);
+
+    const { tbody } = buildSkeleton();
+
+    for (let i = 0; i < rows; i++) {
+      const tr = document.createElement("tr");
+
+      // Manufacturer + cases
+      if (i < mOrdered.length) {
+        tr.append(td(mOrdered[i].category), td(fmt(mOrdered[i].count), { align: "right" }));
+      } else {
+        tr.append(td(""), td(""));
+      }
+
+      // Sex + cases
+      if (i < sOrdered.length) {
+        tr.append(td(sOrdered[i].category), td(fmt(sOrdered[i].count), { align: "right" }));
+      } else {
+        tr.append(td(""), td(""));
+      }
+
+      // Age + cases
+      if (i < aOrdered.length) {
+        tr.append(td(aOrdered[i].category), td(fmt(aOrdered[i].count), { align: "right" }));
+      } else {
+        tr.append(td(""), td(""));
+      }
+
+      tbody.appendChild(tr);
+    }
+  };
+
+  fetch(DATA_URL, { cache: "no-cache" })
     .then((r) => {
       if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
       return r.json();
     })
-    .then((summary) => {
-      const b = summary?.covid_deaths_breakdowns || {};
-      const manufacturers = normalize(b.manufacturer);
-      const sex = order(normalize(b.sex), ["Female", "Male", "Unknown"]);
-      const age = order(
-        normalize(b.age_bins),
-        ["0-5", "5-12", "12-25", "25-51", "51-66", "66-81", "81-121", "Unknown", "All Ages"]
-      );
-
-      root.innerHTML =
-        table("Manufacturer", manufacturers) +
-        table("Sex",           sex) +
-        table("Age",           age);
-    })
-    .catch((e) => {
-      console.error("breakdowns:", e);
-      root.innerHTML = '<div class="vaers-note">Charts unavailable.</div>';
+    .then((json) => render(json))
+    .catch((err) => {
+      console.error("[vaers-tables] failed to load data:", err);
     });
-
-  function normalize(rows = []) {
-    return rows
-      .map((row) => {
-        if (Array.isArray(row)) return { category: String(row[0] ?? "Unknown"), count: toNum(row[1]) };
-        if (row && typeof row === "object") {
-          const k = row.category ?? row.key ?? "Unknown";
-          const v = row.count ?? row.value ?? 0;
-          return { category: String(k), count: toNum(v) };
-        }
-        return { category: "Unknown", count: 0 };
-      })
-      .filter((r) => r.category && Number.isFinite(r.count));
-  }
-
-  function order(rows, wanted) {
-    if (!wanted) return rows.slice();
-    const idx = new Map(wanted.map((k, i) => [k, i]));
-    return rows.slice().sort((a, b) => {
-      const ia = idx.has(a.category) ? idx.get(a.category) : Number.MAX_SAFE_INTEGER;
-      const ib = idx.has(b.category) ? idx.get(b.category) : Number.MAX_SAFE_INTEGER;
-      return ia - ib || a.category.localeCompare(b.category);
-    });
-  }
-
-  // Renders a two-column table with fixed-like column widths via colgroup
-  function table(title, rows) {
-    const head = `<thead><tr><th>${esc(title)}</th><th>Cases</th></tr></thead>`;
-    const body =
-      "<tbody>" +
-      rows.map((r) => `<tr><td>${esc(r.category)}</td><td>${fmt(r.count)}</td></tr>`).join("") +
-      "</tbody>";
-    // 1st column flexes, 2nd column is ~110px to keep numbers aligned
-    const cols = `<colgroup><col style="width:auto"><col style="width:110px"></colgroup>`;
-    return `<table class="stats-table" aria-label="${esc(title)} breakdown">${cols}${head}${body}</table>`;
-  }
-
-  const toNum = (v) => (v == null ? 0 : Number(v));
-  const fmt = (n) => Number(n || 0).toLocaleString();
-  const esc = (s) => String(s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
 })();

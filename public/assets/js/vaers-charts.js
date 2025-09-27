@@ -263,7 +263,12 @@
 
   // -------- Boot --------
   async function loadSummary() {
-    const url = window.VAERS_SUMMARY_URL || "/data/vaers-summary.json";
+    const SECTION = document.getElementById("vaers-charts-section") || document.querySelector("[data-summary]");
+    const URL =
+      (SECTION && SECTION.dataset && SECTION.dataset.summary) ||
+      (typeof window !== "undefined" && window.VAERS_SUMMARY_URL) ||
+      "/data/vaers-summary.json";
+    try { console.log("[vaers-charts] data URL:", URL); } catch (e) {}
     const res = await fetch(url, { cache: "no-cache" });
     if (!res.ok) throw new Error(`Failed to load ${url}: ${res.status}`);
     return res.json();
