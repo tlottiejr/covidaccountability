@@ -2,14 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Build a compact summary JSON for the About page charts/tables from *local* VAERS
-zip files (domestic + non-domestic), entirely offline.
-
-Fixes included:
-- Robust CSV decoding (UTF-8 with BOM, but tolerant to bad bytes via errors='replace')
-  so UnicodeDecodeError cannot crash the run.
-- Zip reading fallback to 7-Zip (p7zip) for Deflate64 archives that stdlib can't open.
-- Streaming processing (no full-file loads).
+Build vaers-summary.json for the About page from local VAERS zip files.
 
 Usage:
   python3 tools/build_vaers_summary.py \
@@ -33,64 +26,7 @@ import tempfile
 from collections import Counter, defaultdict
 from typing import Dict, Iterator, List, Optional, Tuple
 
-# ------------------------------- Zip reading -------------------------------
-
-def _wrap_text_stream(binary_stream) -> io.TextIOBase:
-    """
-    Always-return a tolerant text wrapper.
-    - utf-8-sig to gracefully skip BOMs
-    - errors='replace' so we never raise UnicodeDecodeError mid-iteration
-    """
-    return io.TextIOWrapper(
-        binary_stream,
-        encoding="utf-8-sig",
-        errors="replace",
-        newline=""
-    )
-
-def _iter_zip_csv(zip_path: str, name_contains: str) -> Iterator[io.TextIOBase]:
-    """
-    Yield *text* file handles for CSVs inside `zip_path` whose filename contains
-    `name_contains` (case-insensitive). Use stdlib ZipFile first; if it raises
-    NotImplementedError (e.g., Deflate64), extract with 7z to a temp dir.
-    """
-    import zipfile
-
-    # First try stdlib zipfile
-    try:
-        with zipfile.ZipFile(zip_path) as z:
-            for info in z.infolist():
-                name = info.filename
-                if name_contains.lower() in name.lower() and name.lower().endswith(".csv"):
-                    raw = z.open(info, "r")          # binary
-                    yield _wrap_text_stream(raw)     # tolerant text stream
-        return
-    except NotImplementedError:
-        # Unsupported compression -> use 7z
-        pass
-
-    # Fallback: 7z extraction to temp dir
-    tmpdir = tempfile.mkdtemp(prefix="vaers7z_")
-    try:
-        try:
-            subprocess.run(
-                ["7z", "x", "-y", f"-o{tmpdir}", zip_path],
-                stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True
-            )
-        except FileNotFoundError:
-            raise RuntimeError(
-                "7z not found. Install with:\n  sudo apt-get update && sudo apt-get install -y p7zip-full"
-            )
-
-        for root, _, files in os.walk(tmpdir):
-            for fn in files:
-                if fn.lower().endswith(".csv") and name_contains.lower() in fn.lower():
-                    raw = open(os.path.join(root, fn), "rb")
-                    yield _wrap_text_stream(raw)
-    finally:
-        shutil.rmtree(tmpdir, ignore_errors=True)
-
-# ------------------------------- Utilities ---------------------------------
+# ------------------------ helpers: parsing & normalization ------------------------
 
 def _parse_date(s: str) -> Optional[dt.date]:
     if not s:
@@ -112,28 +48,93 @@ def _parse_int(s: str) -> Optional[int]:
 def _month_key(d: dt.date) -> str:
     return f"{d.year:04d}-{d.month:02d}"
 
-# ------------------------------- Aggregation -------------------------------
+def _normalize_sex(val: str) -> str:
+    """
+    Robust VAERS sex normalization.
+    Raw values appear as M/F/U, MALE/FEMALE/UNKNOWN, UNK, blank.
+    """
+    s = (val or "").strip().upper()
+    if s in ("M", "MALE"):
+        return "Male"
+    if s in ("F", "FEMALE"):
+        return "Female"
+    if s in ("U", "UNK", "UNKNOWN", "OTHER", "OT"):
+        return "Unknown"
+    return "Unknown"
+
+# ------------------------ zip reading with 7z fallback ------------------------
+
+def _wrap_text(binary_stream) -> io.TextIOBase:
+    """
+    Always return a tolerant text stream (no decode crashes).
+    """
+    return io.TextIOWrapper(binary_stream, encoding="utf-8-sig", errors="replace", newline="")
+
+def _iter_zip_csv(zip_path: str, name_contains: str) -> Iterator[io.TextIOBase]:
+    """
+    Yield text file handles for CSV files inside `zip_path` whose filename
+    contains `name_contains` (case-insensitive).
+    Use stdlib zipfile first; fallback to 7z for Deflate64 archives.
+    """
+    import zipfile
+
+    # Try stdlib first
+    try:
+        with zipfile.ZipFile(zip_path) as z:
+            for info in z.infolist():
+                fn = info.filename
+                if name_contains.lower() in fn.lower() and fn.lower().endswith(".csv"):
+                    raw = z.open(info, "r")
+                    yield _wrap_text(raw)
+        return
+    except NotImplementedError:
+        pass  # Deflate64 etc.
+
+    # Fallback to 7z extraction
+    tmpdir = tempfile.mkdtemp(prefix="vaers7z_")
+    try:
+        try:
+            subprocess.run(
+                ["7z", "x", "-y", f"-o{tmpdir}", zip_path],
+                stdout=subprocess.DEVNULL,
+                stderr=subprocess.DEVNULL,
+                check=True,
+            )
+        except FileNotFoundError:
+            raise RuntimeError(
+                "7z not found. Install with:\n  sudo apt-get update && sudo apt-get install -y p7zip-full"
+            )
+        for root, _, files in os.walk(tmpdir):
+            for fn in files:
+                if name_contains.lower() in fn.lower() and fn.lower().endswith(".csv"):
+                    raw = open(os.path.join(root, fn), "rb")
+                    yield _wrap_text(raw)
+    finally:
+        shutil.rmtree(tmpdir, ignore_errors=True)
+
+# ------------------------ aggregator ------------------------
 
 class Aggregator:
     """
-    Collects all aggregates needed by the About page.
+    Collects aggregates required by the About page.
     """
+
     def __init__(self) -> None:
-        # deaths by year (dom+foreign)
+        # deaths by received year (domestic + foreign)
         self.deaths_by_year: Counter[int] = Counter()
 
-        # covid deaths by month, split
+        # covid deaths by month (total/domestic/foreign)
         self.covid_month_total: Counter[str] = Counter()
         self.covid_month_dom: Counter[str] = Counter()
         self.covid_month_frn: Counter[str] = Counter()
 
-        # covid breakdowns (domestic only)
+        # domestic COVID breakdowns
         self.manufacturer_dom: Counter[str] = Counter()
         self.sex_dom: Counter[str] = Counter()
         self.age_bins_dom: Counter[str] = Counter()
         self.age_total_dom: int = 0
 
-        # days to onset histogram (0..19), covid vs flu (all regions)
+        # days to onset histograms (0..19), COVID vs FLU
         self.days_covid: Counter[int] = Counter()
         self.days_flu: Counter[int] = Counter()
 
@@ -141,7 +142,7 @@ class Aggregator:
         self.vax_by_id_dom: Dict[int, List[Tuple[str, str]]] = defaultdict(list)
         self.vax_by_id_frn: Dict[int, List[Tuple[str, str]]] = defaultdict(list)
 
-    # ---- ingest ----
+    # -------- ingest VAX (build join) --------
 
     def ingest_vax_csv(self, fh: io.TextIOBase, foreign: bool) -> None:
         reader = csv.DictReader(fh)
@@ -157,6 +158,8 @@ class Aggregator:
             except Exception:
                 continue
 
+    # -------- ingest DATA (aggregate) --------
+
     def ingest_data_csv(self, fh: io.TextIOBase, foreign: bool) -> None:
         reader = csv.DictReader(fh)
         for row in reader:
@@ -165,7 +168,7 @@ class Aggregator:
                 if vid is None:
                     continue
 
-                # only death reports
+                # Only death reports
                 if (row.get("DIED") or row.get("died") or "").strip().upper() != "Y":
                     continue
 
@@ -173,26 +176,26 @@ class Aggregator:
                 if recv:
                     self.deaths_by_year[recv.year] += 1
 
-                # days to onset
+                # Determine days to onset
                 vax_date = _parse_date(row.get("VAX_DATE") or row.get("vax_date") or "")
                 onset_date = _parse_date(row.get("ONSET_DATE") or row.get("onset_date") or "")
                 numdays = _parse_int(row.get("NUMDAYS") or row.get("numdays") or "")
                 days = (onset_date - vax_date).days if (vax_date and onset_date) else numdays
 
-                # vaccine types for this report
+                # Vaccines attached to this report
                 vlist = (self.vax_by_id_frn if foreign else self.vax_by_id_dom).get(vid, [])
                 has_covid = any(vt == "COVID19" for vt, _ in vlist)
                 has_flu   = any(vt == "FLU"     for vt, _ in vlist)
 
-                # covid deaths by month
+                # Monthly COVID deaths
                 if recv and has_covid:
                     mk = _month_key(recv)
                     self.covid_month_total[mk] += 1
                     (self.covid_month_frn if foreign else self.covid_month_dom)[mk] += 1
 
-                # breakdowns (domestic COVID only)
+                # Domestic-only breakdowns for COVID
                 if not foreign and has_covid:
-                    # manufacturer (dedup per report)
+                    # manufacturer (unique per report)
                     seen = set()
                     for vt, manu in vlist:
                         if vt == "COVID19":
@@ -201,16 +204,9 @@ class Aggregator:
                                 self.manufacturer_dom[key] += 1
                                 seen.add(key)
 
-                    # sex (map VAERS M/F/U -> Male/Female/Unknown)
-                    raw_sex = (row.get("SEX") or row.get("sex") or "").strip().upper()
-                    if raw_sex == "M":
-                        sex = "Male"
-                    elif raw_sex == "F":
-                        sex = "Female"
-                    else:
-                        sex = "Unknown"
+                    # ✅ Correct sex normalization
+                    sex = _normalize_sex(row.get("SEX") or row.get("sex"))
                     self.sex_dom[sex] += 1
-
 
                     # age bins
                     age_years = None
@@ -230,7 +226,6 @@ class Aggregator:
                         elif a <= 81:   bin_label = "66-81"
                         elif a <= 121:  bin_label = "81-121"
                         else:           bin_label = "Unknown"
-
                     self.age_bins_dom[bin_label] += 1
                     self.age_total_dom += 1
 
@@ -242,21 +237,26 @@ class Aggregator:
             except Exception:
                 continue
 
-    # ---- export ----
+    # -------- export --------
 
     def to_summary(self) -> dict:
+        # deaths by year
         years_pairs = [[y, c] for y, c in sorted(self.deaths_by_year.items())]
 
+        # monthly helpers
         def _pairs(counter: Counter[str]) -> List[List[object]]:
             return [[k, counter[k]] for k in sorted(counter.keys())]
 
+        # breakdown helpers
         def _bkd(counter: Counter[str]) -> List[dict]:
             items = sorted(counter.items(), key=lambda kv: (-kv[1], kv[0]))
             return [{"category": k, "count": v} for k, v in items]
 
+        # days to onset 0..19
         covid_pairs = [[i, self.days_covid.get(i, 0)] for i in range(0, 20)]
         flu_pairs   = [[i, self.days_flu.get(i, 0)]   for i in range(0, 20)]
 
+        # age list with guaranteed order + "All Ages"
         age_list = _bkd(self.age_bins_dom)
         desired = ["0-5","5-12","12-25","25-51","51-66","66-81","81-121","Unknown"]
         present = {e["category"] for e in age_list}
@@ -269,19 +269,16 @@ class Aggregator:
         return {
             "reports_by_year": {
                 "deaths_by_year": {"all": years_pairs},
-                # compatibility with older front-end shapes
+                # compatibility keys (older front-end fallbacks)
                 "deaths": {"all": years_pairs},
-                "all": years_pairs
+                "all": years_pairs,
             },
             "covid_deaths_by_month": {
                 "total": _pairs(self.covid_month_total),
                 "us_territories": _pairs(self.covid_month_dom),
                 "foreign": _pairs(self.covid_month_frn),
             },
-            "days_to_onset": {
-                "covid": covid_pairs,
-                "flu":   flu_pairs,
-            },
+            "days_to_onset": { "covid": covid_pairs, "flu": flu_pairs },
             "covid_deaths_breakdowns": {
                 "manufacturer": _bkd(self.manufacturer_dom),
                 "sex": _bkd(self.sex_dom),
@@ -289,30 +286,26 @@ class Aggregator:
             },
         }
 
-# ------------------------------- Orchestration ------------------------------
+# ------------------------ orchestration ------------------------
 
 def summarize(dom_zip: str, frn_zip: str) -> dict:
     agg = Aggregator()
 
-    # Join data first (VAX tables)
+    # Build joins first (VAX tables)
     for fh in _iter_zip_csv(dom_zip, "VAERSVAX"):
-        with fh:
-            agg.ingest_vax_csv(fh, foreign=False)
+        with fh: agg.ingest_vax_csv(fh, foreign=False)
     for fh in _iter_zip_csv(frn_zip, "VAERSVAX"):
-        with fh:
-            agg.ingest_vax_csv(fh, foreign=True)
+        with fh: agg.ingest_vax_csv(fh, foreign=True)
 
-    # Then process DATA tables
+    # Aggregate data (DATA tables)
     for fh in _iter_zip_csv(dom_zip, "VAERSDATA"):
-        with fh:
-            agg.ingest_data_csv(fh, foreign=False)
+        with fh: agg.ingest_data_csv(fh, foreign=False)
     for fh in _iter_zip_csv(frn_zip, "VAERSDATA"):
-        with fh:
-            agg.ingest_data_csv(fh, foreign=True)
+        with fh: agg.ingest_data_csv(fh, foreign=True)
 
     return agg.to_summary()
 
-# ------------------------------------ CLI -----------------------------------
+# ------------------------ CLI ------------------------
 
 def main() -> None:
     ap = argparse.ArgumentParser(description="Build VAERS summary JSON for About page (offline).")
@@ -339,9 +332,9 @@ def main() -> None:
             "inputs": {"dom": dom, "frn": frn},
             "builder": "tools/build_vaers_summary.py",
             "notes": (
-                "Counts reports with DIED=='Y'. Domestic=domestic ZIP; Foreign=non-domestic ZIP. "
-                "COVID/FLU via VAX_TYPE in VAERSVAX. Days-to-onset = ONSET_DATE - VAX_DATE or NUMDAYS. "
-                "Compatibility keys included for front-end fallbacks."
+                "Counts DIED=='Y'. Domestic=domestic ZIP; Foreign=non-domestic ZIP. "
+                "COVID/FLU via VAX_TYPE. Days-to-onset from ONSET_DATE - VAX_DATE or NUMDAYS. "
+                "Sex normalized from VAERS values (M/F/U, MALE/FEMALE/UNKNOWN, UNK)."
             ),
         },
         **summary,
@@ -354,8 +347,9 @@ def main() -> None:
     ry = payload["reports_by_year"]["deaths_by_year"]["all"]
     cm = payload["covid_deaths_by_month"]["total"]
     mf = payload["covid_deaths_breakdowns"]["manufacturer"]
+    sx = payload["covid_deaths_breakdowns"]["sex"]
     print(f"[done] wrote {out}", file=sys.stderr)
-    print(f"  years={len(ry)}  months={len(cm)}  manuf={len(mf)}", file=sys.stderr)
+    print(f"  years={len(ry)}  months={len(cm)}  manuf={len(mf)}  sex={sx}", file=sys.stderr)
 
 if __name__ == "__main__":
     main()

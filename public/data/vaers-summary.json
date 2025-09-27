@@ -1,12 +1,12 @@
 {
   "provenance":{
-    "built_at_utc":"2025-09-26T16:29:01Z",
+    "built_at_utc":"2025-09-27T01:54:14Z",
     "inputs":{
       "dom":"/workspaces/covidaccountability/vaers-data/AllVAERSDataCSVS.zip",
       "frn":"/workspaces/covidaccountability/vaers-data/NonDomesticVAERSDATA.zip"
     },
     "builder":"tools/build_vaers_summary.py",
-    "notes":"Counts reports with DIED=='Y'. Domestic=domestic ZIP; Foreign=non-domestic ZIP. COVID/FLU via VAX_TYPE in VAERSVAX. Days-to-onset = ONSET_DATE - VAX_DATE or NUMDAYS. Compatibility keys included for front-end fallbacks."
+    "notes":"Counts DIED=='Y'. Domestic=domestic ZIP; Foreign=non-domestic ZIP. COVID/FLU via VAX_TYPE. Days-to-onset from ONSET_DATE - VAX_DATE or NUMDAYS. Sex normalized from VAERS values (M/F/U, MALE/FEMALE/UNKNOWN, UNK)."
   },
   "reports_by_year":{
     "deaths_by_year":{
@@ -1335,8 +1335,16 @@
     ],
     "sex":[
       {
+        "category":"Male",
+        "count":11404
+      },
+      {
+        "category":"Female",
+        "count":7981
+      },
+      {
         "category":"Unknown",
-        "count":20290
+        "count":905
       }
     ],
     "age_bins":[
