@@ -1,16 +1,23 @@
-/* VAERS breakdown tables (manufacturer / sex / age)
-   This version prefers the page's data-summary attribute, then window.VAERS_SUMMARY_URL,
-   and finally falls back to /data/vaers-summary.json. It is defensive and will no-op if
-   #vaers-breakdowns is not present.
-*/
-(function () {
-  const root = document.getElementById("vaers-breakdowns");
-  if (!root) return;
+/* public/assets/js/vaers-tables.js
+ *
+ * VAERS breakdown tables (Manufacturer / Sex / Age).
+ * - Uses the page's data-summary attribute FIRST, then window.VAERS_SUMMARY_URL,
+ *   then falls back to /data/vaers-summary.json.
+ * - Renders THREE separate tables so the existing site CSS (blue gradient panels)
+ *   applies exactly as before.
+ * - Defensive/no-op if the container is missing.
+ */
 
-  // Determine data URL deterministically: attribute → global → default
+(function () {
+  // Where tables will be injected
+  const root = document.getElementById("vaers-breakdowns");
+  if (!root) return; // Nothing to do on pages without the container
+
+  // ------- Resolve data URL deterministically (attribute → global → default)
   const SECTION =
     document.getElementById("vaers-charts-section") ||
     document.querySelector("[data-summary]");
+
   const DATA_URL =
     (SECTION && SECTION.dataset && SECTION.dataset.summary) ||
     (typeof window !== "undefined" && window.VAERS_SUMMARY_URL) ||
@@ -20,58 +27,74 @@
     console.log("[vaers-tables] data URL:", DATA_URL);
   } catch (_) {}
 
-  // Utils
+  // ------- Small DOM helpers
+  const el = (tag, props = {}) => Object.assign(document.createElement(tag), props);
+
+  const th = (text) => {
+    const e = el("th");
+    e.textContent = text;
+    return e;
+  };
+
+  const td = (text, opts = {}) => {
+    const e = el("td");
+    e.textContent = text == null ? "" : text;
+    if (opts.className) e.className = opts.className;
+    if (opts.align) e.style.textAlign = opts.align;
+    return e;
+  };
+
   const fmt = (n) =>
     typeof n === "number"
       ? n.toLocaleString("en-US")
       : ("" + (n ?? "")).replace(/\B(?=(\d{3})+(?!\d))/g, ",");
 
-  const td = (text, opts = {}) => {
-    const el = document.createElement("td");
-    el.textContent = text == null ? "" : text;
-    if (opts.className) el.className = opts.className;
-    if (opts.align) el.style.textAlign = opts.align;
-    return el;
-  };
+  const normalize = (items) =>
+    Array.isArray(items)
+      ? items.map((x) => ({
+          category: String(x?.category ?? ""),
+          count: Number(x?.count ?? 0),
+        }))
+      : [];
 
-  const th = (text) => {
-    const el = document.createElement("th");
-    el.textContent = text;
-    return el;
-  };
-
-  // Clear and (re)build a 6-column table:
-  // Manufacturer | Cases | Sex | Cases | Age | Cases
-  const buildSkeleton = () => {
+  // ------- Build THREE tables (so existing CSS styles them as 3 panels)
+  function buildThreeTables() {
     root.innerHTML = "";
-    const table = document.createElement("table");
-    table.className = "vaers-table"; // relies on your existing CSS
 
-    const thead = document.createElement("thead");
-    const hr = document.createElement("tr");
-    hr.append(
-      th("Manufacturer"),
-      th("Cases"),
-      th("Sex"),
-      th("Cases"),
-      th("Age"),
-      th("Cases")
-    );
-    thead.appendChild(hr);
+    const makeTable = (leftHeader, rightHeader) => {
+      const table = el("table", { className: "vaers-table" });
+      const thead = el("thead");
+      const trh = el("tr");
+      trh.append(th(leftHeader), th(rightHeader));
+      thead.appendChild(trh);
+      const tbody = el("tbody");
+      table.append(thead, tbody);
+      return { table, tbody };
+    };
 
-    const tbody = document.createElement("tbody");
-    table.append(thead, tbody);
-    root.appendChild(table);
-    return { table, tbody };
-  };
+    const t1 = makeTable("Manufacturer", "Cases");
+    const t2 = makeTable("Sex", "Cases");
+    const t3 = makeTable("Age", "Cases");
 
-  const normalize = (items = []) =>
-    (Array.isArray(items) ? items : []).map((x) => ({
-      category: String(x.category ?? ""),
-      count: Number(x.count ?? 0),
-    }));
+    // Append in order; your CSS uses :nth-of-type(1..3)
+    root.append(t1.table, t2.table, t3.table);
 
-  const render = (summary) => {
+    return { t1, t2, t3 };
+  }
+
+  // ------- Stable ordering to match the reference look
+  function orderByList(arr, wantedOrder) {
+    if (!Array.isArray(arr) || !Array.isArray(wantedOrder)) return arr || [];
+    const idx = new Map(wantedOrder.map((k, i) => [k, i]));
+    return [...arr].sort((a, b) => {
+      const ia = idx.has(a.category) ? idx.get(a.category) : 1e9;
+      const ib = idx.has(b.category) ? idx.get(b.category) : 1e9;
+      return ia - ib || b.count - a.count || a.category.localeCompare(b.category);
+    });
+  }
+
+  // ------- Render function
+  function render(summary) {
     if (!summary || !summary.covid_deaths_breakdowns) return;
 
     const { manufacturer, sex, age_bins } = summary.covid_deaths_breakdowns;
@@ -80,26 +103,18 @@
     const s = normalize(sex);
     const a = normalize(age_bins);
 
-    // Sorts to match the OpenVAERS presentation
-    const orderBy = (arr, wanted) => {
-      if (!wanted) return arr;
-      const map = new Map(wanted.map((k, i) => [k, i]));
-      return [...arr].sort((x, y) => {
-        const ix = map.has(x.category) ? map.get(x.category) : 1e9;
-        const iy = map.has(y.category) ? map.get(y.category) : 1e9;
-        return ix - iy || y.count - x.count || x.category.localeCompare(y.category);
-      });
-    };
-
-    const mOrdered = orderBy(m, [
+    // Match the intended ordering
+    const mOrdered = orderByList(m, [
       "UNKNOWN MANUFACTURER",
       "NOVAVAX",
       "JANSSEN",
       "MODERNA",
       "PFIZER\\BIONTECH",
     ]);
-    const sOrdered = orderBy(s, ["Male", "Female", "Unknown"]);
-    const aOrdered = orderBy(a, [
+
+    const sOrdered = orderByList(s, ["Male", "Female", "Unknown"]);
+
+    const aOrdered = orderByList(a, [
       "0.5–5",
       "5–12",
       "12–25",
@@ -111,44 +126,38 @@
       "All Ages",
     ]);
 
-    const rows = Math.max(mOrdered.length, sOrdered.length, aOrdered.length);
+    // Build the 3 tables and populate
+    const { t1, t2, t3 } = buildThreeTables();
 
-    const { tbody } = buildSkeleton();
+    // Manufacturer
+    mOrdered.forEach((row) => {
+      const tr = el("tr");
+      tr.append(td(row.category), td(fmt(row.count), { align: "right" }));
+      t1.tbody.appendChild(tr);
+    });
 
-    for (let i = 0; i < rows; i++) {
-      const tr = document.createElement("tr");
+    // Sex
+    sOrdered.forEach((row) => {
+      const tr = el("tr");
+      tr.append(td(row.category), td(fmt(row.count), { align: "right" }));
+      t2.tbody.appendChild(tr);
+    });
 
-      // Manufacturer + cases
-      if (i < mOrdered.length) {
-        tr.append(td(mOrdered[i].category), td(fmt(mOrdered[i].count), { align: "right" }));
-      } else {
-        tr.append(td(""), td(""));
-      }
+    // Age
+    aOrdered.forEach((row) => {
+      const tr = el("tr");
+      tr.append(td(row.category), td(fmt(row.count), { align: "right" }));
+      t3.tbody.appendChild(tr);
+    });
+  }
 
-      // Sex + cases
-      if (i < sOrdered.length) {
-        tr.append(td(sOrdered[i].category), td(fmt(sOrdered[i].count), { align: "right" }));
-      } else {
-        tr.append(td(""), td(""));
-      }
-
-      // Age + cases
-      if (i < aOrdered.length) {
-        tr.append(td(aOrdered[i].category), td(fmt(aOrdered[i].count), { align: "right" }));
-      } else {
-        tr.append(td(""), td(""));
-      }
-
-      tbody.appendChild(tr);
-    }
-  };
-
+  // ------- Fetch + render
   fetch(DATA_URL, { cache: "no-cache" })
     .then((r) => {
       if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
       return r.json();
     })
-    .then((json) => render(json))
+    .then(render)
     .catch((err) => {
       console.error("[vaers-tables] failed to load data:", err);
     });
