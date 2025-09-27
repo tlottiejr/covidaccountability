@@ -1655,3 +1655,9 @@ button[aria-label="Close navigation"] {
 @media (max-width:1024px){
   :where(#vaers-breakdowns){ grid-template-columns:1fr; }
 }
+/* Keep chart blocks stable */
+.chart-wrap canvas {
+  display: block;
+  width: 100%;
+  height: 340px !important; /* matches JS-guarded height */
+}
