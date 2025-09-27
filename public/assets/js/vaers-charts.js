@@ -1,124 +1,223 @@
-// public/assets/js/vaers-charts.js
-// Renders 3 charts (year, month, onset) using ECharts and vaers-summary.json
+/* public/assets/js/vaers-charts.js
+ * Renders three charts (year, month, onset) using Chart.js.
+ * Data source order:
+ *   1) window.VAERS_SUMMARY_URL (if set),
+ *   2) <section id="vaers-charts-section" data-summary="...">,
+ *   3) /data/vaers-summary-openvaers.json,
+ *   4) /data/vaers-summary.json
+ *
+ * JSON tolerated shapes:
+ *   - { by_year_series: [{label, count}], by_month_series: [...], onset_series: [...] }
+ *   - or maps: { "2021": 123, ... }
+ */
 
-(async () => {
-  const res = await fetch("/data/vaers-summary.json", { cache: "no-store" });
-  if (!res.ok) throw new Error(`Failed to load vaers-summary.json (${res.status})`);
-  const data = await res.json();
+(function () {
+  function pickUrl() {
+    const sec = document.getElementById("vaers-charts-section");
+    return (
+      (typeof window !== "undefined" && window.VAERS_SUMMARY_URL) ||
+      (sec && sec.getAttribute("data-summary")) ||
+      "/data/vaers-summary-openvaers.json"
+    );
+  }
 
-  const years  = (data.by_year_series  || []).map(d => ({ x: String(d.label), y: +d.count || 0 }));
-  const months = (data.by_month_series || []).map(d => ({ x: String(d.label), y: +d.count || 0 }));
-  const onset  = (data.onset_series    || []).map(d => ({ x: String(d.label), y: +d.count || 0 }));
+  async function fetchJson(urls) {
+    const tried = [];
+    for (const u of urls) {
+      try {
+        const r = await fetch(u, { cache: "no-store" });
+        if (r.ok) return await r.json();
+        tried.push(`${u} [${r.status}]`);
+      } catch (e) {
+        tried.push(`${u} [${e}]`);
+      }
+    }
+    throw new Error("All data sources failed:\n" + tried.join("\n"));
+  }
 
-  // site colors (fallbacks keep it readable)
-  const css = getComputedStyle(document.documentElement);
-  const primary = css.getPropertyValue("--brand").trim()
-    || css.getPropertyValue("--color-primary").trim() || "#0ea5e9";
-  const accent  = css.getPropertyValue("--brand-accent").trim() || "#10b981";
-  const grid    = "#e5e7eb";
-  const text    = css.getPropertyValue("--text-color").trim() || "#111827";
+  function normalizeSeries(v) {
+    if (!v) return [];
+    if (Array.isArray(v)) {
+      return v.map((x) => ({
+        label: x.label ?? String(x[0]),
+        count: Number(x.count ?? x[1] ?? x.value ?? 0),
+      }));
+    }
+    // object map -> array
+    return Object.entries(v).map(([label, count]) => ({
+      label,
+      count: Number(count || 0),
+    }));
+  }
 
-  const mount = id => {
-    const el = document.getElementById(id);
-    if (!el) return null;
-    const c = echarts.init(el, null, { renderer: "canvas" });
-    addEventListener("resize", () => c.resize());
-    return c;
-  };
+  function theme() {
+    const css = getComputedStyle(document.documentElement);
+    const primary =
+      css.getPropertyValue("--brand").trim() ||
+      css.getPropertyValue("--color-primary").trim() ||
+      "#0ea5e9";
+    const accent =
+      css.getPropertyValue("--brand-accent").trim() || "#10b981";
+    const grid = "#e5e7eb";
+    const text =
+      css.getPropertyValue("--text-color").trim() || "#111827";
+    return { primary, accent, grid, text };
+  }
 
-  const fmt = (n) => n.toLocaleString(undefined);
+  function fmt(n) {
+    return Number(n).toLocaleString(undefined);
+  }
 
-  // --- Deaths by Year (bar) ---
-  const cy = mount("chart-by-year");
-  if (cy && years.length) {
-    cy.setOption({
-      textStyle: { color: text },
-      grid: { left: 56, right: 16, top: 18, bottom: 40 },
-      tooltip: {
-        trigger: "axis",
-        formatter: (p) => {
-          const v = p[0];
-          return `${v.axisValue}<br/>Deaths: <b>${fmt(v.data)}</b>`;
-        }
+  function mountBar(ctx, labels, values, opts) {
+    const { primary, grid, text } = theme();
+    return new Chart(ctx, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Deaths",
+            data: values,
+            backgroundColor: primary,
+            borderColor: primary,
+            borderWidth: 1,
+          },
+        ],
       },
-      xAxis: { type: "category", data: years.map(d => d.x),
-               axisLine: { lineStyle: { color: grid } } },
-      yAxis: { type: "value", min: 0,
-               axisLabel: { formatter: (v) => fmt(v) },
-               axisLine: { lineStyle: { color: grid } },
-               splitLine: { lineStyle: { color: grid } } },
-      series: [{
-        type: "bar",
-        name: "Deaths",
-        data: years.map(d => d.y),
-        itemStyle: { color: primary },
-        emphasis: { itemStyle: { color: accent } }
-      }]
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { display: false, labels: { color: text } },
+          tooltip: {
+            callbacks: {
+              label: (c) => `Deaths: ${fmt(c.parsed.y)}`,
+            },
+          },
+        },
+        scales: {
+          x: {
+            ticks: { color: text, maxRotation: opts?.rotate || 0, minRotation: opts?.rotate || 0 },
+            grid: { color: grid },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: text, callback: (v) => fmt(v) },
+            grid: { color: grid },
+          },
+        },
+      },
     });
   }
 
-  // --- Deaths by Month (line, YYYY-MM) ---
-  const cm = mount("chart-by-month");
-  if (cm && months.length) {
-    cm.setOption({
-      textStyle: { color: text },
-      grid: { left: 56, right: 16, top: 18, bottom: 64 },
-      tooltip: {
-        trigger: "axis",
-        formatter: (p) => {
-          const v = p[0];
-          return `${v.axisValue}<br/>Deaths: <b>${fmt(v.data)}</b>`;
-        }
+  function mountLine(ctx, labels, values) {
+    const { primary, grid, text } = theme();
+    return new Chart(ctx, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Deaths",
+            data: values,
+            borderColor: primary,
+            backgroundColor: primary + "22",
+            fill: true,
+            tension: 0.25,
+            pointRadius: 0,
+          },
+        ],
       },
-      dataZoom: [{ type: "inside" }, { type: "slider", height: 18 }],
-      xAxis: { type: "category", data: months.map(d => d.x),
-               axisLabel: { rotate: 45 },
-               axisLine: { lineStyle: { color: grid } } },
-      yAxis: { type: "value", min: 0,
-               axisLabel: { formatter: (v) => fmt(v) },
-               axisLine: { lineStyle: { color: grid } },
-               splitLine: { lineStyle: { color: grid } } },
-      series: [{
-        type: "line",
-        name: "Deaths",
-        data: months.map(d => d.y),
-        smooth: true,
-        showSymbol: false,
-        lineStyle: { width: 2, color: primary },
-        areaStyle: { opacity: 0.08, color: primary }
-      }]
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { display: false, labels: { color: text } },
+          tooltip: {
+            callbacks: { label: (c) => `Deaths: ${fmt(c.parsed.y)}` },
+          },
+          zoom: false, // you can add chartjs-plugin-zoom later if wanted
+        },
+        scales: {
+          x: {
+            ticks: { color: text, maxRotation: 45, minRotation: 45 },
+            grid: { color: grid },
+          },
+          y: {
+            beginAtZero: true,
+            ticks: { color: text, callback: (v) => fmt(v) },
+            grid: { color: grid },
+          },
+        },
+      },
     });
   }
 
-  // --- Days to Onset (0..19) ---
-  const co = mount("chart-onset");
-  if (co && onset.length) {
-    co.setOption({
-      textStyle: { color: text },
-      grid: { left: 56, right: 16, top: 18, bottom: 40 },
-      tooltip: {
-        trigger: "axis",
-        formatter: (p) => {
-          const v = p[0];
-          return `Day ${v.axisValue}<br/>Deaths: <b>${fmt(v.data)}</b>`;
-        }
-      },
-      xAxis: { type: "category", data: onset.map(d => d.x),
-               name: "Days after vaccination",
-               axisLine: { lineStyle: { color: grid } } },
-      yAxis: { type: "value", min: 0,
-               axisLabel: { formatter: (v) => fmt(v) },
-               axisLine: { lineStyle: { color: grid } },
-               splitLine: { lineStyle: { color: grid } } },
-      series: [{
-        type: "bar",
-        name: "Deaths",
-        data: onset.map(d => d.y),
-        itemStyle: { color: primary },
-        emphasis: { itemStyle: { color: accent } }
-      }]
-    });
+  async function init() {
+    const primaryUrl = pickUrl();
+    const data = await fetchJson([
+      primaryUrl,
+      "/data/vaers-summary-openvaers.json",
+      "/data/vaers-summary.json",
+    ]);
+
+    const byYear = normalizeSeries(
+      data.by_year_series || data.deaths_by_year
+    ).sort((a, b) => Number(a.label) - Number(b.label));
+
+    const byMonth = normalizeSeries(
+      data.by_month_series || data.deaths_by_month
+    ).sort((a, b) => String(a.label).localeCompare(String(b.label)));
+
+    const onset = normalizeSeries(
+      data.onset_series || data.onset_hist_series || data.onset
+    ).sort((a, b) => Number(a.label) - Number(b.label));
+
+    // mount charts (requires canvases to exist)
+    const cYear = document.getElementById("chart-by-year");
+    const cMonth = document.getElementById("chart-by-month");
+    const cOnset = document.getElementById("chart-onset");
+
+    if (cYear && byYear.length) {
+      mountBar(
+        cYear.getContext("2d"),
+        byYear.map((d) => String(d.label)),
+        byYear.map((d) => d.count)
+      );
+    }
+
+    if (cMonth && byMonth.length) {
+      mountLine(
+        cMonth.getContext("2d"),
+        byMonth.map((d) => String(d.label)),
+        byMonth.map((d) => d.count)
+      );
+    }
+
+    if (cOnset && onset.length) {
+      mountBar(
+        cOnset.getContext("2d"),
+        onset.map((d) => String(d.label)),
+        onset.map((d) => d.count),
+        { rotate: 0 }
+      );
+    }
   }
-})().catch(err => {
-  console.error("[vaers-charts] failed:", err);
-});
+
+  // if this script is deferred (it is), DOM is ready
+  init().catch((e) => {
+    console.error("[vaers-charts] failed to initialize:", e);
+    for (const id of ["chart-by-year", "chart-by-month", "chart-onset"]) {
+      const el = document.getElementById(id);
+      if (el) {
+        const msg = document.createElement("div");
+        msg.style.color = "#b91c1c";
+        msg.style.padding = "8px 0";
+        msg.textContent = "Failed to load chart data.";
+        el.replaceWith(msg);
+      }
+    }
+  });
+})();
