@@ -1,4 +1,4 @@
-/* public/assets/js/vaers-charts.js — strict series, visible bars */
+/* Render 3 charts (year, month, onset) with visible bars and sane scales. */
 
 (() => {
   if (window.__VAERS_CHARTS_RENDERED__) return;
@@ -14,16 +14,18 @@
 
   const hasChartJS = () => typeof window !== "undefined" && !!window.Chart;
   const getCanvas = (id) => document.getElementById(id) || null;
-  const getWrap = (id) => document.getElementById(id + "-wrap") || (getCanvas(id)?.parentElement ?? null);
-  const ensureCanvasHeight = (c, px = 340) => { if(!c) return; c.style.height = c.style.height || `${px}px`; c.style.width = c.style.width || "100%"; c.setAttribute("height", px); };
-  const note = (id, why) => { const w=getWrap(id); if(!w) return; w.querySelector(".chart-unavailable")?.remove(); const d=document.createElement("div"); d.className="chart-unavailable"; d.style.padding="12px"; d.style.color="#6b7280"; d.textContent=`Charts unavailable${why?` (${why})`:""}`; w.appendChild(d); };
-  const destroyIfAny = (c)=>{ if(c && c._chart && typeof c._chart.destroy==="function"){ try{c._chart.destroy();}catch{} c._chart=null; } };
+  const wrapOf = (id) => document.getElementById(id + "-wrap") || (getCanvas(id)?.parentElement ?? null);
+  const fixHeight = (c, px=340) => { if(!c) return; if(!c.style.height) c.style.height=`${px}px`; if(!c.style.width) c.style.width='100%'; c.setAttribute('height', px); };
+  const note = (id, why) => { const w=wrapOf(id); if(!w) return; w.querySelector('.chart-unavailable')?.remove(); const d=document.createElement('div'); d.className='chart-unavailable'; d.style.padding='12px'; d.style.color='#6b7280'; d.textContent=`Charts unavailable${why?` (${why})`:''}`; w.appendChild(d); };
+  const destroyIfAny = (c)=>{ if(c && c._chart && typeof c._chart.destroy==='function'){ try{c._chart.destroy();}catch{} c._chart=null; } };
 
-  const fmtMonth = (ym) => (/^\d{4}-\d{2}$/.test(ym||"") ? new Date(Date.UTC(...(ym.split("-").map((n,i)=> i?parseInt(n,10)-1:parseInt(n,10))),1)).toLocaleDateString("en-US",{month:"short",year:"numeric",timeZone:"UTC"}) : String(ym||""));
+  const fmtMonth = (ym) => (/^\d{4}-\d{2}$/.test(ym||"")
+    ? new Date(Date.UTC(+ym.slice(0,4), +ym.slice(5,7)-1, 1)).toLocaleDateString("en-US",{month:"short",year:"numeric",timeZone:"UTC"})
+    : String(ym||""));
 
-  function drawBar(canvas, labels, data, datasetLabel) {
+  function drawBars(canvas, labels, data, labelText) {
     if (!canvas || !labels?.length || !data?.length || !hasChartJS()) return;
-    ensureCanvasHeight(canvas, 340);
+    fixHeight(canvas, 340);
     destroyIfAny(canvas);
 
     const max = Math.max(...data);
@@ -35,11 +37,15 @@
       data: {
         labels,
         datasets: [{
-          label: datasetLabel || "",
+          label: labelText || "",
           data,
-          backgroundColor: "rgba(37, 99, 235, 0.6)",   // blue-600 @ 60%
-          borderColor: "rgba(37, 99, 235, 1.0)",        // blue-600
-          borderWidth: 1
+          backgroundColor: "rgba(37,99,235,0.65)", // visible fill
+          borderColor: "rgba(37,99,235,1)",
+          borderWidth: 0,
+          barPercentage: 0.95,
+          categoryPercentage: 0.95,
+          maxBarThickness: 26,
+          minBarLength: 2
         }]
       },
       options: {
@@ -50,18 +56,16 @@
         normalized: true,
         plugins: {
           legend: { display: false },
-          title: { display: false },
+          title:  { display: false },
           tooltip: {
             mode: "index", intersect: false,
-            callbacks: {
-              label: (c) => (typeof c.parsed.y === "number" ? c.parsed.y.toLocaleString("en-US") : c.parsed.y)
-            }
+            callbacks: { label: (c)=> (typeof c.parsed.y==="number" ? c.parsed.y.toLocaleString("en-US") : c.parsed.y) }
           }
         },
         interaction: { intersect: false },
         scales: {
-          x: { ticks: { autoSkip: true, maxRotation: 0 }, grid: { display: false } },
-          y: { beginAtZero: true, suggestedMax, ticks: { precision: 0, callback: v => Number(v).toLocaleString("en-US") }, grid: { drawBorder: false } }
+          x: { grid: { display: false }, ticks: { autoSkip: true, maxRotation: 0 } },
+          y: { beginAtZero: true, suggestedMax, grid: { drawBorder: false }, ticks: { precision: 0, callback: v => Number(v).toLocaleString("en-US") } }
         }
       }
     });
@@ -71,32 +75,32 @@
     const cYear  = getCanvas("chart-by-year");
     const cMonth = getCanvas("chart-by-month");
     const cOnset = getCanvas("chart-onset");
-    [cYear,cMonth,cOnset].forEach(c => ensureCanvasHeight(c, 340));
+    [cYear,cMonth,cOnset].forEach(fixHeight);
 
-    if (!hasChartJS()) { ["chart-by-year","chart-by-month","chart-onset"].forEach(id => note(id, "Chart.js not loaded")); return; }
+    if (!hasChartJS()) { ["chart-by-year","chart-by-month","chart-onset"].forEach(id => note(id,"Chart.js not loaded")); return; }
 
-    let json;
+    let s;
     try {
       const r = await fetch(DATA_URL, { cache: "no-cache" });
       if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-      json = await r.json();
+      s = await r.json();
     } catch (e) {
       console.error("[vaers-charts] fetch error:", e);
-      ["chart-by-year","chart-by-month","chart-onset"].forEach(id => note(id, "load error"));
+      ["chart-by-year","chart-by-month","chart-onset"].forEach(id => note(id,"load error"));
       return;
     }
 
-    // strict: only our arrays
-    const byYear  = Array.isArray(json.covid_deaths_by_year)  ? json.covid_deaths_by_year  : [];
-    const byMonth = Array.isArray(json.covid_deaths_by_month) ? json.covid_deaths_by_month : [];
-    const onset   = Array.isArray(json.days_to_onset)         ? json.days_to_onset         : [];
+    // strict: only our series
+    const byYear  = Array.isArray(s.covid_deaths_by_year)  ? s.covid_deaths_by_year  : [];
+    const byMonth = Array.isArray(s.covid_deaths_by_month) ? s.covid_deaths_by_month : [];
+    const onset   = Array.isArray(s.days_to_onset)         ? s.days_to_onset         : [];
 
     if (cYear) {
       if (!byYear.length) note("chart-by-year","no data");
       else {
         const labels = byYear.map(d => String(d.label ?? d.year ?? ""));
         const data   = byYear.map(d => Number(d.count || 0));
-        (Math.max(...data) > 0) ? drawBar(cYear, labels, data, "Deaths") : note("chart-by-year","no data");
+        Math.max(...data) > 0 ? drawBars(cYear, labels, data, "Deaths") : note("chart-by-year","no data");
       }
     }
 
@@ -105,16 +109,16 @@
       else {
         const labels = byMonth.map(d => fmtMonth(String(d.label ?? "")));
         const data   = byMonth.map(d => Number(d.count || 0));
-        (Math.max(...data) > 0) ? drawBar(cMonth, labels, data, "Deaths") : note("chart-by-month","no data");
+        Math.max(...data) > 0 ? drawBars(cMonth, labels, data, "Deaths") : note("chart-by-month","no data");
       }
     }
 
     if (cOnset) {
       if (!onset.length) note("chart-onset","no data");
       else {
-        const labels = onset.map(d => (typeof d.day === "number" ? String(d.day) : String(d.label ?? "")));
+        const labels = onset.map(d => (typeof d.day==="number" ? String(d.day) : String(d.label ?? "")));
         const data   = onset.map(d => Number(d.count || 0));
-        (Math.max(...data) > 0) ? drawBar(cOnset, labels, data, "Reports") : note("chart-onset","no data");
+        Math.max(...data) > 0 ? drawBars(cOnset, labels, data, "Reports") : note("chart-onset","no data");
       }
     }
   }
