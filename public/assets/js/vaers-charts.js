@@ -1,128 +1,124 @@
-/* Render 3 charts (year, month, onset) with visible bars and sane scales. */
+// public/assets/js/vaers-charts.js
+// Renders 3 charts (year, month, onset) using ECharts and vaers-summary.json
 
-(() => {
-  if (window.__VAERS_CHARTS_RENDERED__) return;
-  window.__VAERS_CHARTS_RENDERED__ = true;
+(async () => {
+  const res = await fetch("/data/vaers-summary.json", { cache: "no-store" });
+  if (!res.ok) throw new Error(`Failed to load vaers-summary.json (${res.status})`);
+  const data = await res.json();
 
-  const SECTION =
-    document.getElementById("vaers-charts-section") ||
-    document.querySelector("[data-summary]");
-  const DATA_URL =
-    (SECTION && SECTION.dataset && SECTION.dataset.summary) ||
-    (typeof window !== "undefined" && window.VAERS_SUMMARY_URL) ||
-    "/data/vaers-summary.json";
+  const years  = (data.by_year_series  || []).map(d => ({ x: String(d.label), y: +d.count || 0 }));
+  const months = (data.by_month_series || []).map(d => ({ x: String(d.label), y: +d.count || 0 }));
+  const onset  = (data.onset_series    || []).map(d => ({ x: String(d.label), y: +d.count || 0 }));
 
-  const hasChartJS = () => typeof window !== "undefined" && !!window.Chart;
-  const getCanvas = (id) => document.getElementById(id) || null;
-  const wrapOf = (id) => document.getElementById(id + "-wrap") || (getCanvas(id)?.parentElement ?? null);
-  const fixHeight = (c, px=340) => { if(!c) return; if(!c.style.height) c.style.height=`${px}px`; if(!c.style.width) c.style.width='100%'; c.setAttribute('height', px); };
-  const note = (id, why) => { const w=wrapOf(id); if(!w) return; w.querySelector('.chart-unavailable')?.remove(); const d=document.createElement('div'); d.className='chart-unavailable'; d.style.padding='12px'; d.style.color='#6b7280'; d.textContent=`Charts unavailable${why?` (${why})`:''}`; w.appendChild(d); };
-  const destroyIfAny = (c)=>{ if(c && c._chart && typeof c._chart.destroy==='function'){ try{c._chart.destroy();}catch{} c._chart=null; } };
+  // site colors (fallbacks keep it readable)
+  const css = getComputedStyle(document.documentElement);
+  const primary = css.getPropertyValue("--brand").trim()
+    || css.getPropertyValue("--color-primary").trim() || "#0ea5e9";
+  const accent  = css.getPropertyValue("--brand-accent").trim() || "#10b981";
+  const grid    = "#e5e7eb";
+  const text    = css.getPropertyValue("--text-color").trim() || "#111827";
 
-  const fmtMonth = (ym) => (/^\d{4}-\d{2}$/.test(ym||"")
-    ? new Date(Date.UTC(+ym.slice(0,4), +ym.slice(5,7)-1, 1)).toLocaleDateString("en-US",{month:"short",year:"numeric",timeZone:"UTC"})
-    : String(ym||""));
+  const mount = id => {
+    const el = document.getElementById(id);
+    if (!el) return null;
+    const c = echarts.init(el, null, { renderer: "canvas" });
+    addEventListener("resize", () => c.resize());
+    return c;
+  };
 
-  function drawBars(canvas, labels, data, labelText) {
-    if (!canvas || !labels?.length || !data?.length || !hasChartJS()) return;
-    fixHeight(canvas, 340);
-    destroyIfAny(canvas);
+  const fmt = (n) => n.toLocaleString(undefined);
 
-    const max = Math.max(...data);
-    const suggestedMax = Math.max(5, Math.ceil(max * 1.1));
-
-    const ctx = canvas.getContext("2d");
-    canvas._chart = new Chart(ctx, {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [{
-          label: labelText || "",
-          data,
-          backgroundColor: "rgba(37,99,235,0.65)", // visible fill
-          borderColor: "rgba(37,99,235,1)",
-          borderWidth: 0,
-          barPercentage: 0.95,
-          categoryPercentage: 0.95,
-          maxBarThickness: 26,
-          minBarLength: 2
-        }]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        animation: false,
-        parsing: false,
-        normalized: true,
-        plugins: {
-          legend: { display: false },
-          title:  { display: false },
-          tooltip: {
-            mode: "index", intersect: false,
-            callbacks: { label: (c)=> (typeof c.parsed.y==="number" ? c.parsed.y.toLocaleString("en-US") : c.parsed.y) }
-          }
-        },
-        interaction: { intersect: false },
-        scales: {
-          x: { grid: { display: false }, ticks: { autoSkip: true, maxRotation: 0 } },
-          y: { beginAtZero: true, suggestedMax, grid: { drawBorder: false }, ticks: { precision: 0, callback: v => Number(v).toLocaleString("en-US") } }
+  // --- Deaths by Year (bar) ---
+  const cy = mount("chart-by-year");
+  if (cy && years.length) {
+    cy.setOption({
+      textStyle: { color: text },
+      grid: { left: 56, right: 16, top: 18, bottom: 40 },
+      tooltip: {
+        trigger: "axis",
+        formatter: (p) => {
+          const v = p[0];
+          return `${v.axisValue}<br/>Deaths: <b>${fmt(v.data)}</b>`;
         }
-      }
+      },
+      xAxis: { type: "category", data: years.map(d => d.x),
+               axisLine: { lineStyle: { color: grid } } },
+      yAxis: { type: "value", min: 0,
+               axisLabel: { formatter: (v) => fmt(v) },
+               axisLine: { lineStyle: { color: grid } },
+               splitLine: { lineStyle: { color: grid } } },
+      series: [{
+        type: "bar",
+        name: "Deaths",
+        data: years.map(d => d.y),
+        itemStyle: { color: primary },
+        emphasis: { itemStyle: { color: accent } }
+      }]
     });
   }
 
-  async function render() {
-    const cYear  = getCanvas("chart-by-year");
-    const cMonth = getCanvas("chart-by-month");
-    const cOnset = getCanvas("chart-onset");
-    [cYear,cMonth,cOnset].forEach(fixHeight);
-
-    if (!hasChartJS()) { ["chart-by-year","chart-by-month","chart-onset"].forEach(id => note(id,"Chart.js not loaded")); return; }
-
-    let s;
-    try {
-      const r = await fetch(DATA_URL, { cache: "no-cache" });
-      if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
-      s = await r.json();
-    } catch (e) {
-      console.error("[vaers-charts] fetch error:", e);
-      ["chart-by-year","chart-by-month","chart-onset"].forEach(id => note(id,"load error"));
-      return;
-    }
-
-    // strict: only our series
-    const byYear  = Array.isArray(s.covid_deaths_by_year)  ? s.covid_deaths_by_year  : [];
-    const byMonth = Array.isArray(s.covid_deaths_by_month) ? s.covid_deaths_by_month : [];
-    const onset   = Array.isArray(s.days_to_onset)         ? s.days_to_onset         : [];
-
-    if (cYear) {
-      if (!byYear.length) note("chart-by-year","no data");
-      else {
-        const labels = byYear.map(d => String(d.label ?? d.year ?? ""));
-        const data   = byYear.map(d => Number(d.count || 0));
-        Math.max(...data) > 0 ? drawBars(cYear, labels, data, "Deaths") : note("chart-by-year","no data");
-      }
-    }
-
-    if (cMonth) {
-      if (!byMonth.length) note("chart-by-month","no data");
-      else {
-        const labels = byMonth.map(d => fmtMonth(String(d.label ?? "")));
-        const data   = byMonth.map(d => Number(d.count || 0));
-        Math.max(...data) > 0 ? drawBars(cMonth, labels, data, "Deaths") : note("chart-by-month","no data");
-      }
-    }
-
-    if (cOnset) {
-      if (!onset.length) note("chart-onset","no data");
-      else {
-        const labels = onset.map(d => (typeof d.day==="number" ? String(d.day) : String(d.label ?? "")));
-        const data   = onset.map(d => Number(d.count || 0));
-        Math.max(...data) > 0 ? drawBars(cOnset, labels, data, "Reports") : note("chart-onset","no data");
-      }
-    }
+  // --- Deaths by Month (line, YYYY-MM) ---
+  const cm = mount("chart-by-month");
+  if (cm && months.length) {
+    cm.setOption({
+      textStyle: { color: text },
+      grid: { left: 56, right: 16, top: 18, bottom: 64 },
+      tooltip: {
+        trigger: "axis",
+        formatter: (p) => {
+          const v = p[0];
+          return `${v.axisValue}<br/>Deaths: <b>${fmt(v.data)}</b>`;
+        }
+      },
+      dataZoom: [{ type: "inside" }, { type: "slider", height: 18 }],
+      xAxis: { type: "category", data: months.map(d => d.x),
+               axisLabel: { rotate: 45 },
+               axisLine: { lineStyle: { color: grid } } },
+      yAxis: { type: "value", min: 0,
+               axisLabel: { formatter: (v) => fmt(v) },
+               axisLine: { lineStyle: { color: grid } },
+               splitLine: { lineStyle: { color: grid } } },
+      series: [{
+        type: "line",
+        name: "Deaths",
+        data: months.map(d => d.y),
+        smooth: true,
+        showSymbol: false,
+        lineStyle: { width: 2, color: primary },
+        areaStyle: { opacity: 0.08, color: primary }
+      }]
+    });
   }
 
-  const kick = () => ("requestIdleCallback" in window ? requestIdleCallback(render, { timeout: 800 }) : setTimeout(render, 0));
-  (document.readyState === "loading") ? document.addEventListener("DOMContentLoaded", kick, { once: true }) : kick();
-})();
+  // --- Days to Onset (0..19) ---
+  const co = mount("chart-onset");
+  if (co && onset.length) {
+    co.setOption({
+      textStyle: { color: text },
+      grid: { left: 56, right: 16, top: 18, bottom: 40 },
+      tooltip: {
+        trigger: "axis",
+        formatter: (p) => {
+          const v = p[0];
+          return `Day ${v.axisValue}<br/>Deaths: <b>${fmt(v.data)}</b>`;
+        }
+      },
+      xAxis: { type: "category", data: onset.map(d => d.x),
+               name: "Days after vaccination",
+               axisLine: { lineStyle: { color: grid } } },
+      yAxis: { type: "value", min: 0,
+               axisLabel: { formatter: (v) => fmt(v) },
+               axisLine: { lineStyle: { color: grid } },
+               splitLine: { lineStyle: { color: grid } } },
+      series: [{
+        type: "bar",
+        name: "Deaths",
+        data: onset.map(d => d.y),
+        itemStyle: { color: primary },
+        emphasis: { itemStyle: { color: accent } }
+      }]
+    });
+  }
+})().catch(err => {
+  console.error("[vaers-charts] failed:", err);
+});

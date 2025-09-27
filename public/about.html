@@ -1,6 +1,5 @@
 <!doctype html>
 <html lang="en">
-<script src="/assets/js/ux-accessibility.js" defer></script>
 <head>
   <meta charset="utf-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1"/>
@@ -8,6 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="/assets/site.css"/>
+  <script src="/assets/js/ux-accessibility.js" defer></script>
 </head>
 <body>
   <div id="nav-root"></div>
@@ -50,29 +50,35 @@
         <li>Decelerate the ongoing morbidity and mortality associated with this treatment.</li>
         <li>Foster physician reeducation involving basic interpretation of the medical literature
             and medical ethics for the general benefit of public health.</li>
-        <li>Curtail misinformation spread by public health <a href="https://www.whitehouse.gov/wp-content/uploads/2024/05/NATIONAL-BIODEFENSE-POSTURE-—-Report-on-Lessons-Learned-and-the-Path-Forward.pdf">officials.</a></li>
-        <li>Prevent future “mass iatrogenic” <a href="https://www.researchgate.net/publication/374768240_Does_COVID-19_vaccination_increase_age-adjusted_mortality_A_preliminary_analysis_of_age-adjusted_mortality_in_the_Southern_Hemisphere">events.</a></li>
+        <li>Curtail misinformation spread by public health
+          <a href="https://www.whitehouse.gov/wp-content/uploads/2024/05/NATIONAL-BIODEFENSE-POSTURE-—-Report-on-Lessons-Learned-and-the-Path-Forward.pdf">officials.</a>
+        </li>
+        <li>Prevent future “mass iatrogenic”
+          <a href="https://www.researchgate.net/publication/374768240_Does_COVID-19_vaccination_increase_age-adjusted_mortality_A_preliminary_analysis_of_age-adjusted_mortality_in_the_Southern_Hemisphere">events.</a>
+        </li>
       </ol>
     </section>
 
     <!-- VAERS Figures (Official Data) -->
-    <section id="vaers-charts-section" data-summary="/data/vaers-summary-openvaers.json">
-  <div class="chart-wrap" id="chart-by-year-wrap">
-    <h3>All Deaths Reported to VAERS by Year</h3>
-    <canvas id="chart-by-year" style="width:100%;height:340px;"></canvas>
-  </div>
+    <section class="card" id="vaers-charts-section" data-summary="/data/vaers-summary-openvaers.json">
+      <h2>VAERS Figures (Official Data)</h2>
 
-  <div class="chart-wrap" id="chart-by-month-wrap">
-    <h3>COVID Vaccine Reports of Death by Month</h3>
-    <canvas id="chart-by-month" style="width:100%;height:340px;"></canvas>
-  </div>
+      <div class="chart-wrap" id="chart-by-year-wrap">
+        <h3>All Deaths Reported to VAERS by Year</h3>
+        <canvas id="chart-by-year" class="viz-360"></canvas>
+      </div>
 
-  <div class="chart-wrap" id="chart-onset-wrap">
-    <h3>VAERS COVID/FLU Vaccine Reported Deaths by Days to Onset (All Ages)</h3>
-    <canvas id="chart-onset" style="width:100%;height:340px;"></canvas>
-  </div>
+      <div class="chart-wrap" id="chart-by-month-wrap">
+        <h3>COVID Vaccine Reports of Death by Month</h3>
+        <canvas id="chart-by-month" class="viz-360"></canvas>
+      </div>
 
-      <h3>Breakdowns</h3>
+      <div class="chart-wrap" id="chart-onset-wrap">
+        <h3>VAERS COVID/FLU Vaccine Reported Deaths by Days to Onset (All Ages)</h3>
+        <canvas id="chart-onset" class="viz-360"></canvas>
+      </div>
+
+      <h3 class="mt-6">Breakdowns</h3>
 
       <!-- SCOPED OVERRIDE: forces exact 3-column, top-aligned layout on this page only -->
       <style>
@@ -93,15 +99,12 @@
         #vaers-breakdowns th:last-child,
         #vaers-breakdowns td:last-child{ text-align:right !important; font-variant-numeric:tabular-nums !important; }
         #vaers-breakdowns tbody tr:nth-child(even){ background:rgba(64,120,255,.04) !important; }
+        .viz-360 { position: relative; width: 100%; min-height: 320px; height: 360px; }
+        .viz-360 { display:block; }
       </style>
 
       <div id="vaers-breakdowns" class="mt-6"></div>
     </section>
-
-    <style>
-      .viz-360 { position: relative; width: 100%; min-height: 320px; height: 360px; }
-      .viz-360 > canvas { width: 100% !important; height: 100% !important; display: block; }
-    </style>
 
     <script>
       // Hard-set so both charts & tables use the OpenVAERS numbers.
@@ -110,17 +113,14 @@
       console.log("[about] Using dataset:", window.VAERS_SUMMARY_URL);
     </script>
 
-    <script src="/assets/vendor/echarts.min.js" defer></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-    <script src="/assets/js/vaers-charts.js" defer></script>
-    <script src="/assets/js/vaers-tables.js" defer></script>
-
     <footer class="container">
       <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
     </footer>
   </main>
-  <script defer src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
-  <script defer src="/assets/js/vaers-charts.js"></script>
 
+  <!-- Scripts: Chart.js first, then your chart/table clients -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+  <script src="/assets/js/vaers-charts.js" defer></script>
+  <script src="/assets/js/vaers-tables.js" defer></script>
 </body>
 </html>
