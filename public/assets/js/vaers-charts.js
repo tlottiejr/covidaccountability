@@ -1,14 +1,10 @@
 /* public/assets/js/vaers-charts.js
  *
- * Mortality charts renderer.
- * - Uses the page's data-summary attribute FIRST, then window.VAERS_SUMMARY_URL,
- *   then falls back to /data/vaers-summary.json.
- * - Draws three charts that mirror the OpenVAERS Mortality page:
- *     1) Days to Onset (0..19)
- *     2) Deaths by Month
- *     3) Deaths by Year
- * - Defensive: no-ops if Chart.js is not present or DOM nodes are absent.
- * - Does NOT modify the breakdown tables; those are rendered elsewhere.
+ * Mortality charts renderer (Year, Month, Days-to-Onset).
+ * - Data URL: attribute (data-summary on #vaers-charts-section) → window.VAERS_SUMMARY_URL → default.
+ * - Auto-loads Chart.js if missing.
+ * - Defensive: if data arrays are empty/missing, shows a message instead of failing silently.
+ * - Does NOT modify the table renderer.
  */
 
 (function () {
@@ -24,30 +20,40 @@
 
   try {
     console.log("[vaers-charts] data URL:", DATA_URL);
-    window.__VAERS_DATA_URL__ = DATA_URL; // expose for debugging
+    window.__VAERS_DATA_URL__ = DATA_URL; // for debugging
   } catch (_) {}
 
-  // ---------- Helpers
+  // ---------- Small helpers
   const hasChartJS = () => typeof window !== "undefined" && !!window.Chart;
 
+  function loadChartJS() {
+    if (hasChartJS()) return Promise.resolve();
+    return new Promise((resolve, reject) => {
+      const s = document.createElement("script");
+      s.src = "https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js";
+      s.onload = () => resolve();
+      s.onerror = (e) => reject(new Error("Failed to load Chart.js"));
+      document.head.appendChild(s);
+    });
+  }
+
   function ensureWrap(id, titleText) {
-    // Insert charts before the breakdowns table if possible, keeping a stable order
+    // main host section
     const host =
       document.getElementById("vaers-charts-section") ||
       document.body;
 
-    // Create wrapper (card) if missing
+    // create wrapper card
     let wrap = document.getElementById(id + "-wrap");
     if (!wrap) {
       wrap = document.createElement("div");
       wrap.id = id + "-wrap";
-      wrap.className = "chart-wrap"; // your site CSS can style this
-      // place before the breakdowns table if present
+      wrap.className = "chart-wrap"; // styled by your site CSS
       const beforeNode = document.getElementById("vaers-breakdowns");
       host.insertBefore(wrap, beforeNode || null);
     }
 
-    // Title (H3) in your theme
+    // title
     let title = document.getElementById(id + "-title");
     if (!title) {
       title = document.createElement("h3");
@@ -56,7 +62,7 @@
     }
     title.textContent = titleText || "";
 
-    // Canvas element
+    // canvas
     let canvas = document.getElementById(id);
     if (!canvas) {
       canvas = document.createElement("canvas");
@@ -67,6 +73,20 @@
     }
 
     return canvas;
+  }
+
+  function showUnavailable(id, reason) {
+    const wrap = document.getElementById(id + "-wrap");
+    if (!wrap) return;
+    // remove old note
+    const old = wrap.querySelector(".chart-unavailable");
+    if (old) old.remove();
+    const note = document.createElement("div");
+    note.className = "chart-unavailable";
+    note.style.padding = "12px";
+    note.style.color = "#6b7280";
+    note.textContent = "Charts unavailable" + (reason ? ` (${reason})` : "");
+    wrap.appendChild(note);
   }
 
   function destroyIfAny(canvas) {
@@ -81,7 +101,6 @@
     const ctx = canvas.getContext("2d");
     destroyIfAny(canvas);
 
-    // Build dataset; avoid pinning explicit colors so your theme can style via Chart.js defaults/CSS vars.
     const chart = new Chart(ctx, {
       type: "bar",
       data: {
@@ -102,11 +121,10 @@
           legend: { display: false },
           tooltip: {
             callbacks: {
-              label: (ctx) =>
-                (opts.tooltipLabelPrefix || "") +
-                (typeof ctx.parsed.y === "number"
-                  ? ctx.parsed.y.toLocaleString("en-US")
-                  : ctx.parsed.y)
+              label: (ctx) => {
+                const v = typeof ctx.parsed.y === "number" ? ctx.parsed.y.toLocaleString("en-US") : ctx.parsed.y;
+                return (opts.tooltipLabelPrefix || "") + v;
+              }
             }
           },
           title: { display: false }
@@ -129,9 +147,8 @@
     return chart;
   }
 
-  // Format helpers
+  // Formats "YYYY-MM" -> "Mon YYYY"
   const fmtMonth = (ym) => {
-    // ym like "2021-01" -> "Jan 2021"
     if (!ym || !/^\d{4}-\d{2}$/.test(ym)) return String(ym || "");
     const [y, m] = ym.split("-").map((v) => parseInt(v, 10));
     const dt = new Date(Date.UTC(y, m - 1, 1));
@@ -145,57 +162,59 @@
       return r.json();
     })
     .then((json) => {
-      // Accept several possible key names to be tolerant of older data files
+      // Accept multiple possible keys (tolerant to older/newer JSONs)
       const onset = json.days_to_onset || json.covid_deaths_by_onset || [];
       const byMonth = json.covid_deaths_by_month || json.deaths_by_month || [];
       const byYear = json.covid_deaths_by_year || json.deaths_by_year || [];
 
-      // ---- Chart 1: Days to Onset (bins 0..19)
-      // Expected objects: { day: 0..19, count: number } or { label, count }
+      // Prepare containers first (so messages have somewhere to show)
+      const cYear  = ensureWrap("chart-by-year",   "All Deaths Reported to VAERS by Year");
+      const cMonth = ensureWrap("chart-by-month",  "COVID Vaccine Reports of Death by Month");
+      const cOnset = ensureWrap("chart-onset",     "VAERS COVID/FLU Vaccine Reported Deaths by Days to Onset (All Ages)");
+
+      // Normalize datasets
+      const yearLabels = byYear.map((d) => String(d.label ?? d.year ?? ""));
+      const yearData   = byYear.map((d) => Number(d.count || 0));
+
+      const monthLabelsRaw = byMonth.map((d) => String(d.label ?? ""));
+      const monthLabels = monthLabelsRaw.map(fmtMonth);
+      const monthData   = byMonth.map((d) => Number(d.count || 0));
+
       const onsetLabels = onset.map((d) =>
         typeof d.day === "number" ? String(d.day) : String(d.label ?? "")
       );
-      const onsetData = onset.map((d) => Number(d.count || 0));
+      const onsetData   = onset.map((d) => Number(d.count || 0));
 
-      if (onsetLabels.length && onsetData.length) {
-        const c1 = ensureWrap(
-          "chart-onset",
-          "VAERS COVID/FLU Vaccine Reported Deaths by Days to Onset (All Ages)"
-        );
-        drawBar(c1, onsetLabels, onsetData, {
-          datasetLabel: "Reports",
-          tooltipLabelPrefix: ""
-        });
+      // If arrays are empty, show a reason and bail
+      let emptyAny = false;
+      if (!yearLabels.length || !yearData.length) {
+        showUnavailable("chart-by-year", "no data");
+        emptyAny = true;
+      }
+      if (!monthLabels.length || !monthData.length) {
+        showUnavailable("chart-by-month", "no data");
+        emptyAny = true;
+      }
+      if (!onsetLabels.length || !onsetData.length) {
+        showUnavailable("chart-onset", "no data");
+        emptyAny = true;
       }
 
-      // ---- Chart 2: Deaths by Month
-      // Expected objects: { label: "YYYY-MM", count: number }
-      const monthLabelsRaw = byMonth.map((d) => String(d.label ?? ""));
-      const monthLabels = monthLabelsRaw.map(fmtMonth);
-      const monthData = byMonth.map((d) => Number(d.count || 0));
-
-      if (monthLabels.length && monthData.length) {
-        const c2 = ensureWrap("chart-by-month", "COVID Vaccine Reports of Death by Month");
-        drawBar(c2, monthLabels, monthData, {
-          datasetLabel: "Deaths",
-          tooltipLabelPrefix: ""
+      // Load Chart.js (if needed), then draw
+      return (emptyAny ? Promise.resolve() : loadChartJS())
+        .then(() => {
+          if (!emptyAny && hasChartJS()) {
+            drawBar(cYear,  yearLabels,  yearData,  { datasetLabel: "Deaths" });
+            drawBar(cMonth, monthLabels, monthData, { datasetLabel: "Deaths" });
+            drawBar(cOnset, onsetLabels, onsetData, { datasetLabel: "Reports" });
+          }
         });
-      }
-
-      // ---- Chart 3: Deaths by Year
-      // Expected objects: { label: "2021", count: number }
-      const yearLabels = byYear.map((d) => String(d.label ?? ""));
-      const yearData = byYear.map((d) => Number(d.count || 0));
-
-      if (yearLabels.length && yearData.length) {
-        const c3 = ensureWrap("chart-by-year", "All Deaths Reported to VAERS by Year");
-        drawBar(c3, yearLabels, yearData, {
-          datasetLabel: "Deaths",
-          tooltipLabelPrefix: ""
-        });
-      }
     })
     .catch((err) => {
       console.error("[vaers-charts] failed to load or render charts:", err);
+      // try to show a friendly message in all three spots
+      ["chart-by-year", "chart-by-month", "chart-onset"].forEach((id) =>
+        showUnavailable(id, "load error")
+      );
     });
 })();
