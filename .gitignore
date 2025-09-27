@@ -23,3 +23,10 @@ vaers-data/**
 data/**/*.csv
 # local backups
 public/data/*.backup.json
+# --- VAERS local data (unzipped + zips) ---
+data/raw/**
+vaers-data/**
+# stray CSVs anywhere under data/
+data/**/*.csv
+# local backups
+public/data/*.backup.json
