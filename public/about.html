@@ -56,25 +56,21 @@
     </section>
 
     <!-- VAERS Figures (Official Data) -->
-    <section id="vaers-charts-section" class="section" data-summary="/data/vaers-summary-openvaers.json">
-      <h2>VAERS Figures (Official Data)</h2>
+    <section id="vaers-charts-section" data-summary="/data/vaers-summary-openvaers.json">
+  <div class="chart-wrap" id="chart-by-year-wrap">
+    <h3>All Deaths Reported to VAERS by Year</h3>
+    <canvas id="chart-by-year" style="width:100%;height:340px;"></canvas>
+  </div>
 
-      <div class="cards">
-        <div class="card">
-          <h3>All Deaths Reported to VAERS by Year</h3>
-          <div id="chartDeathsByYear" class="viz-360" role="img" aria-label="VAERS deaths by year bar chart"></div>
-        </div>
+  <div class="chart-wrap" id="chart-by-month-wrap">
+    <h3>COVID Vaccine Reports of Death by Month</h3>
+    <canvas id="chart-by-month" style="width:100%;height:340px;"></canvas>
+  </div>
 
-        <div class="card">
-          <h3>COVID Vaccine Reports of Death by Month</h3>
-          <div id="chartCovidDeathsByMonth" class="viz-360 mt-6" role="img" aria-label="COVID vaccine deaths by month line chart"></div>
-        </div>
-
-        <div class="card">
-          <h3>VAERS COVID/FLU Vaccine Reported Deaths by Days to Onset (All Ages)</h3>
-          <div id="chartDaysToOnset" class="viz-360 mt-6" role="img" aria-label="Days to onset histogram for COVID vs Flu vaccines"></div>
-        </div>
-      </div>
+  <div class="chart-wrap" id="chart-onset-wrap">
+    <h3>VAERS COVID/FLU Vaccine Reported Deaths by Days to Onset (All Ages)</h3>
+    <canvas id="chart-onset" style="width:100%;height:340px;"></canvas>
+  </div>
 
       <h3>Breakdowns</h3>
 
