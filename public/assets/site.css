@@ -1617,3 +1617,41 @@ button[aria-label="Close navigation"] {
   }
   #vaers-breakdowns > table:first-of-type { border-top: none; }
 }
+/* ===== About page: canonical breakdown layout ===== */
+:where(#vaers-breakdowns){
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  align-items:start;           /* top-align all three columns */
+  gap:0;                       /* separators come from borders */
+}
+
+/* normalize the three tables inside */
+:where(#vaers-breakdowns) > table{
+  width:100%;
+  margin:0;                    /* kill stray margins that cause drift */
+  border-collapse:collapse;
+}
+
+/* header/body padding + alignment */
+:where(#vaers-breakdowns) thead th{
+  text-align:left;
+  padding:12px 16px;
+}
+:where(#vaers-breakdowns) tbody td{
+  padding:10px 16px;
+}
+:where(#vaers-breakdowns) th:last-child,
+:where(#vaers-breakdowns) td:last-child{
+  text-align:right;            /* “Cases” right aligned */
+  font-variant-numeric:tabular-nums;
+}
+
+/* zebra rows, matching your theme wash */
+:where(#vaers-breakdowns) tbody tr:nth-child(even){
+  background:rgba(64,120,255,.04);
+}
+
+/* mobile stack */
+@media (max-width:1024px){
+  :where(#vaers-breakdowns){ grid-template-columns:1fr; }
+}
