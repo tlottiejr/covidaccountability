@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-Build vaers-summary.json for the About page from local VAERS zip files.
+Build vaers-summary.json from local VAERS zips, aligned to OpenVAERS rules.
 
 Usage:
   python3 tools/build_vaers_summary.py \
@@ -13,72 +13,55 @@ Usage:
 
 from __future__ import annotations
 
-import argparse
-import csv
-import datetime as dt
-import io
-import json
-import os
-import shutil
-import subprocess
-import sys
-import tempfile
+import argparse, csv, datetime as dt, io, json, os, shutil, subprocess, sys, tempfile
 from collections import Counter, defaultdict
 from typing import Dict, Iterator, List, Optional, Tuple
 
-# ------------------------ helpers: parsing & normalization ------------------------
+# ------------------------ date/num helpers ------------------------
 
 def _parse_date(s: str) -> Optional[dt.date]:
-    if not s:
-        return None
+    if not s: return None
     s = s.strip()
     for fmt in ("%m/%d/%Y", "%Y-%m-%d"):
-        try:
-            return dt.datetime.strptime(s, fmt).date()
-        except Exception:
-            pass
+        try: return dt.datetime.strptime(s, fmt).date()
+        except Exception: pass
     return None
 
 def _parse_int(s: str) -> Optional[int]:
-    try:
-        return int(s)
-    except Exception:
-        return None
+    try: return int(s)
+    except Exception: return None
 
 def _month_key(d: dt.date) -> str:
     return f"{d.year:04d}-{d.month:02d}"
 
 def _normalize_sex(val: str) -> str:
-    """
-    Robust VAERS sex normalization.
-    Raw values appear as M/F/U, MALE/FEMALE/UNKNOWN, UNK, blank.
-    """
     s = (val or "").strip().upper()
-    if s in ("M", "MALE"):
-        return "Male"
-    if s in ("F", "FEMALE"):
-        return "Female"
-    if s in ("U", "UNK", "UNKNOWN", "OTHER", "OT"):
-        return "Unknown"
+    if s in ("M", "MALE"): return "Male"
+    if s in ("F", "FEMALE"): return "Female"
+    if s in ("U", "UNK", "UNKNOWN", "OTHER", "OT"): return "Unknown"
     return "Unknown"
 
-# ------------------------ zip reading with 7z fallback ------------------------
+# ------------------------ US/Territories set (OpenVAERS convention) ------------------------
+
+US_TERR = {
+    # 50 states + DC
+    "AL","AK","AZ","AR","CA","CO","CT","DE","FL","GA","HI","ID","IL","IN","IA","KS","KY","LA",
+    "ME","MD","MA","MI","MN","MS","MO","MT","NE","NV","NH","NJ","NM","NY","NC","ND","OH","OK",
+    "OR","PA","RI","SC","SD","TN","TX","UT","VT","VA","WA","WV","WI","WY","DC",
+    # Territories counted by OpenVAERS as US/Territories
+    "PR","GU","VI","AS","MP"
+}
+
+def _is_us_territory(state: str) -> bool:
+    return (state or "").strip().upper() in US_TERR
+
+# ------------------------ zip reading (with 7z fallback) ------------------------
 
 def _wrap_text(binary_stream) -> io.TextIOBase:
-    """
-    Always return a tolerant text stream (no decode crashes).
-    """
     return io.TextIOWrapper(binary_stream, encoding="utf-8-sig", errors="replace", newline="")
 
 def _iter_zip_csv(zip_path: str, name_contains: str) -> Iterator[io.TextIOBase]:
-    """
-    Yield text file handles for CSV files inside `zip_path` whose filename
-    contains `name_contains` (case-insensitive).
-    Use stdlib zipfile first; fallback to 7z for Deflate64 archives.
-    """
     import zipfile
-
-    # Try stdlib first
     try:
         with zipfile.ZipFile(zip_path) as z:
             for info in z.infolist():
@@ -88,22 +71,14 @@ def _iter_zip_csv(zip_path: str, name_contains: str) -> Iterator[io.TextIOBase]:
                     yield _wrap_text(raw)
         return
     except NotImplementedError:
-        pass  # Deflate64 etc.
-
-    # Fallback to 7z extraction
+        pass
     tmpdir = tempfile.mkdtemp(prefix="vaers7z_")
     try:
         try:
-            subprocess.run(
-                ["7z", "x", "-y", f"-o{tmpdir}", zip_path],
-                stdout=subprocess.DEVNULL,
-                stderr=subprocess.DEVNULL,
-                check=True,
-            )
+            subprocess.run(["7z","x","-y",f"-o{tmpdir}",zip_path],
+                           stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL, check=True)
         except FileNotFoundError:
-            raise RuntimeError(
-                "7z not found. Install with:\n  sudo apt-get update && sudo apt-get install -y p7zip-full"
-            )
+            raise RuntimeError("7z not found. Install: sudo apt-get update && sudo apt-get install -y p7zip-full")
         for root, _, files in os.walk(tmpdir):
             for fn in files:
                 if name_contains.lower() in fn.lower() and fn.lower().endswith(".csv"):
@@ -115,52 +90,49 @@ def _iter_zip_csv(zip_path: str, name_contains: str) -> Iterator[io.TextIOBase]:
 # ------------------------ aggregator ------------------------
 
 class Aggregator:
-    """
-    Collects aggregates required by the About page.
-    """
-
     def __init__(self) -> None:
-        # deaths by received year (domestic + foreign)
+        # All deaths by year (domestic + foreign)
         self.deaths_by_year: Counter[int] = Counter()
 
-        # covid deaths by month (total/domestic/foreign)
+        # COVID deaths by month
         self.covid_month_total: Counter[str] = Counter()
-        self.covid_month_dom: Counter[str] = Counter()
-        self.covid_month_frn: Counter[str] = Counter()
+        self.covid_month_dom: Counter[str] = Counter()   # US/Territories
+        self.covid_month_frn: Counter[str] = Counter()   # Foreign*
 
-        # domestic COVID breakdowns
+        # Domestic (US/Territories) COVID breakdowns
         self.manufacturer_dom: Counter[str] = Counter()
         self.sex_dom: Counter[str] = Counter()
         self.age_bins_dom: Counter[str] = Counter()
         self.age_total_dom: int = 0
 
-        # days to onset histograms (0..19), COVID vs FLU
+        # Days to onset histograms (0..19)
         self.days_covid: Counter[int] = Counter()
         self.days_flu: Counter[int] = Counter()
 
-        # join cache from VAERSVAX
+        # VAX joins
         self.vax_by_id_dom: Dict[int, List[Tuple[str, str]]] = defaultdict(list)
         self.vax_by_id_frn: Dict[int, List[Tuple[str, str]]] = defaultdict(list)
 
-    # -------- ingest VAX (build join) --------
-
+    # ---- VAX (join) ----
     def ingest_vax_csv(self, fh: io.TextIOBase, foreign: bool) -> None:
         reader = csv.DictReader(fh)
         target = self.vax_by_id_frn if foreign else self.vax_by_id_dom
         for row in reader:
             try:
                 vid = _parse_int(row.get("VAERS_ID") or row.get("vaers_id") or "")
-                if vid is None:
-                    continue
+                if vid is None: continue
                 vtype = (row.get("VAX_TYPE") or row.get("vax_type") or "").strip().upper()
                 vmanu = (row.get("VAX_MANU") or row.get("vax_manu") or "Unknown").strip()
                 target[vid].append((vtype, vmanu))
             except Exception:
                 continue
 
-    # -------- ingest DATA (aggregate) --------
-
-    def ingest_data_csv(self, fh: io.TextIOBase, foreign: bool) -> None:
+    # ---- DATA (aggregate) ----
+    def ingest_data_csv(self, fh: io.TextIOBase, foreign_zip: bool) -> None:
+        """
+        foreign_zip=True means NonDomestic zip (always Foreign*).
+        For domestic zip, we classify per record using STATE into US/Territories vs Foreign*.
+        """
         reader = csv.DictReader(fh)
         for row in reader:
             try:
@@ -172,29 +144,43 @@ class Aggregator:
                 if (row.get("DIED") or row.get("died") or "").strip().upper() != "Y":
                     continue
 
+                # Year (all)
                 recv = _parse_date(row.get("RECVDATE") or row.get("recvdate") or "")
                 if recv:
                     self.deaths_by_year[recv.year] += 1
 
-                # Determine days to onset
-                vax_date = _parse_date(row.get("VAX_DATE") or row.get("vax_date") or "")
-                onset_date = _parse_date(row.get("ONSET_DATE") or row.get("onset_date") or "")
-                numdays = _parse_int(row.get("NUMDAYS") or row.get("numdays") or "")
-                days = (onset_date - vax_date).days if (vax_date and onset_date) else numdays
-
-                # Vaccines attached to this report
-                vlist = (self.vax_by_id_frn if foreign else self.vax_by_id_dom).get(vid, [])
+                # Join vaccines
+                vlist = (self.vax_by_id_frn if foreign_zip else self.vax_by_id_dom).get(vid, [])
                 has_covid = any(vt == "COVID19" for vt, _ in vlist)
                 has_flu   = any(vt == "FLU"     for vt, _ in vlist)
 
-                # Monthly COVID deaths
+                # Days to onset
+                vax_date   = _parse_date(row.get("VAX_DATE") or row.get("vax_date") or "")
+                onset_date = _parse_date(row.get("ONSET_DATE") or row.get("onset_date") or "")
+                numdays    = _parse_int(row.get("NUMDAYS")   or row.get("numdays")   or "")
+                days = (onset_date - vax_date).days if (vax_date and onset_date) else numdays
+                if days is not None and 0 <= days <= 19:
+                    if has_covid: self.days_covid[days] += 1
+                    if has_flu:   self.days_flu[days]   += 1
+
+                # US/Territories vs Foreign* classification (OpenVAERS style)
+                if foreign_zip:
+                    is_us_terr = False
+                else:
+                    state = (row.get("STATE") or row.get("state") or "").strip().upper()
+                    is_us_terr = _is_us_territory(state)
+
+                # Monthly COVID
                 if recv and has_covid:
                     mk = _month_key(recv)
                     self.covid_month_total[mk] += 1
-                    (self.covid_month_frn if foreign else self.covid_month_dom)[mk] += 1
+                    if is_us_terr:
+                        self.covid_month_dom[mk] += 1
+                    else:
+                        self.covid_month_frn[mk] += 1
 
-                # Domestic-only breakdowns for COVID
-                if not foreign and has_covid:
+                # Breakdowns are COVID, US/Territories only
+                if has_covid and is_us_terr:
                     # manufacturer (unique per report)
                     seen = set()
                     for vt, manu in vlist:
@@ -204,59 +190,47 @@ class Aggregator:
                                 self.manufacturer_dom[key] += 1
                                 seen.add(key)
 
-                    # ✅ Correct sex normalization
+                    # sex
                     sex = _normalize_sex(row.get("SEX") or row.get("sex"))
                     self.sex_dom[sex] += 1
 
                     # age bins
                     age_years = None
-                    try:
-                        age_years = float(row.get("AGE_YRS") or row.get("age_yrs") or "")
-                    except Exception:
-                        pass
-
-                    bin_label = "Unknown"
+                    try: age_years = float(row.get("AGE_YRS") or row.get("age_yrs") or "")
+                    except Exception: pass
+                    label = "Unknown"
                     if age_years is not None:
                         a = age_years
-                        if 0 <= a <= 5: bin_label = "0-5"
-                        elif a <= 12:   bin_label = "5-12"
-                        elif a <= 25:   bin_label = "12-25"
-                        elif a <= 51:   bin_label = "25-51"
-                        elif a <= 66:   bin_label = "51-66"
-                        elif a <= 81:   bin_label = "66-81"
-                        elif a <= 121:  bin_label = "81-121"
-                        else:           bin_label = "Unknown"
-                    self.age_bins_dom[bin_label] += 1
+                        if 0 <= a <= 5: label = "0-5"
+                        elif a <= 12:  label = "5-12"
+                        elif a <= 25:  label = "12-25"
+                        elif a <= 51:  label = "25-51"
+                        elif a <= 66:  label = "51-66"
+                        elif a <= 81:  label = "66-81"
+                        elif a <= 121: label = "81-121"
+                        else:          label = "Unknown"
+                    self.age_bins_dom[label] += 1
                     self.age_total_dom += 1
-
-                # days to onset histograms
-                if days is not None and 0 <= days <= 19:
-                    if has_covid: self.days_covid[days] += 1
-                    if has_flu:   self.days_flu[days] += 1
 
             except Exception:
                 continue
 
-    # -------- export --------
-
+    # ---- export ----
     def to_summary(self) -> dict:
-        # deaths by year
-        years_pairs = [[y, c] for y, c in sorted(self.deaths_by_year.items())]
-
-        # monthly helpers
         def _pairs(counter: Counter[str]) -> List[List[object]]:
             return [[k, counter[k]] for k in sorted(counter.keys())]
 
-        # breakdown helpers
         def _bkd(counter: Counter[str]) -> List[dict]:
             items = sorted(counter.items(), key=lambda kv: (-kv[1], kv[0]))
             return [{"category": k, "count": v} for k, v in items]
+
+        years_pairs = [[y, c] for y, c in sorted(self.deaths_by_year.items())]
 
         # days to onset 0..19
         covid_pairs = [[i, self.days_covid.get(i, 0)] for i in range(0, 20)]
         flu_pairs   = [[i, self.days_flu.get(i, 0)]   for i in range(0, 20)]
 
-        # age list with guaranteed order + "All Ages"
+        # age ordered + All Ages
         age_list = _bkd(self.age_bins_dom)
         desired = ["0-5","5-12","12-25","25-51","51-66","66-81","81-121","Unknown"]
         present = {e["category"] for e in age_list}
@@ -269,8 +243,7 @@ class Aggregator:
         return {
             "reports_by_year": {
                 "deaths_by_year": {"all": years_pairs},
-                # compatibility keys (older front-end fallbacks)
-                "deaths": {"all": years_pairs},
+                "deaths": {"all": years_pairs},  # legacy key used by old JS
                 "all": years_pairs,
             },
             "covid_deaths_by_month": {
@@ -278,7 +251,7 @@ class Aggregator:
                 "us_territories": _pairs(self.covid_month_dom),
                 "foreign": _pairs(self.covid_month_frn),
             },
-            "days_to_onset": { "covid": covid_pairs, "flu": flu_pairs },
+            "days_to_onset": {"covid": covid_pairs, "flu": flu_pairs},
             "covid_deaths_breakdowns": {
                 "manufacturer": _bkd(self.manufacturer_dom),
                 "sex": _bkd(self.sex_dom),
@@ -286,70 +259,44 @@ class Aggregator:
             },
         }
 
-# ------------------------ orchestration ------------------------
+# ------------------------ pipeline ------------------------
 
 def summarize(dom_zip: str, frn_zip: str) -> dict:
     agg = Aggregator()
-
-    # Build joins first (VAX tables)
-    for fh in _iter_zip_csv(dom_zip, "VAERSVAX"):
+    # build joins first
+    for fh in _iter_zip_csv(dom_zip, "VAERSVAX"):  ############ domestic
         with fh: agg.ingest_vax_csv(fh, foreign=False)
-    for fh in _iter_zip_csv(frn_zip, "VAERSVAX"):
+    for fh in _iter_zip_csv(frn_zip, "VAERSVAX"):  ############ foreign
         with fh: agg.ingest_vax_csv(fh, foreign=True)
-
-    # Aggregate data (DATA tables)
+    # then data
     for fh in _iter_zip_csv(dom_zip, "VAERSDATA"):
-        with fh: agg.ingest_data_csv(fh, foreign=False)
+        with fh: agg.ingest_data_csv(fh, foreign_zip=False)
     for fh in _iter_zip_csv(frn_zip, "VAERSDATA"):
-        with fh: agg.ingest_data_csv(fh, foreign=True)
-
+        with fh: agg.ingest_data_csv(fh, foreign_zip=True)
     return agg.to_summary()
 
-# ------------------------ CLI ------------------------
-
 def main() -> None:
-    ap = argparse.ArgumentParser(description="Build VAERS summary JSON for About page (offline).")
-    ap.add_argument("--dom", required=True, help="Path to domestic VAERS zip (AllVAERSDataCSVS.zip)")
-    ap.add_argument("--frn", required=True, help="Path to non-domestic VAERS zip (NonDomesticVAERSDATA.zip)")
-    ap.add_argument("--out", required=True, help="Output JSON path (e.g., public/data/vaers-summary.json)")
+    ap = argparse.ArgumentParser(description="Build VAERS summary JSON for About page.")
+    ap.add_argument("--dom", required=True)
+    ap.add_argument("--frn", required=True)
+    ap.add_argument("--out", required=True)
     args = ap.parse_args()
 
     dom = os.path.abspath(args.dom)
     frn = os.path.abspath(args.frn)
     out = os.path.abspath(args.out)
 
-    if not os.path.exists(dom):
-        sys.exit(f"Domestic zip not found: {dom}")
-    if not os.path.exists(frn):
-        sys.exit(f"Foreign zip not found: {frn}")
+    if not os.path.exists(dom): sys.exit(f"Domestic zip not found: {dom}")
+    if not os.path.exists(frn): sys.exit(f"Foreign zip not found: {frn}")
 
-    print("[stage] indexing types/dates/manufacturers…", file=sys.stderr)
-    summary = summarize(dom, frn)
-
-    payload = {
-        "provenance": {
-            "built_at_utc": dt.datetime.utcnow().isoformat(timespec="seconds") + "Z",
-            "inputs": {"dom": dom, "frn": frn},
-            "builder": "tools/build_vaers_summary.py",
-            "notes": (
-                "Counts DIED=='Y'. Domestic=domestic ZIP; Foreign=non-domestic ZIP. "
-                "COVID/FLU via VAX_TYPE. Days-to-onset from ONSET_DATE - VAX_DATE or NUMDAYS. "
-                "Sex normalized from VAERS values (M/F/U, MALE/FEMALE/UNKNOWN, UNK)."
-            ),
-        },
-        **summary,
-    }
+    print("[stage] building summary aligned to OpenVAERS…", file=sys.stderr)
+    payload = summarize(dom, frn)
 
     os.makedirs(os.path.dirname(out), exist_ok=True)
     with open(out, "w", encoding="utf-8") as f:
-        json.dump(payload, f, ensure_ascii=False, separators=(",", ":"), indent=2)
+        json.dump(payload, f, ensure_ascii=False, indent=2, separators=(",", ":"))
 
-    ry = payload["reports_by_year"]["deaths_by_year"]["all"]
-    cm = payload["covid_deaths_by_month"]["total"]
-    mf = payload["covid_deaths_breakdowns"]["manufacturer"]
-    sx = payload["covid_deaths_breakdowns"]["sex"]
     print(f"[done] wrote {out}", file=sys.stderr)
-    print(f"  years={len(ry)}  months={len(cm)}  manuf={len(mf)}  sex={sx}", file=sys.stderr)
 
 if __name__ == "__main__":
     main()
