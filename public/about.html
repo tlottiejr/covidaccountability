@@ -58,6 +58,61 @@
         </li>
       </ol>
     </section>
+
+    <!-- Official Mortality Charts (Screenshots) -->
+    <section class="card" id="vaers-screenshots">
+      <h2>VAERS Mortality Charts (Screenshots)</h2>
+      <p class="muted">Updated monthly. Each image links to the official OpenVAERS source.</p>
+
+      <!-- Responsive grid of cards; newest month first -->
+      <div class="grid" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:16px;align-items:start;">
+
+        <!-- === SEPTEMBER 2025 === -->
+        <figure class="card" style="padding:0;" data-month="2025-09">
+          <a href="https://openvaers.com/covid-data/mortality" target="_blank" rel="noopener noreferrer">
+            <img src="/images/vaers/2025-09/by-year.png"
+                 alt="All Deaths Reported to VAERS by Year — screenshot, September 2025"
+                 style="display:block;width:100%;height:auto;border-radius:12px 12px 0 0;">
+          </a>
+          <figcaption style="padding:12px 14px;">
+            <div><strong>All Deaths Reported to VAERS by Year</strong></div>
+            <div class="muted" style="font-size:0.95rem;">September 2025 — Source: OpenVAERS</div>
+          </figcaption>
+        </figure>
+
+        <figure class="card" style="padding:0;" data-month="2025-09">
+          <a href="https://openvaers.com/covid-data/mortality" target="_blank" rel="noopener noreferrer">
+            <img src="/images/vaers/2025-09/deaths-by-month.png"
+                 alt="COVID Vaccine Reports of Death by Month — screenshot, September 2025"
+                 style="display:block;width:100%;height:auto;border-radius:12px 12px 0 0;">
+          </a>
+          <figcaption style="padding:12px 14px;">
+            <div><strong>COVID Vaccine Reports of Death by Month</strong></div>
+            <div class="muted" style="font-size:0.95rem;">September 2025 — Source: OpenVAERS</div>
+          </figcaption>
+        </figure>
+
+        <figure class="card" style="padding:0;" data-month="2025-09">
+          <a href="https://openvaers.com/covid-data/mortality" target="_blank" rel="noopener noreferrer">
+            <img src="/images/vaers/2025-09/days-to-onset.png"
+                 alt="Reported Deaths by Days to Onset (All Ages) — screenshot, September 2025"
+                 style="display:block;width:100%;height:auto;border-radius:12px 12px 0 0;">
+          </a>
+          <figcaption style="padding:12px 14px;">
+            <div><strong>Reported Deaths by Days to Onset (All Ages)</strong></div>
+            <div class="muted" style="font-size:0.95rem;">September 2025 — Source: OpenVAERS</div>
+          </figcaption>
+        </figure>
+
+        <!-- Add future months above this comment (duplicate 3x <figure>, update data-month, paths, and month text) -->
+
+      </div>
+
+      <p class="muted" style="margin-top:12px;">
+        Note: These are screenshots of the official page. Click any image to view the live source.
+      </p>
+    </section>
+
     <footer class="container">
       <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>
     </footer>
