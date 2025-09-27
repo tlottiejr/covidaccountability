@@ -7,11 +7,11 @@
   <title>About Us — COVIDAccountabilityNow</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" crossorigin>
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link rel="stylesheet" href="/assets/site.css?v=52a85ffaa57099ea63b7f482e47b0ac5402e527d"/>
+  <link rel="stylesheet" href="/assets/site.css"/>
 </head>
 <body>
   <div id="nav-root"></div>
-  <script src="/assets/nav-include.js?v=52a85ffaa57099ea63b7f482e47b0ac5402e527d" defer></script>
+  <script src="/assets/nav-include.js" defer></script>
 
   <main class="container">
     <section class="card">
@@ -36,17 +36,20 @@
         <li>Critical thinking and proper scientific methodology in vaccine clinical research.</li>
         <li>Physician competency at benefit-risk assessment regarding new medical treatments.</li>
         <li>Physician competency at communicating risks and benefits to patients.</li>
-        <li>Ethical behavior in medicine, including respect for patient autonomy and informed consent or refusal.</li>
+        <li>Ethical behavior in medicine, including respect for patient autonomy and informed
+            consent or refusal.</li>
       </ol>
     </section>
 
     <section class="card">
       <h2>Goals</h2>
       <ol>
-        <li>Facilitate wider public attention to and transparency for problems associated with the gene based treatment.</li>
+        <li>Facilitate wider public attention to and transparency for problems associated with the
+            gene based treatment.</li>
         <li>Expand funding for nonprofit organizations attempting to assist those in need.</li>
         <li>Decelerate the ongoing morbidity and mortality associated with this treatment.</li>
-        <li>Foster physician reeducation involving basic interpretation of the medical literature and medical ethics.</li>
+        <li>Foster physician reeducation involving basic interpretation of the medical literature
+            and medical ethics for the general benefit of public health.</li>
         <li>Curtail misinformation spread by public health <a href="https://www.whitehouse.gov/wp-content/uploads/2024/05/NATIONAL-BIODEFENSE-POSTURE-—-Report-on-Lessons-Learned-and-the-Path-Forward.pdf">officials.</a></li>
         <li>Prevent future “mass iatrogenic” <a href="https://www.researchgate.net/publication/374768240_Does_COVID-19_vaccination_increase_age-adjusted_mortality_A_preliminary_analysis_of_age-adjusted_mortality_in_the_Southern_Hemisphere">events.</a></li>
       </ol>
@@ -73,13 +76,32 @@
         </div>
       </div>
 
-      <!-- The breakdowns CSS in /assets/site.css targets #vaers-breakdowns directly
-           and expects THREE <table> siblings (no extra wrappers). -->
       <h3>Breakdowns</h3>
+
+      <!-- SCOPED OVERRIDE: forces exact 3-column, top-aligned layout on this page only -->
+      <style>
+        #vaers-breakdowns{
+          display:grid !important;
+          grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+          align-items:start !important;
+          gap:0 !important;
+        }
+        #vaers-breakdowns>table{
+          display:table !important;
+          width:100% !important;
+          margin:0 !important;
+          border-collapse:collapse !important;
+        }
+        #vaers-breakdowns thead th{ text-align:left !important; padding:12px 16px !important; }
+        #vaers-breakdowns tbody td{ padding:10px 16px !important; }
+        #vaers-breakdowns th:last-child,
+        #vaers-breakdowns td:last-child{ text-align:right !important; font-variant-numeric:tabular-nums !important; }
+        #vaers-breakdowns tbody tr:nth-child(even){ background:rgba(64,120,255,.04) !important; }
+      </style>
+
       <div id="vaers-breakdowns" class="mt-6"></div>
     </section>
 
-    <!-- Page-local helpers (heights only) -->
     <style>
       .viz-360 { position: relative; width: 100%; min-height: 320px; height: 360px; }
       .viz-360 > canvas { width: 100% !important; height: 100% !important; display: block; }
@@ -91,9 +113,9 @@
         window.VAERS_SUMMARY_URL || null;
     </script>
 
-    <script src="/assets/vendor/echarts.min.js?v=52a85ffaa57099ea63b7f482e47b0ac5402e527d" defer></script>
-    <script src="/assets/js/vaers-charts.js?v=52a85ffaa57099ea63b7f482e47b0ac5402e527d" defer></script>
-    <script src="/assets/js/vaers-tables.js?v=52a85ffaa57099ea63b7f482e47b0ac5402e527d" defer></script>
+    <script src="/assets/vendor/echarts.min.js" defer></script>
+    <script src="/assets/js/vaers-charts.js" defer></script>
+    <script src="/assets/js/vaers-tables.js" defer></script>
 
     <footer class="container">
       <a href="/privacy.html">Privacy</a>&nbsp;&middot;&nbsp;<a href="/disclaimer.html">Disclaimer</a>

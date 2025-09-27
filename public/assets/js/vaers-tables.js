@@ -12,7 +12,6 @@
     })
     .then((summary) => {
       const b = summary?.covid_deaths_breakdowns || {};
-
       const manufacturers = normalize(b.manufacturer);
       const sex = order(normalize(b.sex), ["Female", "Male", "Unknown"]);
       const age = order(
@@ -22,12 +21,8 @@
 
       root.innerHTML =
         table("Manufacturer", manufacturers) +
-        table("Sex", sex) +
-        table("Age", age);
-
-      // Remove any nearby placeholder note if present
-      const note = root.nextElementSibling;
-      if (note && note.classList?.contains("vaers-note")) note.remove();
+        table("Sex",           sex) +
+        table("Age",           age);
     })
     .catch((e) => {
       console.error("breakdowns:", e);
@@ -37,11 +32,11 @@
   function normalize(rows = []) {
     return rows
       .map((row) => {
-        if (Array.isArray(row)) return { category: String(row[0] ?? "Unknown"), count: num(row[1]) };
+        if (Array.isArray(row)) return { category: String(row[0] ?? "Unknown"), count: toNum(row[1]) };
         if (row && typeof row === "object") {
           const k = row.category ?? row.key ?? "Unknown";
           const v = row.count ?? row.value ?? 0;
-          return { category: String(k), count: num(v) };
+          return { category: String(k), count: toNum(v) };
         }
         return { category: "Unknown", count: 0 };
       })
@@ -58,17 +53,19 @@
     });
   }
 
+  // Renders a two-column table with fixed-like column widths via colgroup
   function table(title, rows) {
     const head = `<thead><tr><th>${esc(title)}</th><th>Cases</th></tr></thead>`;
     const body =
       "<tbody>" +
-      rows.map((r) => `<tr><td>${esc(r.category)}</td><td class="cases">${fmt(r.count)}</td></tr>`).join("") +
+      rows.map((r) => `<tr><td>${esc(r.category)}</td><td>${fmt(r.count)}</td></tr>`).join("") +
       "</tbody>";
-    return `<table class="stats-table" aria-label="${esc(title)} breakdown">${head}${body}</table>`;
+    // 1st column flexes, 2nd column is ~110px to keep numbers aligned
+    const cols = `<colgroup><col style="width:auto"><col style="width:110px"></colgroup>`;
+    return `<table class="stats-table" aria-label="${esc(title)} breakdown">${cols}${head}${body}</table>`;
   }
 
-  const num = (v) => (v == null ? 0 : Number(v));
+  const toNum = (v) => (v == null ? 0 : Number(v));
   const fmt = (n) => Number(n || 0).toLocaleString();
   const esc = (s) => String(s).replace(/[&<>"']/g, (m) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[m]));
 })();
-// End public/assets/js/vaers-tables.js
