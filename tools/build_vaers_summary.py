@@ -201,10 +201,16 @@ class Aggregator:
                                 self.manufacturer_dom[key] += 1
                                 seen.add(key)
 
-                    sex = (row.get("SEX") or row.get("sex") or "Unknown").strip().title()
-                    if sex not in ("Male", "Female"):
+                    # sex (map VAERS M/F/U -> Male/Female/Unknown)
+                    raw_sex = (row.get("SEX") or row.get("sex") or "").strip().upper()
+                    if raw_sex == "M":
+                        sex = "Male"
+                    elif raw_sex == "F":
+                        sex = "Female"
+                    else:
                         sex = "Unknown"
                     self.sex_dom[sex] += 1
+
 
                     # age bins
                     age_years = None
