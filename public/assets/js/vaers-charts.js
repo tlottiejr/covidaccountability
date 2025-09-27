@@ -71,14 +71,23 @@
     const j = await getData();
 
     // Year (all vaccines, by DATEDIED year)
-    const ySeries = (j.covid_deaths_by_year || []).map(o => ({ label: String(o.label), count: Number(o.count||0) }))
-      .sort((a,b)=>Number(a.label)-Number(b.label));
+    const yPairs  = j?.reports_by_year?.deaths_by_year?.all || [];
+   const ySeries = yPairs.map(([year, count]) => ({
+     label: String(year),
+     count: Number(count || 0),
+  })).sort((a,b)=> Number(a.label) - Number(b.label));
     // Month (COVID only, by RECVDATE)
     const mSeries = (j.covid_deaths_by_month || []).map(o => ({ label: String(o.label), count: Number(o.count||0) }))
       .sort((a,b)=>a.label.localeCompare(b.label));
     // Onset (COVID/FLU, 0..19 + "20+")
-    const oSeries = (j.days_to_onset || []).map(o => ({ label: (o.day==="20+"?"20+":String(o.day)), count: Number(o.count||0) }))
-      .sort((a,b)=> (a.label==="20+"?1e9:Number(a.label)) - (b.label==="20+"?1e9:Number(b.label)));
+    const oSeries = (j.days_to_onset || []).map(o => ({
+   label: (o.day === "20+" ? "20+" : String(o.day)),
+   count: Number(o.count || 0)
+})).sort((a,b) => {
+  const ax = a.label === "20+" ? Number.POSITIVE_INFINITY : Number(a.label);
+  const bx = b.label === "20+" ? Number.POSITIVE_INFINITY : Number(b.label);
+  return ax - bx;
+});
 
     const cYear  = document.getElementById("chart-by-year");
     const cMonth = document.getElementById("chart-by-month");

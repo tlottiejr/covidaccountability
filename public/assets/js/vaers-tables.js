@@ -18,13 +18,11 @@
     document.getElementById("vaers-charts-section") ||
     document.querySelector("[data-summary]");
 
-  const DATA_URL =
-    (SECTION && SECTION.dataset && SECTION.dataset.summary) ||
+  const section = document.getElementById("vaers-charts-section");
+  const url =
     (typeof window !== "undefined" && window.VAERS_SUMMARY_URL) ||
-    "/data/vaers-summary.json";
-  try {
-    console.log("[vaers-tables] data URL:", DATA_URL);
-  } catch (_) {}
+    (section && section.getAttribute("data-summary")) ||
+    "/data/vaers-summary-openvaers.json";
 
   // ------- Small DOM helpers
   const el = (tag, props = {}) => Object.assign(document.createElement(tag), props);
